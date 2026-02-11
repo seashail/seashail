@@ -1,0 +1,74 @@
+---
+title: Chains
+description: Chain identifiers, network mode defaults, and RPC configuration.
+---
+
+Most Seashail tools accept a `chain` argument. The `chain` value must match Seashail's configured identifiers.
+
+## Default Chain Identifiers
+
+Solana:
+
+- `solana`
+
+EVM mainnets:
+
+- `ethereum` (chain id 1)
+- `base` (8453)
+- `arbitrum` (42161)
+- `optimism` (10)
+- `polygon` (137)
+- `bnb` (56)
+- `avalanche` (43114)
+- `monad` (143)
+
+EVM testnets:
+
+- `sepolia` (11155111)
+- `base-sepolia` (84532)
+- `arbitrum-sepolia` (421614)
+- `optimism-sepolia` (11155420)
+- `polygon-amoy` (80002)
+- `bnb-testnet` (97)
+- `avalanche-fuji` (43113)
+- `monad-testnet` (10143)
+
+If you are unsure what your local Seashail instance is configured with, call:
+
+- `get_capabilities`
+
+## Network Mode Defaults
+
+Network mode is a convenience setting that affects which chains Seashail uses when a tool omits `chain` / `chains`.
+
+- `mainnet` defaults to: `solana` plus all configured EVM **mainnets**
+- `testnet` defaults to: `solana` plus all configured EVM **testnets**
+
+Network mode does not block explicit selection. If a tool passes `chain="ethereum"`, Seashail will use Ethereum regardless of mode.
+
+## RPC Configuration
+
+You can override RPC endpoints with:
+
+- `configure_rpc`
+
+Notes:
+
+- `configure_rpc` supports `chain="solana"` and any EVM chain that already exists in your `config.toml`.
+- `configure_rpc` does not add new EVM chains. To add a new EVM chain, you must edit `config.toml` to include both:
+  - `[rpc.evm_rpc_urls]`
+  - `[rpc.evm_chain_ids]`
+
+## Adding New EVM Chains (Config File)
+
+In `config.toml`, add entries like:
+
+```toml
+[rpc.evm_rpc_urls]
+mychain = "https://..."
+
+[rpc.evm_chain_ids]
+mychain = 12345
+```
+
+After updating config, Seashail will treat `chain="mychain"` as an EVM chain for tools that support EVM.

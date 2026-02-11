@@ -1,0 +1,30 @@
+{
+  "name": "@seashail/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Run the Seashail MCP server in one line (npx).",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seashail/seashail.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "seashail-mcp": "bin/seashail-mcp.mjs"
+  },
+  "files": [
+    "README.md",
+    "bin/**/*"
+  ],
+  "scripts": {
+    "build": "echo \"no build\"",
+    "test": "echo \"no tests\"",
+    "lint": "echo \"no lint\"",
+    "format": "echo \"no format\"",
+    "format:check": "echo \"no format\"",
+    "check-types": "echo \"no types\""
+  }
+}
+

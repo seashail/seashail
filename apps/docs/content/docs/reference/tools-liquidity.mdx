@@ -1,0 +1,309 @@
+---
+title: "Tools: Liquidity"
+description: Provide and remove liquidity on Uniswap LP and Orca LP via transaction envelopes.
+---
+
+Liquidity tools manage AMM positions via transaction envelopes. All tools require [policy approval](/docs/reference/tools-policy). Venue is auto-selected by chain when omitted (EVM defaults to Uniswap LP, Solana defaults to Orca LP).
+
+## provide_liquidity
+
+Add liquidity to an AMM pool. Executes a transaction envelope — the agent or a configured adapter must construct the transaction.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: 'Chain to execute on: "solana" or an EVM chain name.',
+      required: true,
+    },
+    venue: {
+      type: '"auto" | "uniswap_lp" | "orca_lp"',
+      description:
+        "Venue selection. If omitted, defaults by chain: EVM defaults to Uniswap LP, Solana defaults to Orca LP.",
+      default: '"auto"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Override flag indicating whether usd_value is known. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+    to: {
+      type: "string",
+      description:
+        "EVM: transaction recipient/contract address for the liquidity pool interaction.",
+    },
+    data: {
+      type: "string",
+      description: "EVM: 0x-prefixed calldata for addLiquidity call.",
+    },
+    value_wei: {
+      type: "string",
+      description:
+        "EVM: value in wei as a decimal string (for native token liquidity).",
+      default: '"0"',
+    },
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana: base64-encoded VersionedTransaction bytes (unsigned; Seashail will sign).",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana: allowlist of program IDs. Every instruction program id must be in this list.",
+    },
+    asset: {
+      type: "object",
+      description:
+        "Protocol-specific request object used by an optional adapter to construct a tx envelope.",
+    },
+  }}
+/>
+
+### Per-Venue Behavior
+
+<Tabs items={["Uniswap LP (EVM)", "Orca LP (Solana)"]}>
+  <Tab value="Uniswap LP (EVM)">
+    - Default venue for EVM chains when `venue` is omitted - Provide: Supply EVM
+    envelope (`to` + `data` + `value_wei`) for addLiquidity call - The agent or
+    adapter must construct the transaction envelope with the pool contract
+    address and calldata - May involve approvals for ERC-20 tokens —
+    agent/adapter should handle this separately or include in envelope -
+    Supported on Ethereum, Base, Arbitrum, Optimism, Polygon, BNB, Avalanche
+  </Tab>
+  <Tab value="Orca LP (Solana)">
+    - Default venue for Solana when `venue` is omitted - Provide: Supply Solana
+    envelope (`tx_b64` + `allowed_program_ids`) - The agent or adapter must
+    construct the transaction envelope with Orca LP program instructions -
+    `allowed_program_ids` must include Orca LP program ID for security -
+    Supported on Solana mainnet
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "chain": "base",
+  "venue": "uniswap_lp",
+  "txid": "0xabc...txhash",
+  "usd_value": 100.0
+}
+```
+
+Response shape is representative; actual fields may vary by venue. Solana returns `signature` instead of `txid`.
+
+### Examples
+
+<Tabs items={["EVM Envelope (Uniswap)", "Solana Envelope (Orca)"]}>
+  <Tab value="EVM Envelope (Uniswap)">
+    ```json
+    {
+      "chain": "base",
+      "venue": "uniswap_lp",
+      "to": "0xPoolContractAddress",
+      "data": "0xabc123...",
+      "value_wei": "0",
+      "usd_value": 100.0,
+      "usd_value_known": true
+    }
+    ```
+
+    The `to` field is the Uniswap pool or router contract address. The `data` field contains the encoded addLiquidity call.
+
+  </Tab>
+  <Tab value="Solana Envelope (Orca)">
+    ```json
+    {
+      "chain": "solana",
+      "venue": "orca_lp",
+      "tx_b64": "AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9A...",
+      "allowed_program_ids": ["9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP"],
+      "usd_value": 200.0,
+      "usd_value_known": true
+    }
+    ```
+
+    The `tx_b64` field contains the base64-encoded unsigned transaction. The `allowed_program_ids` must include the Orca LP program ID.
+
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- **Envelope-only execution:** These tools execute a transaction envelope. There is no native execution path. The agent or a configured adapter must provide the transaction envelope via envelope fields (`to`, `data`, `value_wei` for EVM; `tx_b64`, `allowed_program_ids` for Solana).
+- **Adapter support:** If no envelope fields are provided, Seashail uses a marketplace adapter (if configured) to fetch the transaction. If no adapter is configured and no envelope is provided, the tool returns an error.
+- **Venue auto-selection:** If `venue` is omitted, Seashail selects by chain (EVM → Uniswap LP, Solana → Orca LP).
+- See also: [DeFi Guide](/docs/guides/defi)
+
+---
+
+## remove_liquidity
+
+Remove liquidity from an AMM pool. Executes a transaction envelope — the agent or a configured adapter must construct the transaction.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: 'Chain to execute on: "solana" or an EVM chain name.',
+      required: true,
+    },
+    venue: {
+      type: '"auto" | "uniswap_lp" | "orca_lp"',
+      description:
+        "Venue selection. If omitted, defaults by chain: EVM defaults to Uniswap LP, Solana defaults to Orca LP.",
+      default: '"auto"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Override flag indicating whether usd_value is known. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+    to: {
+      type: "string",
+      description:
+        "EVM: transaction recipient/contract address for the liquidity pool interaction.",
+    },
+    data: {
+      type: "string",
+      description: "EVM: 0x-prefixed calldata for removeLiquidity call.",
+    },
+    value_wei: {
+      type: "string",
+      description:
+        "EVM: value in wei as a decimal string (usually 0 for remove).",
+      default: '"0"',
+    },
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana: base64-encoded VersionedTransaction bytes (unsigned; Seashail will sign).",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana: allowlist of program IDs. Every instruction program id must be in this list.",
+    },
+    asset: {
+      type: "object",
+      description:
+        "Protocol-specific request object used by an optional adapter to construct a tx envelope.",
+    },
+  }}
+/>
+
+### Per-Venue Behavior
+
+<Tabs items={["Uniswap LP (EVM)", "Orca LP (Solana)"]}>
+  <Tab value="Uniswap LP (EVM)">
+    - Default venue for EVM chains when `venue` is omitted - Remove: Supply EVM
+    envelope (`to` + `data` + `value_wei`) for removeLiquidity call - The agent
+    or adapter must construct the transaction envelope with the pool contract
+    address and calldata - Returns underlying tokens to the wallet - Supported
+    on Ethereum, Base, Arbitrum, Optimism, Polygon, BNB, Avalanche
+  </Tab>
+  <Tab value="Orca LP (Solana)">
+    - Default venue for Solana when `venue` is omitted - Remove: Supply Solana
+    envelope (`tx_b64` + `allowed_program_ids`) - The agent or adapter must
+    construct the transaction envelope with Orca LP program instructions -
+    `allowed_program_ids` must include Orca LP program ID for security - Returns
+    underlying tokens to the wallet - Supported on Solana mainnet
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "chain": "base",
+  "venue": "uniswap_lp",
+  "txid": "0xabc...txhash",
+  "usd_value": 100.0
+}
+```
+
+Response shape is representative; actual fields may vary by venue. Solana returns `signature` instead of `txid`.
+
+### Examples
+
+<Tabs items={["EVM Envelope (Uniswap)", "Solana Envelope (Orca)"]}>
+  <Tab value="EVM Envelope (Uniswap)">
+    ```json
+    {
+      "chain": "base",
+      "venue": "uniswap_lp",
+      "to": "0xPoolContractAddress",
+      "data": "0xdef456...",
+      "value_wei": "0",
+      "usd_value": 100.0,
+      "usd_value_known": true
+    }
+    ```
+
+    The `to` field is the Uniswap pool or router contract address. The `data` field contains the encoded removeLiquidity call.
+
+  </Tab>
+  <Tab value="Solana Envelope (Orca)">
+    ```json
+    {
+      "chain": "solana",
+      "venue": "orca_lp",
+      "tx_b64": "AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9A...",
+      "allowed_program_ids": ["9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP"],
+      "usd_value": 200.0,
+      "usd_value_known": true
+    }
+    ```
+
+    The `tx_b64` field contains the base64-encoded unsigned transaction. The `allowed_program_ids` must include the Orca LP program ID.
+
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- **Envelope-only execution:** These tools execute a transaction envelope. There is no native execution path. The agent or a configured adapter must provide the transaction envelope via envelope fields (`to`, `data`, `value_wei` for EVM; `tx_b64`, `allowed_program_ids` for Solana).
+- **Adapter support:** If no envelope fields are provided, Seashail uses a marketplace adapter (if configured) to fetch the transaction. If no adapter is configured and no envelope is provided, the tool returns an error.
+- **Venue auto-selection:** If `venue` is omitted, Seashail selects by chain (EVM → Uniswap LP, Solana → Orca LP).
+- See also: [DeFi Guide](/docs/guides/defi)

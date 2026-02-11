@@ -1,0 +1,41 @@
+{
+  "name": "@seashail/docs",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare-content": "fumadocs-mdx",
+    "dev": "bun run prepare-content && next dev --port=4000",
+    "build": "bun run prepare-content && next build",
+    "start": "next start",
+    "check-types": "bun run prepare-content && tsc --noEmit",
+    "postinstall": "bun run prepare-content",
+    "lint": "oxlint",
+    "format": "oxfmt --ignore-path ../../.gitignore --write .",
+    "format:check": "oxfmt --ignore-path ../../.gitignore --check ."
+  },
+  "dependencies": {
+    "@seashail/shared": "workspace:*",
+    "@seashail/web-theme": "workspace:*",
+    "@sinclair/typebox": "0.34.48",
+    "@t3-oss/env-nextjs": "^0.13.10",
+    "fumadocs-core": "^16.5.0",
+    "fumadocs-mdx": "14.2.7",
+    "fumadocs-ui": "^16.5.1",
+    "next": "^16.1.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "oxfmt": "latest",
+    "oxlint": "latest",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,68 @@
+---
+title: Scam Blocklist
+description: Optional signed scam-address blocklist.
+---
+
+Seashail can optionally fetch a **signed scam-address blocklist** and block writes to listed recipients/contracts.
+
+This is designed to catch obvious mistakes (and known-bad destinations), not to make trading "safe" by itself.
+
+Seashail does **not** ship a default blocklist. This feature is **opt-in**: you must configure a URL (and ideally pin the expected signing key) in `config.toml`.
+
+## Availability Model
+
+The blocklist is a defense-in-depth _filter_, not a consensus rule.
+
+- If blocklist fetch/verification fails and no valid cache is available, Seashail continues without blocklist protection (fail-open).
+- Once a valid cache exists, Seashail will use it until it can refresh successfully.
+
+## What Gets Blocked
+
+When enabled, Seashail will refuse to sign/broadcast writes where the recipient (and in some cases the relevant contract) is listed:
+
+- `send_transaction`: blocks sends to listed recipients
+- `transfer_nft`: blocks transfers to listed recipients (and blocks listed NFT contracts/mints)
+- `buy_nft` / `sell_nft` / `bid_nft`: blocks if the tx recipient/contract is listed
+
+## Config
+
+In `config.toml`:
+
+```toml
+[http]
+# Must be https:// (or http://localhost for local testing)
+scam_blocklist_url = "https://example.com/seashail/scam-blocklist.json"
+
+# Recommended: pin the expected Ed25519 verifying key (base64, 32 bytes).
+# If omitted, Seashail will use the pubkey embedded in the fetched envelope.
+scam_blocklist_pubkey_b64 = "..."
+
+# How often to refresh the blocklist.
+scam_blocklist_refresh_seconds = 21600
+```
+
+## Signed Envelope Format
+
+The fetched JSON must be an envelope:
+
+- `version`: currently `1`
+- `payload_b64`: base64-encoded JSON payload bytes
+- `signature_b64`: base64 Ed25519 signature over the payload bytes
+- `pubkey_b64`: base64 Ed25519 verifying key (32 bytes)
+
+The decoded payload JSON has:
+
+- `evm`: list of 0x-prefixed addresses
+- `solana`: list of base58 pubkeys
+
+## Operational Guidance
+
+- Prefer pinning `scam_blocklist_pubkey_b64` so the trust anchor is in local config.
+- Host the envelope somewhere stable and cacheable.
+- Treat blocklisting as a defense-in-depth layer. Policy caps, allowlists, simulation, and confirmations still matter.
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to scam block errors
+- [Security Model](/docs/guides/security-model) for phishing threat analysis
+- [Glossary](/docs/glossary) for definitions of OFAC SDN and blocklist terms

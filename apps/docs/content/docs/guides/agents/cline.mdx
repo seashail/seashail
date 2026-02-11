@@ -1,0 +1,73 @@
+---
+title: Cline
+description: Connect Seashail to Cline (VS Code extension) via MCP.
+---
+
+Cline supports MCP servers over stdio via its built-in UI. See the [Cline MCP docs](https://docs.cline.bot/mcp/configuring-mcp-servers) for full details.
+
+> Seashail is **stdio-only**. Configure Cline to run a local command (`seashail mcp`), not a “server URL”.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- Cline VS Code extension installed
+
+## Setup
+
+1. Open Cline in VS Code
+2. Navigate to **MCP Servers** settings
+3. Add a new server named `seashail`
+4. Set:
+   - **Command:** `seashail`
+   - **Args:** `mcp`
+
+## Testnet Mode
+
+To connect to testnet, set the args to `mcp --network testnet`:
+
+- **Command:** `seashail`
+- **Args:** `mcp --network testnet`
+
+## Alternative: Edit Config File Directly
+
+Cline stores its MCP configuration in `cline_mcp_settings.json`. Access it via:
+Cline panel > MCP Servers icon > Configure tab > Advanced MCP Settings.
+
+The file is located at:
+
+- **macOS:** `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+- **Windows:** `%APPDATA%/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+- **Linux:** `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+
+Add Seashail to the file:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"],
+      "disabled": false
+    }
+  }
+}
+```
+
+## Verification
+
+After setup, start a Cline session and ask:
+
+```
+What's my SOL balance?
+```
+
+Cline should discover and invoke Seashail tools via MCP.
+
+## Troubleshooting
+
+**Server doesn't connect**
+Make sure `seashail` is on your `PATH`. Test by running `seashail mcp` in a terminal — you should see it start the MCP server.
+
+**Cline doesn't detect MCP tools**
+Restart VS Code after adding the MCP server in Cline's settings.

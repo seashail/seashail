@@ -1,0 +1,161 @@
+---
+title: Perps Trading
+description: Trade perpetual futures on Hyperliquid and Jupiter Perps with leverage.
+---
+
+## What Are Perpetual Futures
+
+Perpetual futures (perps) are leveraged derivatives that track an asset's price without an expiration date:
+
+- You can go **long** (profit when price rises) or **short** (profit when price falls)
+- Leverage amplifies both gains and losses — a 10x leveraged position loses 10% of its collateral for every 1% price drop
+- Unlike traditional futures, perps have no expiration; they stay open until you close them or get liquidated
+- Seashail supports two perps venues: **Hyperliquid** (EVM address) and **Jupiter Perps** (Solana address)
+
+## Venue Differences
+
+### Hyperliquid
+
+- Uses your wallet's **EVM address** (Arbitrum-bridged, but Hyperliquid runs its own L1)
+- Supports both mainnet and testnet
+- Wide range of markets: BTC, ETH, SOL, and many alt-perps
+- Default venue when `provider` parameter is omitted
+- Supports both market and limit orders
+- Supports partial position closures
+
+### Jupiter Perps
+
+- Uses your wallet's **Solana address**
+- Mainnet only (no testnet support)
+- SOL-focused markets
+- Set `provider: "jupiter_perps"` explicitly
+- Market orders only
+- Full position closure only
+
+## Opening A Position
+
+Use `open_perp_position` to enter a leveraged position:
+
+- **Required parameters:** `market` (e.g., "BTC"), `side` ("long" or "short"), `size`, `leverage`
+- Policy evaluation applies: `max_leverage` and `max_usd_per_position` are enforced
+- Leverage is subject to your policy limit — the tool will reject if requested leverage exceeds `max_leverage`
+- If your policy requires confirmation for the transaction value, you'll get an MCP elicitation prompt
+
+### Typical workflow:
+
+1. Check available markets: `get_market_data`
+2. Open position: `open_perp_position`
+3. Confirm via MCP elicitation if policy requires it
+4. Verify position opened: `get_positions`
+
+Example (Hyperliquid, long BTC at 3x leverage):
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "side": "long",
+  "size": "100",
+  "size_units": "usd",
+  "leverage": 3,
+  "order_type": "market"
+}
+```
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how tiered approval works.
+
+## Managing Positions
+
+### Viewing Positions
+
+Use `get_positions` to see all open positions:
+
+- Returns market, side (long/short), size, entry price, current mark price
+- Shows unrealized PnL (profit and loss)
+- Works on both Hyperliquid and Jupiter Perps
+
+### Closing Positions
+
+Use `close_perp_position` to exit a position:
+
+- **Hyperliquid:** supports full close (omit `size`) or partial close (provide `size`)
+- **Jupiter Perps:** supports full close only
+- Policy evaluation applies (same as opening)
+
+Example (close entire BTC position on Hyperliquid):
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC"
+}
+```
+
+### Limit Orders
+
+Use `place_limit_order` to place orders that execute when price hits a target:
+
+- **Hyperliquid only** (Jupiter Perps does not support limit orders)
+- Specify `market`, `side`, `size`, `leverage`, and `limit_px`
+- Useful for entering positions at specific price levels
+
+### Modifying Orders
+
+Use `modify_perp_order` to change existing limit orders:
+
+- **Hyperliquid only**
+- Implemented as cancel + new order
+- Change price, size, or leverage
+
+## Risk Considerations
+
+### Liquidation
+
+If your position's losses approach your collateral, the venue will liquidate it:
+
+- Higher leverage = liquidation price is closer to entry price
+- A 10x long position gets liquidated if price drops ~10%
+- A 10x short position gets liquidated if price rises ~10%
+- Liquidation may result in total loss of collateral for that position
+
+### Funding Rates
+
+Perps charge periodic funding fees to keep perpetual contract prices anchored to spot:
+
+- When the market is bullish (perp > spot), **long positions pay** funding to short positions
+- When the market is bearish (perp < spot), **short positions pay** funding to long positions
+- Funding rates are displayed in `get_market_data` and typically charged every 8 hours
+- Persistent funding costs can erode profits over time
+
+### Venue Risk
+
+Each venue has its own risk profile:
+
+- **Hyperliquid:** Newer venue with its own L1; smart contract and oracle risk
+- **Jupiter Perps:** Relies on Solana's oracle infrastructure and program security
+- Both are decentralized venues but carry smart contract and oracle failure risk
+- Consider splitting large positions across venues for diversification
+
+### Policy Controls
+
+Configure perps-specific policy controls to limit exposure:
+
+- `enable_perps`: master toggle (default: `true`)
+- `max_leverage`: cap leverage multiplier (default: `10`)
+- `max_usd_per_position`: cap position size (default: `1000`)
+- Set lower limits if you want additional safeguards
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how to configure policy.
+
+## Notes
+
+- For exact parameter details: [Perps Tools Reference](/docs/reference/tools-perps)
+- Read `get_market_data` before trading to see available markets, current prices, and funding rates
+- Related: [Swapping Guide](/docs/guides/swapping) for spot token exchanges (non-leveraged)
+- Perps trading is high-risk; only trade with capital you can afford to lose
+
+## See Also
+
+- [Security Model](/docs/guides/security-model) for leverage explosion threat analysis
+- [Troubleshooting](/docs/troubleshooting) for solutions to policy rejection and liquidation errors
+- [Glossary](/docs/glossary) for definitions of bps (basis points), leverage, and funding rate

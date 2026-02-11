@@ -1,0 +1,229 @@
+---
+title: Prediction Markets
+description: Trade on Polymarket event outcomes using the CLOB (Central Limit Order Book) on Polygon.
+---
+
+## What Are Prediction Markets
+
+Prediction markets let you bet on the outcome of real-world events: elections, sports results, crypto milestones, and more. You're not just speculating — you're trading outcome shares that represent the market's collective belief about what will happen.
+
+Seashail integrates with Polymarket, the largest prediction market platform, which operates on Polygon using a CLOB (Central Limit Order Book) model.
+
+How it works:
+
+- Each event has 2 or more possible outcomes (for example, "Yes" and "No")
+- Each outcome has shares priced between $0.00 and $1.00
+- A "Yes" share at $0.60 means the market prices the event at 60% probability
+- If the event resolves in your favor, your shares pay out $1.00 each
+- If it resolves against you, your shares are worth $0.00
+
+## How Polymarket Works
+
+Polymarket uses a CLOB (Central Limit Order Book) — the same order matching system used by traditional stock exchanges. This is different from automated market makers (AMMs) used by most DeFi protocols.
+
+Key concepts:
+
+- You place limit orders at a specific price (for example, "buy 100 shares at $0.55")
+- Orders sit in the orderbook until a counterparty matches them
+- You can view the orderbook depth to see current bids and asks
+- Each outcome has a unique `token_id` — this is what you use when placing orders
+
+All Polymarket trading happens on Polygon (EVM). You need:
+
+- A Polygon wallet address
+- USDC on Polygon for trading (bridge or swap to get USDC on Polygon)
+
+See [Bridging Guide](/docs/guides/bridging) for moving USDC to Polygon.
+
+## Finding Markets
+
+Seashail provides two tools for market discovery:
+
+### Searching Markets
+
+Use `search_prediction_markets` to search for events by keyword:
+
+```json
+{
+  "query": "Bitcoin 100k",
+  "limit": 10,
+  "include_closed": false
+}
+```
+
+The response includes:
+
+- Event titles and market questions
+- Outcomes with their `token_id` values
+- Current prices for each outcome
+- Market status (open/closed)
+
+### Viewing Orderbooks
+
+Use `get_prediction_orderbook` with a `token_id` to see current bids and asks:
+
+```json
+{
+  "token_id": "1234567890"
+}
+```
+
+The response shows:
+
+- Current bid and ask prices
+- Size (liquidity) at each price level
+- Mid-price
+
+This helps you understand market depth before placing an order.
+
+Both tools are read-only — no policy approval needed.
+
+## Placing Predictions
+
+Use `place_prediction` to place a CLOB order on Polymarket.
+
+Required parameters:
+
+- `token_id` — the outcome token ID (from search results)
+- `side` — "buy" or "sell"
+- `chain` — "polygon" (or "polygon-amoy" for testing)
+
+Order types:
+
+### Limit Orders (default)
+
+Specify exact price and size:
+
+```json
+{
+  "chain": "polygon",
+  "token_id": "1234567890",
+  "side": "buy",
+  "order_kind": "limit",
+  "price": "0.55",
+  "size": "100",
+  "time_in_force": "gtc"
+}
+```
+
+This places a limit buy order for 100 shares at $0.55 per share, good-til-canceled (GTC).
+
+Time-in-force options:
+
+- `gtc` — good-til-canceled (default)
+- `gtd` — good-til-date
+- `fok` — fill-or-kill (execute completely or cancel)
+- `fak` — fill-and-kill (execute what's possible, cancel remainder)
+
+### Market Orders
+
+Execute immediately at current market price:
+
+```json
+{
+  "chain": "polygon",
+  "token_id": "1234567890",
+  "side": "buy",
+  "order_kind": "market",
+  "amount_usdc": "50"
+}
+```
+
+This buys $50 USDC worth of shares at the current best available price.
+
+### Policy Approval
+
+Prediction orders are subject to policy evaluation:
+
+- Treated as write operations (same as swaps or sends)
+- Transaction value checked against `max_usd_per_tx` and daily caps
+- Tiered approval applies (may be auto-approved, require confirmation, or be blocked)
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how tiered approval works.
+
+### Typical Workflow
+
+1. Search markets: `search_prediction_markets`
+2. Check orderbook depth: `get_prediction_orderbook`
+3. Place order: `place_prediction`
+4. Confirm if prompted (via MCP elicitation)
+5. Check positions: `get_prediction_positions`
+
+## Closing Positions
+
+Use `close_prediction` to cancel an existing CLOB order:
+
+```json
+{
+  "chain": "polygon",
+  "order_id": "0xabcdef123456"
+}
+```
+
+The `order_id` is returned when you place an order with `place_prediction`.
+
+Note: This cancels an open order. To sell outcome shares you already hold, use `place_prediction` with `side: "sell"`.
+
+## Tracking Positions
+
+Use `get_prediction_positions` to see all your open prediction positions:
+
+```json
+{
+  "chain": "polygon"
+}
+```
+
+The response shows:
+
+- Market title and outcome
+- Number of shares held
+- Average entry price
+- Current market price
+- Unrealized profit/loss in USD
+
+This is a read-only operation using the Polymarket Data API (no key required).
+
+## Risk Considerations
+
+### Binary Outcomes
+
+Prediction markets are binary: if the event resolves against you, you lose your entire position. Unlike traditional trading where you might lose a percentage, prediction markets can result in 100% loss.
+
+### Illiquidity
+
+Some markets have thin orderbooks. Large orders may not fill completely, or may move the price significantly. Always check orderbook depth before placing large orders.
+
+### Resolution Disputes
+
+Event resolution depends on oracle data. Disputed resolutions can delay payouts or (rarely) result in market invalidation. Resolution rules vary by market.
+
+### USDC Exposure
+
+All Polymarket trading is denominated in USDC on Polygon. You're exposed to:
+
+- USDC depeg risk (stablecoin risk)
+- Polygon network risk
+- Bridge risk when moving USDC to Polygon
+
+### Policy Safeguards
+
+Use policy controls to limit exposure:
+
+- Set conservative `max_usd_per_tx` limits for predictions
+- Use `max_usd_per_day` to cap daily prediction spending
+- Monitor positions regularly with `get_prediction_positions`
+
+## Notes
+
+- For exact parameter details: [Prediction Market Tools Reference](/docs/reference/tools-predictions)
+- Trading requires USDC on Polygon — bridge or swap to get USDC on Polygon first
+- Related: [Bridging Guide](/docs/guides/bridging) for moving USDC to Polygon
+- Polymarket CLOB requires HTTPS or localhost (enforced by Polymarket API)
+- The Polymarket Gamma API (market search) and Data API (positions) are keyless
+- Order placement and cancellation use the Polymarket CLOB API (signed locally)
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to policy errors and CLOB order issues
+- [Glossary](/docs/glossary) for definitions of write op, CLOB, and token_id

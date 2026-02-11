@@ -1,0 +1,17 @@
+{
+  "title": "Agent Guides",
+  "pages": [
+    "index",
+    "any-mcp-client",
+    "openclaw",
+    "claude-code",
+    "claude-desktop",
+    "codex",
+    "continue",
+    "cursor",
+    "github-copilot",
+    "jetbrains",
+    "windsurf",
+    "cline"
+  ]
+}

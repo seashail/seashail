@@ -1,0 +1,96 @@
+---
+title: Claude Desktop
+description: Connect Seashail to Claude Desktop via MCP config.
+---
+
+Claude Desktop reads MCP server configuration from a JSON config file.
+
+> Seashail is **stdio-only**. Claude Desktop should be configured to launch `seashail mcp` as a local command.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- Claude Desktop installed
+
+## Setup (Recommended)
+
+Use the one-click installer:
+
+```bash
+seashail agent install claude-desktop
+```
+
+This writes the config to the correct location for your OS.
+
+## Manual Setup
+
+The config file location depends on your OS:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add the following to the file (create it if it doesn't exist):
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## “No Install” Option (npx)
+
+If you don’t want to install `seashail` onto your `PATH`, you can configure Claude Desktop to run via `npx`:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "npx",
+      "args": ["-y", "@seashail/mcp", "--"]
+    }
+  }
+}
+```
+
+## Testnet Mode
+
+```bash
+seashail agent install claude-desktop --network testnet
+```
+
+Or manually change args to `["mcp", "--network", "testnet"]`.
+
+## Verification
+
+Restart Claude Desktop after config changes. Start a conversation and ask:
+
+```
+What's my SOL balance?
+```
+
+You should see Seashail tools listed in the available tools panel.
+
+## Troubleshooting
+
+**Tools not appearing**
+Restart Claude Desktop completely after editing the config file.
+
+**"seashail: command not found"**
+Use the absolute path to the binary in the config:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "/usr/local/bin/seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```

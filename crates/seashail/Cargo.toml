@@ -1,0 +1,98 @@
+[package]
+name = "seashail"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Agent-native crypto trading boundary: local wallet + policy engine exposed as an MCP stdio server."
+repository = "https://github.com/seashail/seashail"
+homepage = "https://github.com/seashail/seashail"
+readme = "../../README.md"
+keywords = ["crypto", "trading", "wallet", "mcp", "policy"]
+categories = [
+  "command-line-utilities",
+  "cryptography::cryptocurrencies",
+  "development-tools",
+]
+
+[dependencies]
+eyre = "0.6"
+color-eyre = "0.6"
+thiserror = "2.0.12"
+clap = { version = "4.5.30", features = ["derive"] }
+directories = "6.0.0"
+fs2 = "0.4.3"
+base64 = "0.22.1"
+borsh = "1.6.0"
+chrono = { version = "0.4.40", default-features = false, features = ["clock"] }
+hex = "0.4.3"
+bs58 = "0.5.1"
+hkdf = "0.12.4"
+rand = "0.10.0"
+secrecy = "0.10.3"
+rpassword = "7.4.0"
+uuid = { version = "1.15.1", features = ["v4"] }
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.139"
+toml = "0.9.11"
+bincode = "1.3.3"
+rmp-serde = "1.3.0"
+ed25519-dalek = { version = "2.1.1", default-features = false, features = ["std"] }
+tokio = { version = "1.44.0", features = [
+  "macros",
+  "rt-multi-thread",
+  "net",
+  "io-std",
+  "io-util",
+  "sync",
+  "time",
+  "process",
+  "signal",
+] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
+tracing-appender = "0.2.3"
+
+# Key management + crypto
+argon2 = "0.5.3"
+aes-gcm = "0.10.3"
+sha2 = "0.10.8"
+zeroize = { version = "1.8.1", features = ["derive"] }
+
+# Wallet derivation
+bip39 = { version = "2.1.0", default-features = false, features = [
+  "std",
+  "rand",
+] }
+
+# Chains
+reqwest = { version = "0.12.12", default-features = false, features = [
+  "json",
+  "rustls-tls",
+] }
+solana-client = "3.1.8"
+solana-sdk = "3.0.0"
+solana-address = "2.1.0"
+solana-keypair = "3.1.0"
+solana-seed-phrase = "3.0.0"
+solana-derivation-path = "3.0.0"
+solana-signer = "3.0.0"
+solana-commitment-config = "3.1.0"
+solana-system-interface = { version = "3.0.0", features = ["bincode"] }
+spl-associated-token-account = "8.0.0"
+spl-token = "9.0.0"
+alloy = { version = "1.6", features = ["full", "signer-mnemonic"] }
+turso = "0.4.4"
+bitcoin = { version = "0.32.7", default-features = false, features = ["std"] }
+rust_decimal = "1.36.0"
+k256 = { version = "0.13.4", default-features = false, features = ["ecdsa"] }
+polymarket-client-sdk = { version = "0.4.1", default-features = false, features = ["clob"] }
+carbon-marginfi-v2-decoder = "0.12.0"
+carbon-core = "0.12.0"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+assert_cmd = "2.0.16"
+predicates = "3.1.3"
+tempfile = "3.17.1"

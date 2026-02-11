@@ -1,0 +1,315 @@
+---
+title: Troubleshooting
+description: Solutions for common errors and frequently asked questions.
+---
+
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { Callout } from "fumadocs-ui/components/callout";
+
+Find solutions to common errors and issues you may encounter while using Seashail.
+
+## Wallet Errors
+
+<Accordions>
+<Accordion title="Error: wallet_not_found">
+**Symptom:** Tool returns error code `wallet_not_found` with message "wallet not found: [name]"
+
+**Cause:** The specified wallet name does not exist in your Seashail keystore index. This usually happens when you mistype the wallet name or reference a wallet that was never created.
+
+**Resolution:**
+
+1. Run `list_wallets` to see all available wallet names
+2. Check the exact spelling (names are case-sensitive)
+3. If the wallet should exist, verify your data directory path with `seashail paths`
+
+**Related:** [Wallets Guide](/docs/guides/wallets)
+
+</Accordion>
+
+<Accordion title="Error: passphrase_required / Passphrase session expired">
+**Symptom:** Tool returns error code `passphrase_required` with message "passphrase required"
+
+**Cause:** Your passphrase session has expired based on the configured TTL (time-to-live). Seashail caches your passphrase in memory for a limited time to avoid repeated prompts, but after expiry you must re-enter it.
+
+**Resolution:**
+
+1. The next tool call requiring keystore access will trigger an MCP elicitation prompt
+2. Enter your passphrase when prompted
+3. To adjust session duration, update `passphrase_session_ttl_seconds` in your policy via `update_policy`
+
+**Related:** [Security Model Guide](/docs/guides/security-model)
+
+</Accordion>
+
+<Accordion title="Error: backup_not_confirmed">
+**Symptom:** Tool returns error code `backup_not_confirmed` with message "backup not confirmed correctly"
+
+**Cause:** When creating a new wallet with Shamir secret sharing, you must confirm the backup share by entering it back. This error means the confirmation input did not match the generated share.
+
+**Resolution:**
+
+1. Carefully copy the entire backup share text (including header/footer markers)
+2. Paste it exactly when prompted for confirmation
+3. If you lost the share, you must start the wallet creation process over
+4. Store the confirmed share in a secure location separate from your primary device
+
+**Related:** [Wallets Guide](/docs/guides/wallets)
+
+</Accordion>
+
+<Accordion title="Error: keystore_busy">
+**Symptom:** Tool returns error code `keystore_busy` with message "keystore busy; retry the operation"
+
+**Cause:** Another process is currently holding an exclusive lock on the keystore. This can happen if multiple MCP clients try to perform keystore operations simultaneously, or if a previous operation did not release the lock cleanly.
+
+**Resolution:**
+
+1. Wait a few seconds and retry the operation
+2. Check if any other Seashail processes are running: `ps aux | grep seashail`
+3. If a daemon process appears stuck, restart it: stop the daemon and let the proxy auto-spawn a fresh one
+4. As a last resort, remove the lock file manually (only if no Seashail processes are running): `rm [data_dir]/seashail-daemon.lock`
+
+**Related:** [Architecture](/docs/reference/architecture)
+
+</Accordion>
+
+<Accordion title="Error: account_index_out_of_range">
+**Symptom:** Tool returns error code `account_index_out_of_range` with message "account index out of range"
+
+**Cause:** The specified account index does not exist for the wallet. HD wallets derive accounts sequentially starting from index 0. This error means you requested an account that hasn't been derived yet.
+
+**Resolution:**
+
+1. Check the wallet's account count via `list_wallets` (shows how many accounts are derived)
+2. Account indices start at 0 (first account is index 0, second is index 1, etc.)
+3. Use a valid index, or omit the index parameter to use the default account (index 0)
+
+**Related:** [Wallets Guide](/docs/guides/wallets)
+
+</Accordion>
+</Accordions>
+
+## Policy Errors
+
+<Accordions>
+<Accordion title="Policy rejection: Transaction exceeds limits (hard-block)">
+**Symptom:** Tool returns error indicating the transaction was blocked by policy, mentioning tiered approval or USD caps
+
+**Cause:** The transaction exceeds one of your policy limits (per-transaction USD cap, daily USD cap, or operation-specific limit). The tiered approval system evaluated the transaction as "hard-block" — it cannot proceed even with user confirmation.
+
+**Resolution:**
+
+1. Check your current policy limits with `get_policy`
+2. Either reduce the transaction amount to fit within limits, or
+3. Update your policy to allow higher amounts: `update_policy` with increased `max_usd_per_tx` or `max_usd_per_day_budget`
+4. Consider enabling tiered approval thresholds for large transactions instead of hard-blocking them
+
+**Related:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="Slippage exceeded">
+**Symptom:** Tool returns error indicating "slippage exceeded" or price moved beyond tolerance
+
+**Cause:** The actual execution price differed from the quoted price by more than your configured `max_slippage_bps` (basis points). This protects you from executing trades at unfavorable prices due to market movement or low liquidity.
+
+**Resolution:**
+
+1. For volatile markets or low-liquidity tokens, increase `max_slippage_bps` via `update_policy` (e.g., from 50 bps to 100 bps)
+2. Retry the transaction — prices may have stabilized
+3. For swaps, consider splitting into smaller amounts to reduce price impact
+4. Check if the token pair has sufficient liquidity on the DEX
+
+**Related:** [Swapping Guide](/docs/guides/swapping), [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="Operation disabled by policy">
+**Symptom:** Tool returns error indicating the operation type is disabled or toggled off
+
+**Cause:** Your policy has specific operation types disabled via `send_enabled`, `swap_enabled`, `bridge_enabled`, or other operation toggles. Write operations can be individually enabled or disabled.
+
+**Resolution:**
+
+1. Check which operations are enabled with `get_policy`
+2. Update the relevant toggle: `update_policy` with `send_enabled: true`, `swap_enabled: true`, etc.
+3. This is useful for restricting agent capabilities temporarily without changing amount limits
+
+**Related:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="Allowlist rejection">
+**Symptom:** Tool returns error indicating destination address is not on allowlist
+
+**Cause:** Your policy has an address allowlist enabled, and the destination address for the transaction is not in the allowed set. The allowlist acts as an explicit whitelist of permitted addresses.
+
+**Resolution:**
+
+1. Check your current allowlist with `get_policy` (look for `send_allowlist` or other operation-specific allowlists)
+2. Add the address to the allowlist: `update_policy` with the address appended to the appropriate allowlist array
+3. Or disable the allowlist entirely if you don't need this restriction
+4. Verify the address is correct (typos will not match the allowlist)
+
+**Related:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+</Accordion>
+</Accordions>
+
+## Balance & Transaction Errors
+
+<Accordions>
+<Accordion title="Insufficient balance">
+**Symptom:** Transaction fails with "insufficient balance" or "not enough funds"
+
+**Cause:** Your wallet does not have enough tokens to cover the transaction amount plus gas fees. On EVM chains, you need ETH (or the native gas token) for gas. On Solana, you need SOL for transaction fees and rent.
+
+**Resolution:**
+
+1. Check your balance: `get_balance` for the wallet and token
+2. For EVM chains, ensure you have enough native token (ETH, etc.) for gas fees in addition to the token amount
+3. For Solana, ensure you have enough SOL (minimum ~0.001 SOL for fees, plus rent for new accounts)
+4. Fund the wallet or reduce the transaction amount
+
+**Related:** [Sending Guide](/docs/guides/sending), [Wallets Guide](/docs/guides/wallets)
+
+</Accordion>
+
+<Accordion title="Unknown USD value">
+**Symptom:** Tool returns error indicating USD value could not be determined for the transaction
+
+**Cause:** Seashail's price feed does not have pricing data for the token involved. By default, the policy engine requires a known USD value to evaluate transaction limits. If pricing is unavailable, the transaction is blocked (fail-closed).
+
+**Resolution:**
+
+1. Wait and retry — price feeds may be temporarily unavailable
+2. For known legitimate tokens, adjust policy: `update_policy` with `deny_unknown_usd_value: false`
+3. Warning: Disabling this check means the policy engine cannot enforce USD caps for transactions involving tokens without pricing
+4. For internal testing or testnet tokens, this is often necessary
+
+**Related:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="Transaction failed / Transaction reverted">
+**Symptom:** Transaction was broadcast but failed on-chain, or simulation shows it would revert
+
+**Cause:** The on-chain execution failed due to contract logic (insufficient liquidity, failed validation, etc.). Common causes include:
+
+- Insufficient slippage tolerance for swaps
+- Contract state changed between quote and execution
+- Gas limit too low (EVM)
+- Account rent not paid (Solana)
+
+**Resolution:**
+
+1. Check the transaction hash on a block explorer to see the revert reason
+2. For swaps, increase slippage tolerance or reduce amount
+3. For Solana, ensure destination ATAs exist or enable auto-creation
+4. Retry the transaction — on-chain state may have changed
+5. Use simulation tools to debug before broadcasting
+
+**Related:** [Swapping Guide](/docs/guides/swapping), [DeFi Guide](/docs/guides/defi)
+
+</Accordion>
+</Accordions>
+
+## RPC & Network Errors
+
+<Accordions>
+<Accordion title="RPC connection error">
+**Symptom:** Tool returns error indicating inability to reach chain RPC endpoint
+
+**Cause:** Seashail cannot connect to the blockchain RPC node. This can be due to network connectivity issues, RPC endpoint downtime, or incorrect RPC configuration.
+
+**Resolution:**
+
+1. Check your internet connection
+2. Verify RPC endpoint URLs in your configuration
+3. Try switching to a different RPC endpoint (public or private)
+4. Check if the RPC provider is experiencing downtime
+5. For testnet, ensure you're using testnet-specific RPC endpoints
+
+**Related:** [Configuration Guide](/docs/getting-started/configuration)
+
+</Accordion>
+
+<Accordion title="Rate limiting">
+**Symptom:** Tool returns error indicating rate limits exceeded or too many requests
+
+**Cause:** The RPC endpoint is rate-limiting your requests. Public RPC endpoints typically have strict rate limits per IP address or API key.
+
+**Resolution:**
+
+1. Wait a few seconds/minutes and retry
+2. Reduce the frequency of operations
+3. Consider using a dedicated RPC endpoint (Alchemy, Infura, Quicknode, etc.) with higher limits
+4. Add RPC API keys to your configuration for authenticated access with higher limits
+
+**Related:** [Configuration Guide](/docs/getting-started/configuration)
+
+</Accordion>
+
+<Accordion title="Wrong network / Network mode confusion">
+**Symptom:** Transaction fails because the contract/token doesn't exist, or you're connected to the wrong chain
+
+**Cause:** Seashail is in the wrong network mode (mainnet vs testnet). The network mode determines which default RPCs are used and which chain IDs are expected.
+
+**Resolution:**
+
+1. Check current network mode: `get_network_mode`
+2. Switch network mode: `set_network_mode` with `mainnet` or `testnet`
+3. Verify the target chain is available in the current network mode
+4. For testing, always use testnet mode to avoid mainnet transactions
+5. Remember: network mode is global and affects all chains
+
+**Related:** [Network Mode Guide](/docs/guides/network-mode)
+
+</Accordion>
+</Accordions>
+
+## Scam & Compliance Errors
+
+<Accordions>
+<Accordion title="Scam blocklist block">
+**Symptom:** Tool returns error indicating destination address is on the scam blocklist
+
+**Cause:** The destination address for the transaction is on Seashail's regularly-updated scam blocklist. This is a community-maintained list of known-bad addresses (scams, rug pulls, compromised contracts).
+
+**Resolution:**
+
+1. Verify the destination address is correct — you may have a typo or malicious clipboard hijacking
+2. If you're certain the address is legitimate (rare false positive), you can disable the blocklist: `update_policy` with `enable_scam_blocklist: false`
+3. Report false positives to the Seashail team
+4. Warning: Disabling the blocklist removes protection against sending to known-bad addresses
+
+**Related:** [Scam Blocklist Guide](/docs/guides/scam-blocklist)
+
+</Accordion>
+
+<Accordion title="OFAC SDN block">
+**Symptom:** Tool returns error indicating destination address is on the OFAC SDN list
+
+**Cause:** The destination address is on the U.S. Office of Foreign Assets Control Specially Designated Nationals (SDN) list. This is a compliance check for sanctioned addresses. If enabled in your policy, Seashail will block transactions to these addresses.
+
+**Resolution:**
+
+1. Do not proceed — sending to OFAC SDN addresses may violate sanctions laws
+2. Verify the address is correct (ensure you intended to send to this address)
+3. If you're in a jurisdiction where OFAC compliance is not required, you can disable this check: `update_policy` with `enable_ofac_sdn_check: false`
+4. Warning: Disabling this check may expose you to legal risk in OFAC-regulated jurisdictions
+
+**Related:** [Security Model Guide](/docs/guides/security-model)
+
+</Accordion>
+</Accordions>
+
+<Callout type="info" title="Still stuck?">
+If you're encountering an issue not covered here:
+
+1. Run `seashail doctor` for a diagnostic report (use `--json` for machine-readable output)
+2. Check the [Architecture page](/docs/reference/architecture) to understand how components interact
+3. Review the [Security Model](/docs/guides/security-model) for policy and keystore behavior
+4. Check the relevant tool reference page in the [Reference section](/docs/reference)
+
+</Callout>

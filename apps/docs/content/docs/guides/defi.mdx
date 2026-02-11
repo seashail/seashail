@@ -1,0 +1,160 @@
+---
+title: DeFi Operations
+description: Lend, borrow, stake, and provide liquidity across multiple protocols and chains.
+---
+
+Seashail supports four DeFi primitives: lending, borrowing, staking, and liquidity provision. Protocol is auto-selected by chain when omitted — EVM defaults to Aave/Lido/Uniswap LP, Solana defaults to Kamino/Jito/Orca LP. All DeFi write operations go through policy evaluation.
+
+See also: [Policy and Approvals](/docs/guides/policy-and-approvals)
+
+## Lending And Borrowing
+
+### What It Is
+
+**Lending** (`lend_tokens`) lets you supply tokens to protocols to earn interest. Supported protocols:
+
+- **EVM:** Aave v3 (default), Compound v3
+- **Solana:** Kamino (default), Marginfi
+
+**Withdrawing** (`withdraw_lending`) gets your supplied tokens plus accrued interest back.
+
+**Borrowing** (`borrow_tokens`) lets you borrow against your supplied collateral. You must have sufficient collateral supplied first.
+
+**Repaying** (`repay_borrow`) lets you repay borrowed amounts. Use `amount: "max"` (Aave only) to repay the full balance including interest.
+
+**Checking positions** (`get_lending_positions`) is read-only — it shows your active lending/borrowing positions across protocols.
+
+### Typical Workflow
+
+1. Supply collateral: `lend_tokens`
+2. Check your position: `get_lending_positions`
+3. (Optional) Borrow against collateral: `borrow_tokens`
+4. Repay when ready: `repay_borrow`
+5. Withdraw your supply: `withdraw_lending`
+
+### Protocol Auto-Selection
+
+When you omit the `protocol` parameter, Seashail picks for you:
+
+- **EVM chains → Aave**
+- **Solana → Kamino**
+
+Override with `protocol` if you want a specific protocol (e.g., `protocol: "compound"`).
+
+### Example
+
+```json
+{
+  "chain": "ethereum",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "1000",
+  "amount_units": "ui"
+}
+```
+
+This supplies 1000 USDC to Aave on Ethereum (protocol auto-selected).
+
+For exact parameters, see [Lending Tools Reference](/docs/reference/tools-lending).
+
+---
+
+## Staking
+
+### What It Is
+
+**Staking** (`stake_tokens`) lets you stake native tokens for liquid staking derivatives:
+
+- **Lido (Ethereum):** ETH → stETH
+- **Jito (Solana):** SOL → JitoSOL
+
+**Unstaking** (`unstake_tokens`) converts staking derivatives back to native tokens. Timing varies by protocol:
+
+- **Jito:** Instant (uses Jupiter swap)
+- **Lido:** Delayed withdrawal queue (monitor via Lido UI or on-chain reads)
+
+Other staking protocols (Marinade, Eigenlayer) execute via transaction envelope fallback — the agent or a configured adapter must construct the transaction.
+
+### Protocol Auto-Selection
+
+When you omit the `protocol` parameter:
+
+- **Ethereum → Lido**
+- **Solana → Jito**
+
+### Risk
+
+Staking derivatives can de-peg (trade below the underlying value). Unstaking may have cooldown periods, especially on Ethereum (Lido withdrawal queue is asynchronous).
+
+### Example
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "amount": "1.5",
+  "amount_units": "ui",
+  "slippage_bps": 100
+}
+```
+
+This stakes 1.5 SOL to Jito on Solana (protocol auto-selected).
+
+For exact parameters, see [Staking Tools Reference](/docs/reference/tools-staking).
+
+---
+
+## Liquidity Provision
+
+### What It Is
+
+**Providing liquidity** (`provide_liquidity`) adds tokens to AMM pools:
+
+- **Uniswap LP (EVM):** Default for EVM chains
+- **Orca LP (Solana):** Default for Solana
+
+**Removing liquidity** (`remove_liquidity`) withdraws from pools.
+
+Both tools use transaction envelope execution — the agent or a configured adapter constructs the transaction. This is the most complex DeFi operation because you must understand token pairs, price ranges (for concentrated liquidity), and impermanent loss risk.
+
+### Impermanent Loss
+
+When token prices diverge from your entry, you may get back less value than holding. This is a fundamental AMM risk, not a Seashail issue. You earn trading fees in exchange for this risk.
+
+### Example
+
+```json
+{
+  "chain": "base",
+  "venue": "uniswap_lp",
+  "to": "0xPoolContractAddress",
+  "data": "0xabc123...",
+  "value_wei": "0",
+  "usd_value": 100.0,
+  "usd_value_known": true
+}
+```
+
+This provides liquidity to a Uniswap pool on Base using a transaction envelope.
+
+For exact parameters, see [Liquidity Tools Reference](/docs/reference/tools-liquidity).
+
+---
+
+## Yield Discovery
+
+Use `get_defi_yield_pools` to discover available yield opportunities across protocols and chains. Returns APY, TVL, and pool details.
+
+See [Read Tools Reference](/docs/reference/tools-read#get_defi_yield_pools) for details.
+
+---
+
+## Notes
+
+- All DeFi write operations require policy approval — configure limits in your policy
+- Protocol-specific overrides (e.g., `pool_address`, `comet_address`, `market`, `group`) are primarily for testing or non-default deployments
+- Related: [Chains and Funding](/docs/guides/chains-and-funding) for supported chains
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to policy rejection and protocol errors
+- [Glossary](/docs/glossary) for definitions of ATA, lending position, and DeFi terms

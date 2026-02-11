@@ -1,0 +1,155 @@
+---
+title: "Recipe: Portfolio Rebalancing"
+description: Rebalance a multi-token portfolio to target allocations using swaps
+---
+
+## Overview
+
+Rebalance a portfolio to maintain target allocations. Check current balances and prices, calculate required trades, execute rebalancing swaps, and verify final state.
+
+**Tools used:** `get_balance`, `get_token_price`, `swap_tokens`
+**Chains:** Solana (example uses SOL/USDC/JUP)
+**Time to complete:** 5-10 minutes
+
+## Prerequisites
+
+- Active wallet with token balances on target chain
+- Target allocation percentages defined (e.g., 40% SOL, 40% USDC, 20% JUP)
+
+<Steps>
+
+### Step 1: Get current balances
+
+Query wallet balances for all portfolio tokens.
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": [
+      "native",
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
+    ]
+  }
+}
+```
+
+**Expected result:** Balances for SOL (native), USDC, and JUP tokens with USD values.
+
+### Step 2: Get token prices
+
+Fetch current USD prices for precise calculations.
+
+```json
+{
+  "name": "get_token_price",
+  "arguments": {
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+Repeat for USDC and JUP. **Expected result:** USD price per token.
+
+### Step 3: Calculate rebalancing trades
+
+**Math example:** Portfolio is $10,000 total. Target: 40% SOL, 40% USDC, 20% JUP.
+
+- Current: 60% SOL ($6,000), 30% USDC ($3,000), 10% JUP ($1,000)
+- Target: 40% SOL ($4,000), 40% USDC ($4,000), 20% JUP ($2,000)
+- **Trades needed:** Sell $2,000 SOL → buy $1,000 USDC + $1,000 JUP
+
+### Step 4: Execute rebalancing swaps
+
+Swap SOL to USDC for the first trade.
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "native",
+    "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "amount_in": "1000",
+    "amount_units": "usd",
+    "slippage_bps": 100,
+    "provider": "jupiter"
+  }
+}
+```
+
+Then swap SOL to JUP for the second trade.
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "native",
+    "token_out": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "amount_in": "1000",
+    "amount_units": "usd",
+    "slippage_bps": 100,
+    "provider": "jupiter"
+  }
+}
+```
+
+**Expected result:** Both swaps execute successfully with transaction signatures.
+
+### Step 5: Verify final allocations
+
+Re-query balances to confirm new allocations match targets.
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": [
+      "native",
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
+    ]
+  }
+}
+```
+
+**Expected result:** Portfolio allocations now close to 40/40/20 target.
+
+</Steps>
+
+## Variations
+
+### Conservative rebalancing
+
+Use lower slippage tolerance for large rebalances (50 bps instead of 100 bps).
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "slippage_bps": 50
+  }
+}
+```
+
+### Multi-chain rebalancing
+
+Add a bridging step before rebalancing if capital needs to move chains. Use `bridge_tokens` to move funds, then rebalance on the destination chain.
+
+## Notes
+
+- **Gas costs:** Each swap consumes Solana transaction fees (typically less than $0.01). Factor this into small rebalances.
+- **amount_units: "usd":** Using USD amounts ensures consistent sizing regardless of token price fluctuations during execution.
+- **Policy limits:** `max_usd_per_swap` policy field limits individual swap sizes. Ensure limits accommodate your rebalancing trades.
+- **Slippage:** Higher slippage tolerance allows faster execution but increases price impact risk.
+
+## See Also
+
+- [Token Swapping Guide](/docs/guides/swapping)
+- [Read Tools Reference](/docs/reference/tools-read)
+- [Write Tools Reference](/docs/reference/tools-write)

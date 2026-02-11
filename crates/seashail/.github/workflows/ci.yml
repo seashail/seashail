@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.3"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install Foundry (anvil/forge/cast)
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Install Solana CLI (solana-test-validator)
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      - name: Install OpenClaw CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm config set prefix "$HOME/.npm-global"
+          export PATH="$HOME/.npm-global/bin:$PATH"
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+          npm install -g openclaw@latest
+          openclaw --version
+
+      - name: Lint + types + tests
+        env:
+          # Required for OpenClaw agent chat E2E (real OpenClaw, no mock model servers).
+          OPENCLAW_E2E_ANTHROPIC_TOKEN: ${{ secrets.OPENCLAW_E2E_ANTHROPIC_TOKEN }}
+        run: bun run check

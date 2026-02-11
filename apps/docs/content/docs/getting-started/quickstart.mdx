@@ -1,0 +1,101 @@
+---
+title: Quickstart
+description: Install Seashail, connect your agent, and create your first wallet.
+---
+
+## 1. Install Seashail
+
+macOS / Linux (installer, source build):
+
+```bash
+curl -fsSL https://seashail.com/install | sh
+```
+
+Windows (PowerShell):
+
+```powershell
+irm https://seashail.com/install.ps1 | iex
+```
+
+macOS (Homebrew):
+
+```bash
+brew install seashail/seashail/seashail
+```
+
+## 2. Set Up Your Agent
+
+Your agent starts Seashail automatically — you just need to tell it how. Pick your agent:
+
+**OpenClaw** ([docs](https://docs.openclaw.ai/tools/plugin)):
+
+```bash
+seashail openclaw install
+```
+
+**Claude Code** ([docs](https://code.claude.com/docs/en/mcp)):
+
+```bash
+claude mcp add seashail -- seashail mcp
+```
+
+**Claude Desktop** ([docs](https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop)):
+
+```bash
+seashail agent install claude-desktop
+```
+
+**Codex** ([docs](https://developers.openai.com/codex/mcp)):
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.seashail]
+command = "seashail"
+args = ["mcp"]
+```
+
+**Cursor** ([docs](https://docs.cursor.com/context/model-context-protocol)):
+
+```bash
+seashail agent install cursor
+```
+
+**VS Code / GitHub Copilot** ([docs](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)):
+
+```bash
+seashail agent install vscode
+```
+
+**Windsurf** ([docs](https://docs.windsurf.com/windsurf/cascade/mcp)):
+
+```bash
+seashail agent install windsurf
+```
+
+For all other agents (Cline, Continue, JetBrains, and any MCP client), see [Connect Your Agent](../guides/agents).
+
+> **Testnet mode:** Add `--network testnet` to any of the above. For example: `seashail agent install cursor --network testnet` or `claude mcp add seashail-testnet -- seashail mcp --network testnet`.
+
+## 3. First Run
+
+On first connection, Seashail automatically creates a default wallet so your agent can immediately query addresses and balances — no prompts required. This wallet is encrypted with a machine-local secret, meaning it is tied to the device it was created on.
+
+To create an additional wallet with stronger recovery options, ask your agent to call the `create_wallet` tool. This uses MCP elicitation to:
+
+- set a passphrase (min 8 characters, stored nowhere)
+- show and confirm an offline backup share (Shamir 2-of-3)
+- accept disclaimers
+
+Key material never leaves the Seashail process. The agent only receives tool outputs (balances, quotes, tx hashes, etc.). For security details, see the [security model](../guides/security-model).
+
+**Key terms:**
+
+- **Elicitation:** MCP protocol for user prompts (passphrases, confirmations) without sending data to agent. See [Glossary](../glossary).
+- **Passphrase session:** Time-limited (default 1 hour) unlocked state after setting a passphrase. Re-authentication required after expiry.
+
+## Next Steps
+
+- [Configuration](./configuration) — Customize network mode, RPC endpoints, and policy defaults
+- [Network Mode Guide](../guides/network-mode) — Testnet defaults and faucet links
+- [Policy and Approvals Guide](../guides/policy-and-approvals) — Configure spending limits and approval thresholds

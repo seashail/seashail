@@ -1,0 +1,426 @@
+---
+title: CLI Reference
+description: Command-line interface reference for all Seashail commands and subcommands.
+---
+
+Seashail provides a command-line interface for running the MCP server, managing agent configurations, diagnostics, and upgrades. This page documents all available commands with their flags and usage examples.
+
+> There is NO `seashail wallet` command. Wallet operations are MCP tools only. Use `create_wallet`, `import_wallet`, and other wallet tools via MCP agents.
+
+## seashail mcp
+
+Run the MCP server over stdio. By default this starts a lightweight stdio proxy that forwards to a singleton local Seashail daemon (so multiple agents can share one key and policy state).
+
+### Flags
+
+<TypeTable
+  type={{
+    network: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "Override config network mode for this session. Affects default chain selection when tools omit chain/chains parameters.",
+    },
+    standalone: {
+      type: "boolean",
+      description:
+        "Run a standalone MCP server in this process (no daemon, no sharing between agents).",
+      default: "false",
+    },
+  }}
+/>
+
+### Examples
+
+Start MCP server in proxy mode (recommended):
+
+```bash
+seashail mcp
+```
+
+Start with testnet override:
+
+```bash
+seashail mcp --network testnet
+```
+
+Start in standalone mode (no daemon sharing):
+
+```bash
+seashail mcp --standalone
+```
+
+### Notes
+
+- Proxy mode (default) allows multiple agent processes to share one daemon state (keystore, passphrase session, policy).
+- The proxy auto-spawns the daemon if it's not already running.
+- Use `--standalone` for isolated testing or single-agent scenarios.
+- See [architecture](/docs/reference/architecture) for details on the proxy/daemon relationship.
+
+---
+
+## seashail daemon
+
+Run the singleton Seashail daemon. The daemon holds the exclusive keystore lock and manages passphrase sessions across all MCP clients.
+
+### Flags
+
+<TypeTable
+  type={{
+    idle_exit_seconds: {
+      type: "integer",
+      description:
+        "Exit after being idle (no active clients) for this many seconds. If unset, runs until terminated.",
+    },
+  }}
+/>
+
+### Examples
+
+Run daemon until terminated:
+
+```bash
+seashail daemon
+```
+
+Run daemon with auto-exit after 5 minutes idle:
+
+```bash
+seashail daemon --idle-exit-seconds 300
+```
+
+### Notes
+
+- You usually don't need to run this manually — `seashail mcp` in proxy mode auto-spawns the daemon.
+- The daemon holds an exclusive filesystem lock at `$DATA_DIR/seashail-daemon.lock` to prevent split-brain state.
+- When all MCP clients disconnect, the idle timer starts. If `--idle-exit-seconds` is set, the daemon exits after that duration.
+
+---
+
+## seashail paths
+
+Print resolved paths for data directory, config directory, and log file. Useful for debugging configuration issues.
+
+### Flags
+
+No flags.
+
+### Examples
+
+```bash
+seashail paths
+```
+
+Output (JSON):
+
+```json
+{
+  "config_dir": "/Users/you/.config/seashail",
+  "data_dir": "/Users/you/.local/share/seashail",
+  "log_file": "/Users/you/.local/share/seashail/seashail.log.jsonl"
+}
+```
+
+### Notes
+
+- Paths follow platform conventions (XDG on Linux, macOS Application Support, Windows AppData).
+- Override with `SEASHAIL_CONFIG_DIR` and `SEASHAIL_DATA_DIR` environment variables.
+
+---
+
+## seashail doctor
+
+Print a quick self-diagnostic report. The report contains no secrets and is safe to paste in issues or support requests.
+
+### Flags
+
+<TypeTable
+  type={{
+    json: {
+      type: "boolean",
+      description: "Emit JSON to stdout (machine-readable).",
+      default: "false",
+    },
+  }}
+/>
+
+### Examples
+
+Human-readable report:
+
+```bash
+seashail doctor
+```
+
+Machine-readable JSON:
+
+```bash
+seashail doctor --json
+```
+
+### Notes
+
+- The report includes version info, resolved paths, wallet count, policy summary, and basic connectivity checks.
+- Safe to paste publicly — no private keys, passphrases, or addresses are included.
+
+---
+
+## seashail agent list
+
+List supported agent targets for `print` and `install` commands.
+
+### Flags
+
+No flags.
+
+### Examples
+
+```bash
+seashail agent list
+```
+
+Output (JSON):
+
+```json
+[
+  { "name": "cursor", "config_path": "~/.cursor/mcp_config.json" },
+  { "name": "vscode", "config_path": "~/.vscode/mcp_config.json" },
+  { "name": "windsurf", "config_path": "~/.windsurf/mcp_config.json" },
+  {
+    "name": "claude-desktop",
+    "config_path": "~/Library/Application Support/Claude/claude_desktop_config.json"
+  }
+]
+```
+
+### Notes
+
+- Currently supports Cursor, VSCode, Windsurf, and Claude Desktop.
+- Use these target names with `agent print` and `agent install`.
+
+---
+
+## seashail agent print
+
+Print a full JSON config template to stdout for a specific agent target. Use this to inspect the config before installing.
+
+### Flags
+
+<TypeTable
+  type={{
+    agent: {
+      type: '"cursor" | "vscode" | "windsurf" | "claude-desktop"',
+      description: "Agent target to print config for.",
+      required: true,
+    },
+    network: {
+      type: '"mainnet" | "testnet"',
+      description: "Emit a testnet template (seashail mcp --network testnet).",
+      default: '"mainnet"',
+    },
+  }}
+/>
+
+### Examples
+
+Print Cursor config:
+
+```bash
+seashail agent print cursor
+```
+
+Print testnet config:
+
+```bash
+seashail agent print cursor --network testnet
+```
+
+### Notes
+
+- The output is valid JSON that can be piped to a file or directly installed.
+- Templates include the correct `seashail mcp` command with appropriate flags.
+
+---
+
+## seashail agent install
+
+Install a config template to the agent's default config path (or a custom path via `--path`).
+
+### Flags
+
+<TypeTable
+  type={{
+    agent: {
+      type: '"cursor" | "vscode" | "windsurf" | "claude-desktop"',
+      description: "Agent target to install config for.",
+      required: true,
+    },
+    network: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "Install a testnet template (seashail mcp --network testnet).",
+      default: '"mainnet"',
+    },
+    path: {
+      type: "string",
+      description: "Override the target config file path.",
+    },
+  }}
+/>
+
+### Examples
+
+Install to default location:
+
+```bash
+seashail agent install cursor
+```
+
+Install testnet config:
+
+```bash
+seashail agent install cursor --network testnet
+```
+
+Install to custom path:
+
+```bash
+seashail agent install cursor --path ~/my-config.json
+```
+
+### Notes
+
+- If the config file already exists, you'll be prompted to confirm overwrite.
+- After installation, restart your agent/editor to load the new config.
+
+---
+
+## seashail openclaw install
+
+Install or manage the OpenClaw plugin integration. This provides first-class Seashail tools in OpenClaw.
+
+### Flags
+
+<TypeTable
+  type={{
+    network: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "Session-only network mode for Seashail when invoked via OpenClaw.",
+      default: '"mainnet"',
+    },
+    plugin: {
+      type: "string",
+      description:
+        "Plugin path or npm spec for openclaw plugins install. If omitted, uses repo path (if running from repo) or @seashail/seashail.",
+    },
+    link: {
+      type: "boolean",
+      description:
+        "Link a local plugin path instead of copying (dev-friendly).",
+      default: "false",
+    },
+    openclaw_config_path: {
+      type: "string",
+      description:
+        "Override the OpenClaw config path (defaults to $OPENCLAW_CONFIG_PATH or ~/.openclaw/openclaw.json).",
+    },
+    seashail_path: {
+      type: "string",
+      description:
+        'Override the seashail binary path stored in plugin config (default: "seashail" if on PATH).',
+    },
+    restart_gateway: {
+      type: "boolean",
+      description:
+        "Restart the OpenClaw gateway service after install/config update.",
+      default: "true",
+    },
+    enable_in_sandbox: {
+      type: "boolean",
+      description:
+        "Allow the Seashail plugin in OpenClaw's sandboxed agent mode (tools.sandbox.tools.allow += seashail).",
+      default: "true",
+    },
+    onboard_wallet: {
+      type: "boolean",
+      description:
+        "After installing/configuring the plugin, ensure Seashail has a default wallet. If no wallet exists, creates a machine-local generated wallet named default with EVM/Solana/Bitcoin addresses (no passphrase prompts).",
+      default: "true",
+    },
+  }}
+/>
+
+### Examples
+
+Install with defaults:
+
+```bash
+seashail openclaw install
+```
+
+Install with testnet mode:
+
+```bash
+seashail openclaw install --network testnet
+```
+
+Dev install with local plugin:
+
+```bash
+seashail openclaw install --link --plugin ./packages/openclaw-seashail-plugin
+```
+
+### Notes
+
+- This command runs `openclaw plugins install` under the hood and updates OpenClaw config.
+- `--restart-gateway` automatically restarts OpenClaw's gateway to pick up changes.
+- `--onboard-wallet` creates a default wallet if none exists, making setup frictionless.
+
+---
+
+## seashail upgrade
+
+Upgrade Seashail to the latest version. If installed via Homebrew on macOS, runs `brew upgrade seashail`. Otherwise, re-runs the hosted installer.
+
+### Flags
+
+<TypeTable
+  type={{
+    yes: {
+      type: "boolean",
+      description:
+        "Skip the confirmation prompt (required for non-interactive shells).",
+      default: "false",
+    },
+    quiet: {
+      type: "boolean",
+      description: "Suppress installer output (useful for scripts/cron).",
+      default: "false",
+    },
+  }}
+/>
+
+### Examples
+
+Interactive upgrade:
+
+```bash
+seashail upgrade
+```
+
+Non-interactive upgrade:
+
+```bash
+seashail upgrade --yes
+```
+
+Silent upgrade (for scripts):
+
+```bash
+seashail upgrade --yes --quiet
+```
+
+### Notes
+
+- Override auto-detection with `SEASHAIL_UPGRADE_METHOD=brew|installer`.
+- The upgrade command checks your current version and only upgrades if a newer version is available.

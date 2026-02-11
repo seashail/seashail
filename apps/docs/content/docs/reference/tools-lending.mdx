@@ -1,0 +1,780 @@
+---
+title: "Tools: Lending"
+description: Supply, withdraw, borrow, repay, and read lending positions across Aave, Compound, Kamino, and Marginfi.
+---
+
+Lending tools manage positions across multiple DeFi protocols. All write tools require [policy approval](/docs/reference/tools-policy). Protocol is auto-selected by chain when omitted (EVM defaults to Aave, Solana defaults to Kamino).
+
+## lend_tokens
+
+Supply tokens to a lending protocol. Supports native execution for Aave v3 (EVM), Compound v3 (EVM), Kamino (Solana), and Marginfi (Solana).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to execute on: solana or an EVM chain name.",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "Protocol selection. If omitted, defaults by chain (EVM: aave; Solana: kamino).",
+    },
+    token: {
+      type: "string",
+      description:
+        "Token to supply. EVM: ERC-20 contract address or native. Solana: SPL mint pubkey or native.",
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        "Amount to supply. Note: amount=max is not supported for native Aave/Compound paths.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = human-readable token units, base = raw base units.",
+      default: '"ui"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "Override flag for USD value tracking.",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3: optional override for Pool address (useful for local testing/mocks).",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3: optional override for Comet market address. If omitted, uses per-chain default for USDC market.",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino: optional market pubkey override (defaults to http.kamino_default_lend_market).",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi: optional group pubkey override (defaults to http.marginfi_default_group).",
+    },
+  }}
+/>
+
+### Transaction Envelope (Fallback)
+
+When native parameters are insufficient, you can provide a transaction envelope.
+
+**EVM envelope:**
+
+<TypeTable
+  type={{
+    to: {
+      type: "string",
+      description: "Transaction recipient/contract address.",
+    },
+    data: {
+      type: "string",
+      description: "0x-prefixed calldata. Use 0x for empty.",
+    },
+    value_wei: {
+      type: "string",
+      description: "Value in wei as a decimal string.",
+      default: '"0"',
+    },
+  }}
+/>
+
+**Solana envelope:**
+
+<TypeTable
+  type={{
+    tx_b64: {
+      type: "string",
+      description:
+        "Base64-encoded VersionedTransaction bytes (unsigned; Seashail will sign).",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Allowlist of program IDs. Every instruction program id must be in this list.",
+    },
+  }}
+/>
+
+**Adapter:**
+
+<TypeTable
+  type={{
+    asset: {
+      type: "object",
+      description:
+        "Protocol-specific request object used by an optional adapter to construct a tx envelope.",
+    },
+  }}
+/>
+
+### Per-Protocol Behavior
+
+<Tabs
+  items={[
+    "Aave (EVM)",
+    "Compound (EVM)",
+    "Kamino (Solana)",
+    "Marginfi (Solana)",
+  ]}
+>
+  <Tab value="Aave (EVM)">
+    - Default protocol for EVM chains - Native execution: Seashail calls Aave v3
+    Pool directly - Supports supply, withdraw, borrow, repay - `pool_address`
+    override available for testing - `amount=max` NOT supported for supply
+    operations
+  </Tab>
+  <Tab value="Compound (EVM)">
+    - Set `protocol: "compound"` explicitly - Native execution via Compound v3
+    Comet - `comet_address` override for non-default markets - Use `token:
+    "base"` to supply the base token (baseToken()) - `amount=max` NOT supported
+    for native path
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    - Default protocol for Solana chains - Native execution via Kamino lending -
+    `market` override for non-default markets - Supports supply, withdraw,
+    borrow, repay
+  </Tab>
+  <Tab value="Marginfi (Solana)">
+    - Set `protocol: "marginfi"` explicitly - Native execution via Marginfi -
+    `group` override available - If `marginfi_account` is omitted, uses most
+    recently created account
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "1000",
+  "status": "confirmed"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Aave (EVM)", "Kamino (Solana)"]}>
+  <Tab value="Aave (EVM)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "1000",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "kamino",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "500",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy) — lending operations may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- Protocol is auto-selected by chain: EVM chains default to Aave, Solana defaults to Kamino.
+- `amount=max` is NOT supported for native Aave/Compound supply paths.
+- If no native parameters are provided, falls back to transaction envelope mode (requires `to`/`data` for EVM or `tx_b64` for Solana).
+- See also: [DeFi Guide](/docs/guides/defi)
+
+---
+
+## withdraw_lending
+
+Withdraw supplied tokens from a lending protocol. Supports native execution for Aave v3 (EVM), Compound v3 (EVM), Kamino (Solana), and Marginfi (Solana).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to execute on: solana or an EVM chain name.",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "Protocol selection. If omitted, defaults by chain (EVM: aave; Solana: kamino).",
+    },
+    token: {
+      type: "string",
+      description:
+        "Token to withdraw. EVM: ERC-20 contract address or native. Solana: SPL mint pubkey or native.",
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        'Amount to withdraw. For Aave, amount="max" is supported (requires usd_value for policy). For Compound native path, amount=max is NOT supported.',
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = human-readable token units, base = raw base units.",
+      default: '"ui"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. Required when using amount=max with Aave.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "Override flag for USD value tracking.",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3: optional override for Pool address (useful for local testing/mocks).",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3: optional override for Comet market address. If omitted, uses per-chain default for USDC market.",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino: optional market pubkey override (defaults to http.kamino_default_lend_market).",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi: optional group pubkey override (defaults to http.marginfi_default_group).",
+    },
+  }}
+/>
+
+### Transaction Envelope (Fallback)
+
+See [lend_tokens](#lend_tokens) for transaction envelope parameters (EVM: `to`, `data`, `value_wei`; Solana: `tx_b64`, `allowed_program_ids`; Adapter: `asset`).
+
+### Per-Protocol Behavior
+
+See [Per-Protocol Behavior](#lend_tokens) above for protocol-specific details. Key differences for withdraw:
+
+- **Aave**: `amount="max"` supported but requires `usd_value` for policy enforcement
+- **Compound**: `amount="max"` NOT supported for native path
+- **Kamino/Marginfi**: Follow standard Solana withdraw patterns
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "500",
+  "status": "confirmed"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Aave with max", "Compound (EVM)"]}>
+  <Tab value="Aave with max">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "max",
+      "amount_units": "ui",
+      "usd_value": 500.0
+    }
+    ```
+  </Tab>
+  <Tab value="Compound (EVM)">
+    ```json
+    {
+      "chain": "base",
+      "protocol": "compound",
+      "token": "base",
+      "amount": "100",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy).
+- Protocol is auto-selected by chain: EVM chains default to Aave, Solana defaults to Kamino.
+- `amount="max"` behavior varies by protocol: Aave supports it (requires `usd_value`), Compound does not.
+- See also: [DeFi Guide](/docs/guides/defi)
+
+---
+
+## borrow_tokens
+
+Borrow tokens from a lending protocol against collateral. Supports native execution for Aave v3 (EVM), Compound v3 (EVM), Kamino (Solana), and Marginfi (Solana).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to execute on: solana or an EVM chain name.",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "Protocol selection. If omitted, defaults by chain (EVM: aave; Solana: kamino).",
+    },
+    token: {
+      type: "string",
+      description:
+        'Token to borrow. EVM: ERC-20 contract address. For Compound v3, must be base token (use token="base" for baseToken()).',
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        "Amount to borrow. Note: amount=max is NOT supported for native Aave/Compound paths.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = human-readable token units, base = raw base units.",
+      default: '"ui"',
+    },
+    interest_rate_mode: {
+      type: '"variable" | "stable"',
+      description: "Aave interest rate mode for borrow operations.",
+      default: '"variable"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "Override flag for USD value tracking.",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3: optional override for Pool address (useful for local testing/mocks).",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3: optional override for Comet market address. If omitted, uses per-chain default for USDC market.",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino: optional market pubkey override (defaults to http.kamino_default_lend_market).",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi: optional group pubkey override (defaults to http.marginfi_default_group).",
+    },
+  }}
+/>
+
+### Transaction Envelope (Fallback)
+
+See [lend_tokens](#lend_tokens) for transaction envelope parameters (EVM: `to`, `data`, `value_wei`; Solana: `tx_b64`, `allowed_program_ids`; Adapter: `asset`).
+
+### Per-Protocol Behavior
+
+See [Per-Protocol Behavior](#lend_tokens) above for protocol-specific details. Key differences for borrow:
+
+- **Aave**: Supports `interest_rate_mode` (variable or stable)
+- **Compound**: Use `token="base"` to borrow the market's base token
+- **All protocols**: `amount=max` NOT supported for native paths
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "200",
+  "interest_rate_mode": "variable",
+  "status": "confirmed"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Aave (EVM)", "Compound (EVM)"]}>
+  <Tab value="Aave (EVM)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "200",
+      "amount_units": "ui",
+      "interest_rate_mode": "variable"
+    }
+    ```
+  </Tab>
+  <Tab value="Compound (EVM)">
+    ```json
+    {
+      "chain": "base",
+      "protocol": "compound",
+      "token": "base",
+      "amount": "50",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy).
+- Protocol is auto-selected by chain: EVM chains default to Aave, Solana defaults to Kamino.
+- `amount=max` is NOT supported for native paths.
+- Aave supports both variable and stable interest rate modes via `interest_rate_mode`.
+- For Compound v3, `token` must be the market's base token. Use `token="base"` as shorthand for baseToken().
+- See also: [DeFi Guide](/docs/guides/defi)
+
+---
+
+## repay_borrow
+
+Repay a borrow on a lending protocol. Supports native execution for Aave v3 (EVM), Compound v3 (EVM), Kamino (Solana), and Marginfi (Solana).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to execute on: solana or an EVM chain name.",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "Protocol selection. If omitted, defaults by chain (EVM: aave; Solana: kamino).",
+    },
+    token: {
+      type: "string",
+      description:
+        'Token to repay. EVM: ERC-20 contract address. For Compound v3, must be base token (use token="base" for baseToken()).',
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        'Amount to repay. For Aave, amount="max" is supported (requires usd_value for policy). For Compound native path, amount=max is NOT supported.',
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = human-readable token units, base = raw base units.",
+      default: '"ui"',
+    },
+    interest_rate_mode: {
+      type: '"variable" | "stable"',
+      description: "Aave interest rate mode for repay operations.",
+      default: '"variable"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. Required when using amount=max with Aave.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "Override flag for USD value tracking.",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3: optional override for Pool address (useful for local testing/mocks).",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3: optional override for Comet market address. If omitted, uses per-chain default for USDC market.",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino: optional market pubkey override (defaults to http.kamino_default_lend_market).",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi: optional group pubkey override (defaults to http.marginfi_default_group).",
+    },
+  }}
+/>
+
+### Transaction Envelope (Fallback)
+
+See [lend_tokens](#lend_tokens) for transaction envelope parameters (EVM: `to`, `data`, `value_wei`; Solana: `tx_b64`, `allowed_program_ids`; Adapter: `asset`).
+
+### Per-Protocol Behavior
+
+See [Per-Protocol Behavior](#lend_tokens) above for protocol-specific details. Key differences for repay:
+
+- **Aave**: `amount="max"` supported but requires `usd_value` for policy enforcement; supports `interest_rate_mode`
+- **Compound**: `amount="max"` NOT supported for native path; use `token="base"` for base token
+- **Kamino/Marginfi**: Follow standard Solana repay patterns
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "200",
+  "interest_rate_mode": "variable",
+  "status": "confirmed"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Aave with max", "Kamino (Solana)"]}>
+  <Tab value="Aave with max">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "max",
+      "amount_units": "ui",
+      "usd_value": 200.0,
+      "interest_rate_mode": "variable"
+    }
+    ```
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "kamino",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "100",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy).
+- Protocol is auto-selected by chain: EVM chains default to Aave, Solana defaults to Kamino.
+- `amount="max"` behavior varies by protocol: Aave supports it (requires `usd_value`), Compound does not.
+- Aave supports both variable and stable interest rate modes via `interest_rate_mode`.
+- For Compound v3, `token` must be the market's base token. Use `token="base"` as shorthand for baseToken().
+- See also: [DeFi Guide](/docs/guides/defi)
+
+---
+
+## get_lending_positions
+
+Read-only lending/borrowing positions. Supports native reads for Aave v3 (EVM), Compound v3/Comet (EVM), Kamino (Solana), and Marginfi (Solana). Falls back to a configured DeFi adapter for other protocols.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to execute on: solana or an EVM chain name.",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "Protocol hint. If omitted, defaults by chain (EVM: aave; Solana: kamino).",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3: optional override for Pool address (useful for local testing/mocks).",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3: optional override for Comet market address. If omitted, uses per-chain default for USDC market.",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino: optional market pubkey override (defaults to http.kamino_default_lend_market).",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi: optional group pubkey override (defaults to http.marginfi_default_group).",
+    },
+    marginfi_account: {
+      type: "string",
+      description:
+        "Marginfi: optional marginfi_account pubkey to read. If omitted, Seashail uses the most recently created Marginfi account for this wallet/account (best-effort).",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "protocol": "aave",
+  "chain": "ethereum",
+  "positions": [
+    {
+      "token": "0xA0b8...",
+      "symbol": "USDC",
+      "supplied": "1000.0",
+      "supplied_usd": 1000.0,
+      "borrowed": "0",
+      "borrowed_usd": 0,
+      "apy_supply": 3.2,
+      "apy_borrow": null
+    }
+  ],
+  "health_factor": 2.5
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Aave (EVM)", "Kamino (Solana)"]}>
+  <Tab value="Aave (EVM)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave"
+    }
+    ```
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "kamino"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- This is a read-only tool; no policy approval required.
+- Protocol-specific overrides (`pool_address`, `comet_address`, `market`, `group`, `marginfi_account`) are primarily useful for testing or non-default deployments.
+- Protocol is auto-selected by chain: EVM chains default to Aave, Solana defaults to Kamino.
+- For Marginfi, if `marginfi_account` is omitted, Seashail uses the most recently created account (best-effort).
+- See also: [DeFi Guide](/docs/guides/defi)

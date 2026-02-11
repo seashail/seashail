@@ -1,0 +1,95 @@
+---
+title: Wallets And Key Storage
+description: Create/import wallets, manage accounts, and fund addresses safely.
+---
+
+Seashail is designed so the agent process never receives key material.
+
+## Wallet Types
+
+### Generated Wallets
+
+Generated wallets are created inside Seashail and protected using Shamir Secret Sharing (2-of-3):
+
+- Share 1: encrypted with a machine secret stored in `config_dir`
+- Share 2: encrypted with a machine key by default (seamless onboarding), or re-encrypted under a passphrase for portability (opt-in)
+- Share 3: shown once as an offline backup during explicit recovery/export operations and not stored by Seashail
+
+Normal operation reconstructs from shares 1 + 2, signs, then zeroes key material from memory.
+
+### Imported Wallets
+
+Imported keys/mnemonics are encrypted at rest using AES-256-GCM with a key derived from your passphrase (Argon2id + HKDF subkeys).
+
+## Passphrase Session
+
+To make automation practical, Seashail caches a passphrase-derived key in memory for a configurable window (`passphrase_session_seconds`).
+
+Headless/unattended environments can opt in to providing the passphrase via environment variable:
+
+- `SEASHAIL_PASSPHRASE`
+
+This is lower security by design (plaintext outside Seashail’s control). Use only if you understand the tradeoff.
+
+## Creating And Importing Wallets
+
+Create a generated wallet (Shamir 2-of-3):
+
+- `create_wallet` (prompts for passphrase via MCP elicitation)
+
+Import an existing wallet:
+
+- `import_wallet` (prompts for the secret via MCP elicitation)
+
+Notes:
+
+- Never pass `secret` as a tool argument. Seashail rejects it by design because tool args often end up in agent logs.
+- Imported private keys require `private_key_chain` (`evm` or `solana`).
+
+## Managing Wallets And Accounts
+
+Common workflow:
+
+1. `list_wallets` to see what exists
+2. `set_active_wallet` to choose the default wallet/account for subsequent tool calls
+3. `add_account` to add another BIP-44 account index (generated wallets and mnemonic wallets)
+4. `get_wallet_info` to inspect addresses for a wallet
+
+## Funding (Deposit Addresses)
+
+Use:
+
+- `get_deposit_info`
+
+This returns the deposit address for a given `wallet` / `account_index` on a chosen `chain`.
+
+Examples:
+
+```json
+{ "chain": "solana", "token": "usdc" }
+```
+
+```json
+{ "chain": "base", "token": "native" }
+```
+
+## Backup And Rotation (Generated Wallets Only)
+
+Generated wallets can opt into portability/recovery and receive a show-once offline backup share:
+
+- `export_shares` (rotates shares and displays a show-once Share 3; requires passphrase session)
+- `rotate_shares` (rotates shares and displays a show-once Share 3; requires passphrase session)
+
+## Related Tools
+
+- `list_wallets`, `get_wallet_info`, `set_active_wallet`, `add_account`
+- `create_wallet`, `import_wallet`
+- `get_deposit_info`
+- `export_shares`, `rotate_shares`
+
+## See Also
+
+- [CLI Reference](/docs/reference/cli) for command-line wallet management
+- [Troubleshooting](/docs/troubleshooting) for wallet error solutions
+- [Glossary](/docs/glossary) for definitions of Shamir Secret Sharing, passphrase session, and key storage terms
+- [Security Model](/docs/guides/security-model) for threat analysis and key custody comparison

@@ -1,0 +1,641 @@
+---
+title: "Tools: Write"
+description: Airdrops, transfers, swaps, and bridges (policy-gated signing).
+---
+
+Write tools can trigger:
+
+- policy evaluation
+- user confirmation via MCP elicitation (depending on policy and USD value)
+- local signing and broadcast
+
+See also:
+
+- [Policy & Approvals](/docs/guides/policy-and-approvals)
+
+## request_airdrop
+
+Requests a Solana airdrop on devnet, testnet, or local validators. Blocked on mainnet-beta.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: '"solana"',
+      description: "Must be solana.",
+      default: '"solana"',
+    },
+    address: {
+      type: "string",
+      description:
+        "Solana address to receive the airdrop. If omitted, uses the wallet's Solana address for the selected account.",
+    },
+    amount: {
+      type: "string",
+      description: "Amount of SOL to request.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = SOL, base = lamports.",
+      default: '"ui"',
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "amount": "1",
+  "amount_units": "ui"
+}
+```
+
+### Examples
+
+```json
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "amount": "1",
+  "amount_units": "ui"
+}
+```
+
+### Notes
+
+- Only available on devnet, testnet, and local validators.
+- If `address` is omitted, Seashail uses the wallet's Solana address for the selected account.
+- Rate limits may apply depending on the validator/faucet.
+
+---
+
+## send_transaction
+
+Transfers native tokens or fungible tokens (SPL on Solana; ERC-20 on EVM). Requires [policy approval](/docs/guides/policy-and-approvals).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description:
+        'Chain to execute on: "solana" or an EVM chain name (ethereum, base, arbitrum, optimism, polygon, bnb, avalanche, and testnets).',
+      required: true,
+    },
+    to: {
+      type: "string",
+      description: "Recipient address (Solana pubkey or EVM 0x address).",
+      required: true,
+    },
+    token: {
+      type: "string",
+      description:
+        'Token identifier. Use "native" for SOL/ETH/etc, an SPL mint pubkey (Solana), or an ERC-20 contract address (EVM).',
+      default: '"native"',
+    },
+    amount: {
+      type: "string",
+      description: "Amount to send as a decimal string.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        "ui = human-readable units (SOL, ETH, token units). base = raw units (lamports, wei).",
+      default: '"ui"',
+    },
+  }}
+/>
+
+### Per-Chain Behavior
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    - Supports native SOL and SPL tokens - For SPL sends, Seashail creates the
+    recipient's Associated Token Account (ATA) if it does not exist - Token
+    identifier: SPL mint pubkey or `"native"` - Amount units: `"ui"` = SOL or
+    token units, `"base"` = lamports or raw base units
+  </Tab>
+  <Tab value="EVM">
+    - Supports native ETH/MATIC/BNB/AVAX/etc and ERC-20 tokens - Token
+    identifier: ERC-20 contract address or `"native"` - Amount units: `"ui"` =
+    token units (e.g. ETH), `"base"` = wei or raw base units - Scam-address
+    blocklist may block recipients when configured
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "solana",
+  "to": "11111111111111111111111111111111",
+  "token": "native",
+  "amount": "0.01",
+  "amount_units": "ui",
+  "status": "confirmed"
+}
+```
+
+### Examples
+
+<Tabs items={["Solana native", "Solana SPL", "EVM native", "EVM ERC-20"]}>
+  <Tab value="Solana native">
+    ```json
+    {
+      "chain": "solana",
+      "to": "11111111111111111111111111111111",
+      "token": "native",
+      "amount": "0.01",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="Solana SPL">
+    ```json
+    {
+      "chain": "solana",
+      "to": "11111111111111111111111111111111",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "5",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM native">
+    ```json
+    {
+      "chain": "base",
+      "to": "0xRecipientAddress",
+      "token": "native",
+      "amount": "0.001",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM ERC-20">
+    ```json
+    {
+      "chain": "base",
+      "to": "0xRecipientAddress",
+      "token": "0xTokenContractAddress",
+      "amount": "10",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/guides/policy-and-approvals) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- Seashail may block recipients if a scam-address blocklist is configured.
+- For SPL sends on Solana, Seashail automatically creates the recipient's Associated Token Account if needed.
+- The `wallet` and `account_index` fields are optional — if omitted, Seashail uses the currently active wallet and account.
+
+---
+
+## swap_tokens
+
+Executes a token swap via an on-chain DEX aggregator. Requires [policy approval](/docs/guides/policy-and-approvals).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: 'Chain to execute on: "solana" or an EVM chain name.',
+      required: true,
+    },
+    token_in: {
+      type: "string",
+      description:
+        'Input token. Use "native" for SOL/ETH/etc, or a token mint (Solana) / contract address (EVM).',
+      required: true,
+    },
+    token_out: {
+      type: "string",
+      description:
+        'Output token. Use "native" for SOL/ETH/etc, or a token mint (Solana) / contract address (EVM).',
+      required: true,
+    },
+    amount_in: {
+      type: "string",
+      description: "Amount of input token to swap, as a decimal string.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = human-readable units, base = raw units.",
+      default: '"ui"',
+    },
+    slippage_bps: {
+      type: "integer",
+      description:
+        "Maximum slippage in basis points (1 bps = 0.01%). Range: 0–5000.",
+      default: "100",
+    },
+    provider: {
+      type: '"auto" | "jupiter" | "uniswap" | "1inch"',
+      description:
+        'DEX provider. "auto" selects Jupiter for Solana and Uniswap for EVM.',
+      default: '"auto"',
+    },
+  }}
+/>
+
+### Per-Chain Behavior
+
+<Tabs items={["Solana (Jupiter)", "EVM (Uniswap)", "EVM (1inch)"]}>
+  <Tab value="Solana (Jupiter)">
+    - Default provider for Solana (`provider="auto"` resolves to Jupiter) -
+    Token identifiers: SPL mint pubkeys or `"native"` - Jupiter handles routing
+    automatically across multiple liquidity sources - No ERC-20 approval step
+    needed (Solana uses token accounts)
+  </Tab>
+  <Tab value="EVM (Uniswap)">
+    - Default provider for EVM chains (`provider="auto"` resolves to Uniswap) -
+    Token identifiers: ERC-20 contract addresses or `"native"` - May require an
+    ERC-20 allowance/approval transaction first — Seashail handles this
+    automatically - Available on all configured EVM chains (Ethereum, Base,
+    Arbitrum, Optimism, Polygon, BNB, Avalanche)
+  </Tab>
+  <Tab value="EVM (1inch)">
+    - Optional provider — requires API key configuration (check
+    `get_capabilities.services`) - Token identifiers: ERC-20 contract addresses
+    or `"native"` - Set `provider` to `"1inch"` explicitly to use this provider
+    - May offer better pricing via aggregation across more liquidity sources
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "0.05",
+  "amount_out": "8.234",
+  "provider": "jupiter",
+  "status": "confirmed"
+}
+```
+
+### Examples
+
+<Tabs items={["Solana (Jupiter)", "EVM (Uniswap)", "EVM (1inch)"]}>
+  <Tab value="Solana (Jupiter)">
+    ```json
+    {
+      "chain": "solana",
+      "token_in": "native",
+      "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount_in": "0.05",
+      "amount_units": "ui",
+      "slippage_bps": 100,
+      "provider": "auto"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM (Uniswap)">
+    ```json
+    {
+      "chain": "base",
+      "token_in": "native",
+      "token_out": "0xTokenContractAddress",
+      "amount_in": "0.01",
+      "amount_units": "ui",
+      "slippage_bps": 100,
+      "provider": "uniswap"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM (1inch)">
+    ```json
+    {
+      "chain": "base",
+      "token_in": "0xTokenInAddress",
+      "token_out": "0xTokenOutAddress",
+      "amount_in": "100",
+      "slippage_bps": 50,
+      "provider": "1inch"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- `provider="auto"` selects Jupiter for Solana and Uniswap for EVM chains.
+- Some providers require additional configuration — check `get_capabilities.services` to verify availability.
+- EVM swaps may involve an allowance/approval transaction for ERC-20 inputs. Seashail handles this automatically before executing the swap.
+- `slippage_bps` range is 0–5000 (0% to 50%). The default of 100 means 1% maximum slippage.
+
+---
+
+## bridge_tokens
+
+Bridge tokens cross-chain. When `to_chain`, `token`, and `amount` are provided, Seashail executes a native Wormhole token bridge on EVM and Solana (or LayerZero OFT v1 on EVM). Otherwise, it falls back to executing a supplied transaction envelope. Requires [policy approval](/docs/guides/policy-and-approvals).
+
+### Parameters
+
+**Core parameters:**
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description:
+        "Execution chain — the source chain to bridge FROM. Solana or an EVM chain name.",
+      required: true,
+    },
+    bridge_provider: {
+      type: '"wormhole" | "layerzero"',
+      description: "Bridge provider selection.",
+      default: '"wormhole"',
+    },
+    to_chain: {
+      type: "string",
+      description:
+        "Destination chain name (EVM chain name or solana). Required for native Wormhole/LayerZero path.",
+    },
+    token: {
+      type: "string",
+      description:
+        "Token to bridge. EVM: ERC-20 contract address. Solana: SPL mint pubkey. Required for native path.",
+    },
+    amount: {
+      type: "string",
+      description:
+        "Amount to bridge as a decimal string. Note: amount=max is NOT supported for Wormhole native path. Required for native path.",
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = human-readable token units, base = raw base units.",
+      default: '"ui"',
+    },
+    recipient: {
+      type: "string",
+      description:
+        "Recipient on destination chain. EVM→EVM or Solana→EVM: EVM address. EVM→Solana: Solana owner pubkey (Seashail derives the ATA for the wrapped mint). Defaults to the same Seashail wallet on the destination chain.",
+    },
+  }}
+/>
+
+**Wormhole-specific parameters:**
+
+<TypeTable
+  type={{
+    recipient_token_account: {
+      type: "string",
+      description:
+        "EVM→Solana only: override for the exact destination SPL token account pubkey. If omitted, Seashail uses the derived ATA.",
+    },
+    redeem: {
+      type: "boolean",
+      description:
+        "If true, Seashail will best-effort fetch the signed VAA and redeem on destination. Requires destination chain fees (EVM gas or SOL).",
+      default: "true",
+    },
+    token_bridge_address: {
+      type: "string",
+      description:
+        "Override for source Wormhole token bridge contract (useful for local testing/mocks).",
+    },
+    to_token_bridge_address: {
+      type: "string",
+      description:
+        "Override for destination Wormhole token bridge contract (useful for local testing/mocks).",
+    },
+  }}
+/>
+
+**LayerZero-specific parameters:**
+
+<TypeTable
+  type={{
+    dst_gas: {
+      type: "integer",
+      description:
+        "LayerZero (OFT v1) only: destination gas limit for adapterParams.",
+      default: "200000",
+    },
+  }}
+/>
+
+**Policy parameters:**
+
+<TypeTable
+  type={{
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Override flag. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+  }}
+/>
+
+**Transaction envelope fallback (EVM):**
+
+<TypeTable
+  type={{
+    to: {
+      type: "string",
+      description:
+        "EVM: transaction recipient/contract address. Used in tx envelope fallback mode.",
+    },
+    data: {
+      type: "string",
+      description: "EVM: 0x-prefixed calldata. Use 0x for empty.",
+    },
+    value_wei: {
+      type: "string",
+      description: "EVM: value in wei as a decimal string.",
+      default: '"0"',
+    },
+  }}
+/>
+
+**Transaction envelope fallback (Solana):**
+
+<TypeTable
+  type={{
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana: base64-encoded VersionedTransaction bytes (unsigned; Seashail will sign).",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana: allowlist of program IDs. Every instruction program id must be in this list.",
+    },
+  }}
+/>
+
+**Adapter parameters:**
+
+<TypeTable
+  type={{
+    asset: {
+      type: "object",
+      description:
+        "Protocol-specific request object used by an optional adapter to construct a tx envelope.",
+    },
+  }}
+/>
+
+### Per-Chain Behavior
+
+<Tabs items={["Solana → EVM", "EVM → Solana", "EVM → EVM"]}>
+  <Tab value="Solana → EVM">
+    - `chain`: `"solana"`, `to_chain`: EVM chain name (e.g. `"base"`,
+    `"ethereum"`) - `token`: SPL mint pubkey of the token to bridge - Seashail
+    handles the Wormhole transfer and optional auto-redeem on the destination
+    chain - `recipient` defaults to the same wallet's EVM address on the
+    destination chain - Auto-redeem (`redeem=true`) requires the destination
+    chain wallet to have gas for the redeem transaction
+  </Tab>
+  <Tab value="EVM → Solana">
+    - `chain`: EVM chain name (e.g. `"base"`), `to_chain`: `"solana"` - `token`:
+    ERC-20 contract address of the token to bridge - `recipient`: Solana owner
+    pubkey — Seashail derives the ATA for the wrapped mint automatically -
+    Optional `recipient_token_account` override for exact destination SPL token
+    account - May require an ERC-20 approval transaction first — Seashail
+    handles this automatically
+  </Tab>
+  <Tab value="EVM → EVM">
+    - `chain`: source EVM chain, `to_chain`: destination EVM chain - `token`:
+    ERC-20 contract address on the source chain - `recipient` defaults to the
+    same wallet's address on the destination chain - May require an ERC-20
+    approval transaction first — Seashail handles this automatically
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "signature": "0xabc...txhash",
+  "chain": "base",
+  "to_chain": "solana",
+  "token": "0xUSDCContractAddress",
+  "amount": "100",
+  "bridge_provider": "wormhole",
+  "bridge_id": "0xabc...txhash",
+  "status": "submitted"
+}
+```
+
+The `bridge_id` can be used with [`get_bridge_status`](/docs/reference/tools-read#get_bridge_status) to check progress.
+
+### Examples
+
+<Tabs items={["Solana → Base (USDC)", "Base → Solana (USDC)", "Checking Status"]}>
+  <Tab value="Solana → Base (USDC)">
+    ```json
+    {
+      "chain": "solana",
+      "to_chain": "base",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "50",
+      "amount_units": "ui",
+      "bridge_provider": "wormhole",
+      "redeem": true
+    }
+    ```
+  </Tab>
+  <Tab value="Base → Solana (USDC)">
+    ```json
+    {
+      "chain": "base",
+      "to_chain": "solana",
+      "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "amount": "100",
+      "amount_units": "ui",
+      "bridge_provider": "wormhole",
+      "recipient": "YourSolanaOwnerPubkey",
+      "redeem": true
+    }
+    ```
+  </Tab>
+  <Tab value="Checking Status">
+    After initiating a bridge, check status with [`get_bridge_status`](/docs/reference/tools-read#get_bridge_status):
+
+    ```json
+    {
+      "bridge_id": "0xabc...txhash",
+      "bridge_provider": "wormhole"
+    }
+    ```
+
+  </Tab>
+</Tabs>
+
+### Notes
+
+- **Native path requires all three:** `to_chain`, `token`, and `amount` must all be provided for Seashail to execute a native Wormhole/LayerZero bridge. If any are missing, Seashail falls back to the transaction envelope mode.
+- **`amount=max` is NOT supported** for the Wormhole native path.
+- **`redeem=true` (default)** attempts auto-redeem on the destination chain. This requires the destination wallet to have gas (ETH for EVM destinations, SOL for Solana destinations).
+- **`bridge_provider`** defaults to `"wormhole"`. LayerZero (`"layerzero"`) is also supported for OFT v1 tokens on EVM chains.
+- **Policy:** Bridging must be enabled in your [policy configuration](/docs/guides/policy-and-approvals) (`enable_bridge` field).
+- **Status tracking:** Use [`get_bridge_status`](/docs/reference/tools-read#get_bridge_status) with the transaction signature as `bridge_id` to monitor bridge progress, VAA availability, and redemption status.

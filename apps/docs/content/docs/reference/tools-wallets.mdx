@@ -1,0 +1,739 @@
+---
+title: "Tools: Wallets"
+description: Create, import, and manage wallets — including multi-account pools and internal transfers.
+---
+
+## list_wallets
+
+Lists all wallets known to Seashail with names, types, account counts, and cached addresses.
+
+### Parameters
+
+No parameters required.
+
+<TypeTable type={{}} />
+
+### Response
+
+```json
+{
+  "wallets": [
+    {
+      "name": "trading-wallet",
+      "type": "generated",
+      "accounts": 3,
+      "addresses": {
+        "solana": ["7xKXt...abc"],
+        "evm": ["0xAbC...123"]
+      }
+    },
+    {
+      "name": "imported",
+      "type": "mnemonic",
+      "accounts": 1,
+      "addresses": {
+        "solana": ["9yLMn...def"],
+        "evm": ["0xDef...456"]
+      }
+    }
+  ],
+  "active_wallet": "trading-wallet",
+  "active_account_index": 0
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{}
+```
+
+### Notes
+
+- Addresses are cached from previous derivations. A wallet may have addresses on some chains but not others depending on usage history.
+- The response includes the currently active wallet and account index.
+
+---
+
+## get_wallet_info
+
+Returns details for the active wallet (default) or a specific wallet. Shows cached public addresses only — does not require unlocking.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, returns the active wallet.",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "name": "trading-wallet",
+  "type": "generated",
+  "accounts": 2,
+  "active_account_index": 0,
+  "addresses": {
+    "0": {
+      "solana": "7xKXt...abc",
+      "evm": "0xAbC...123"
+    },
+    "1": {
+      "solana": "8zLYu...ghi",
+      "evm": "0xGhi...789"
+    }
+  }
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+Active wallet:
+
+```json title="Arguments"
+{}
+```
+
+Specific wallet:
+
+```json title="Arguments"
+{ "wallet": "my-wallet" }
+```
+
+### Notes
+
+- For funding a wallet, prefer `get_deposit_info` which returns a deposit address and safety warnings.
+- This tool shows cached public addresses only and does not require unlocking.
+
+---
+
+## set_active_wallet
+
+Sets the active wallet and BIP-44 account index. When other tools omit `wallet` or `account_index`, the active values are used.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name to set as active.",
+      required: true,
+    },
+    account_index: {
+      type: "integer",
+      description: "BIP-44 account index to set as active (minimum: 0).",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "active_wallet": "my-wallet",
+  "active_account_index": 0
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "wallet": "my-wallet", "account_index": 0 }
+```
+
+### Notes
+
+- The active wallet and account index persist until changed or the daemon restarts.
+- Many tools default to the active wallet/account when those parameters are omitted.
+
+---
+
+## add_account
+
+Adds a new account index to an existing wallet, deriving fresh addresses for the next BIP-44 index.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name to add an account to.",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "wallet": "my-wallet",
+  "new_account_index": 2,
+  "addresses": {
+    "solana": "NewSolAddress...",
+    "evm": "0xNewEvmAddress..."
+  }
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "wallet": "my-wallet" }
+```
+
+### Notes
+
+- This is only supported for wallets that can derive additional accounts (generated wallets and mnemonic wallets).
+- Private key wallets have a single fixed account and cannot add more.
+
+---
+
+## create_wallet
+
+Creates a generated wallet protected by Shamir 2-of-3 key splitting. This tool prompts for a passphrase via MCP elicitation.
+
+### Parameters
+
+<TypeTable
+  type={{
+    name: {
+      type: "string",
+      description: "Name for the new wallet (minimum 1 character).",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "wallet": {
+    "name": "trading-wallet",
+    "type": "generated",
+    "account_index": 0,
+    "addresses": {
+      "solana": "7xKXt...abc",
+      "evm": "0xAbC...123"
+    }
+  }
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "name": "trading-wallet" }
+```
+
+### Notes
+
+- Seashail prompts for a passphrase via MCP elicitation. Do not pass secrets in tool arguments.
+- The generated wallet secret is created from OS CSPRNG entropy (not from your passphrase). The passphrase is only used to encrypt Share 2 and imported wallets.
+- Seashail does not store your passphrase. It derives an encryption key from it and can keep that derived key in memory for a limited session window (`passphrase_session_seconds`).
+- During wallet creation, Seashail shows you a one-time offline backup share (Share 3) and asks you to confirm you saved it. Seashail does not persist Share 3.
+
+---
+
+## import_wallet
+
+Imports an existing mnemonic or private key. The secret is always requested via an interactive prompt (not via tool arguments) and is encrypted locally at rest.
+
+### Parameters
+
+<TypeTable
+  type={{
+    name: {
+      type: "string",
+      description: "Name for the imported wallet (minimum 1 character).",
+      required: true,
+    },
+    kind: {
+      type: '"private_key" | "mnemonic"',
+      description: "Type of secret to import.",
+      required: true,
+    },
+    private_key_chain: {
+      type: '"evm" | "solana"',
+      description:
+        'Required when kind is "private_key". Specifies which chain the private key belongs to.',
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "name": "imported",
+  "type": "mnemonic",
+  "account_index": 0,
+  "addresses": {
+    "solana": "9yLMn...def",
+    "evm": "0xDef...456"
+  }
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+Import a mnemonic:
+
+```json title="Arguments"
+{ "name": "imported", "kind": "mnemonic" }
+```
+
+Import a private key:
+
+```json title="Arguments"
+{ "name": "imported", "kind": "private_key", "private_key_chain": "evm" }
+```
+
+### Notes
+
+- Seashail will prompt for the secret via MCP elicitation. Do not pass `secret` in tool arguments.
+- `private_key_chain` is required when `kind` is `"private_key"` since the key format differs between EVM and Solana.
+- Mnemonic wallets can derive multiple accounts. Private key wallets have a single fixed account.
+
+---
+
+## get_deposit_info
+
+Returns a deposit address for a wallet/account on a specific chain (address-only; no QR).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "BIP-44 account index (minimum: 0). If omitted, uses the active account index.",
+    },
+    chain: {
+      type: "string",
+      description:
+        'Chain to deposit on (e.g. "solana", "ethereum", "base", "sepolia"). If omitted, uses the default chain for the current network mode.',
+    },
+    token: {
+      type: "string",
+      description:
+        'Optional token hint for display (e.g. "native", "usdc", or a mint/contract address). Does not change the deposit address.',
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "chain": "solana",
+  "chain_kind": "solana",
+  "chain_id": null,
+  "asset": {
+    "token": "usdc",
+    "kind": "spl",
+    "symbol": "USDC",
+    "identifier": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+  },
+  "address": "7xKXt...abc",
+  "warnings": [
+    "Only send assets on the selected chain/network. Sending from the wrong chain may be unrecoverable.",
+    "Always verify the address on both sides before sending."
+  ]
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "chain": "solana",
+  "token": "usdc"
+}
+```
+
+### Notes
+
+- The deposit address is derived from cached public addresses and does not require unlocking.
+- `token` is a hint for display and safety guidance. It does not change the deposit address.
+
+---
+
+## export_shares
+
+Rotates a generated wallet's shares and displays a show-once offline backup share (Share 3) via MCP elicitation. Requires an active passphrase session.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Name of the generated wallet to export shares for.",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "ok": true,
+  "wallet": "trading-wallet",
+  "status": "share_exported"
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "wallet": "trading-wallet" }
+```
+
+### Notes
+
+- Only supported for generated wallets (Shamir 2-of-3).
+- Requires an active passphrase session. If the session has expired, Seashail will prompt for the passphrase again.
+- Share 3 is displayed in the elicitation prompt and is not returned in the tool response.
+- If `SEASHAIL_PASSPHRASE` is set, Seashail can unlock without prompting.
+- Store Share 3 securely — it is the recovery backup.
+
+---
+
+## rotate_shares
+
+Rotates Shamir shares for a generated wallet, invalidating previous shares. Displays a new show-once Share 3 via MCP elicitation. Requires an active passphrase session.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Name of the generated wallet to rotate shares for.",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "ok": true,
+  "wallet": "trading-wallet",
+  "status": "shares_rotated"
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "wallet": "trading-wallet" }
+```
+
+### Notes
+
+- Only supported for generated wallets (Shamir 2-of-3).
+- Requires an active passphrase session.
+- After rotation, **all previous shares are invalidated**. Store the new Share 3 securely and discard old backups.
+- The underlying private key does not change — only the Shamir shares are regenerated.
+- Share 3 is displayed in the elicitation prompt and is not returned in the tool response.
+
+---
+
+## create_wallet_pool
+
+Creates N managed spending accounts (new account indexes) under an existing wallet root. Useful for creating multiple addresses for trading bots or fund distribution.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+    },
+    count: {
+      type: "integer",
+      description: "Number of new accounts to create (1–100).",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "wallet": "trading-wallet",
+  "created_accounts": [
+    {
+      "account_index": 3,
+      "addresses": { "solana": "Pool1Sol...", "evm": "0xPool1Evm..." }
+    },
+    {
+      "account_index": 4,
+      "addresses": { "solana": "Pool2Sol...", "evm": "0xPool2Evm..." }
+    }
+  ],
+  "total_accounts": 5
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "wallet": "trading-wallet", "count": 5 }
+```
+
+### Notes
+
+- Requires passphrase unlock (Seashail will prompt if the session has expired).
+- Account indexes are assigned sequentially starting from the next available index.
+- Maximum 100 accounts per call.
+- After creation, use `fund_wallets` to distribute funds to the new accounts.
+
+---
+
+## transfer_between_wallets
+
+Transfers tokens between Seashail-managed wallets or accounts. Internal transfers are policy-exempt by default — see [policy tools](/docs/reference/tools-policy) for details.
+
+### Parameters
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: 'Chain to transfer on (e.g. "solana", "base", "ethereum").',
+      required: true,
+    },
+    token: {
+      type: "string",
+      description:
+        'Token to transfer: "native" (default) or a token mint (Solana) / contract address (EVM).',
+    },
+    amount: {
+      type: "string",
+      description: "Amount to transfer.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        'Amount units: "ui" uses token decimals, "base" uses raw base units.',
+      default: '"ui"',
+    },
+    from_wallet: {
+      type: "string",
+      description: "Source wallet name.",
+      required: true,
+    },
+    from_account_index: {
+      type: "integer",
+      description: "Source account index (minimum: 0).",
+      required: true,
+    },
+    to_wallet: {
+      type: "string",
+      description: "Destination wallet name.",
+      required: true,
+    },
+    to_account_index: {
+      type: "integer",
+      description: "Destination account index (minimum: 0).",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "amount": "1.5",
+  "from": { "wallet": "main", "account_index": 0 },
+  "to": { "wallet": "trading", "account_index": 0 },
+  "tx_hash": "5xYz...signature"
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+Transfer SOL between wallets:
+
+```json title="Arguments"
+{
+  "chain": "solana",
+  "token": "native",
+  "amount": "2.0",
+  "from_wallet": "main",
+  "from_account_index": 0,
+  "to_wallet": "trading",
+  "to_account_index": 0
+}
+```
+
+Transfer USDC between accounts within the same wallet:
+
+```json title="Arguments"
+{
+  "chain": "base",
+  "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "amount": "100",
+  "from_wallet": "main",
+  "from_account_index": 0,
+  "to_wallet": "main",
+  "to_account_index": 1
+}
+```
+
+### Notes
+
+- Internal transfers between Seashail-managed wallets are **policy-exempt by default**. See [policy tools](/docs/reference/tools-policy) for how to change this.
+- Both the source and destination must be Seashail-managed wallets.
+- Requires passphrase unlock for the source wallet.
+
+---
+
+## fund_wallets
+
+Distributes funds from one managed wallet/account to many managed wallets/accounts in a single operation. Internal transfers are policy-exempt by default — see [policy tools](/docs/reference/tools-policy) for details.
+
+### Parameters
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: 'Chain to transfer on (e.g. "solana", "base", "ethereum").',
+      required: true,
+    },
+    token: {
+      type: "string",
+      description:
+        'Token to distribute: "native" (default) or a token mint (Solana) / contract address (EVM).',
+    },
+    amount_each: {
+      type: "string",
+      description: "Amount to send to each destination.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        'Amount units: "ui" uses token decimals, "base" uses raw base units.',
+      default: '"ui"',
+    },
+    from_wallet: {
+      type: "string",
+      description: "Source wallet name. If omitted, uses the active wallet.",
+    },
+    from_account_index: {
+      type: "integer",
+      description:
+        "Source account index (minimum: 0). If omitted, uses the wallet's last active account index.",
+    },
+    destinations: {
+      type: "Array<{ wallet: string, account_index: integer }>",
+      description: "List of destination wallet/account pairs.",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "amount_each": "0.1",
+  "from": { "wallet": "main", "account_index": 0 },
+  "transfers": [
+    { "wallet": "trading", "account_index": 0, "tx_hash": "sig1..." },
+    { "wallet": "trading", "account_index": 1, "tx_hash": "sig2..." },
+    { "wallet": "trading", "account_index": 2, "tx_hash": "sig3..." }
+  ],
+  "total_amount": "0.3"
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+Fund 3 accounts with SOL:
+
+```json title="Arguments"
+{
+  "chain": "solana",
+  "token": "native",
+  "amount_each": "0.1",
+  "from_wallet": "main",
+  "from_account_index": 0,
+  "destinations": [
+    { "wallet": "trading", "account_index": 0 },
+    { "wallet": "trading", "account_index": 1 },
+    { "wallet": "trading", "account_index": 2 }
+  ]
+}
+```
+
+### Notes
+
+- Internal transfers between Seashail-managed wallets are **policy-exempt by default**. See [policy tools](/docs/reference/tools-policy) for how to change this.
+- All destinations must be Seashail-managed wallets.
+- Each destination receives exactly `amount_each` — the total transferred is `amount_each × len(destinations)`.
+- Combine with `create_wallet_pool` to create accounts and then fund them.
+
+---
+
+## See Also
+
+- [Wallets Guide](/docs/guides/wallets) -- Wallet creation, import, multi-account pools, and recovery workflows
+- [Security Model](/docs/guides/security-model) -- Key management, Shamir shares, and passphrase sessions

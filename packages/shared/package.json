@@ -1,0 +1,23 @@
+{
+  "name": "@seashail/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./typebox/standard-schema": "./src/typebox/standard-schema.ts",
+    "./typebox/types": "./src/typebox/types.ts"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48",
+    "@standard-schema/spec": "^1.0.0"
+  },
+  "scripts": {
+    "build": "echo \"no build\"",
+    "test": "echo \"no tests\"",
+    "lint": "echo \"no lint\"",
+    "format": "echo \"no format\"",
+    "format:check": "echo \"no format\"",
+    "check-types": "echo \"no types\""
+  }
+}
+

@@ -1,0 +1,144 @@
+---
+title: "Recipe: Yield Farming"
+description: Research yield pools and deploy capital to lending or staking protocols
+---
+
+## Overview
+
+Deploy capital to DeFi protocols for yield. Research available pools, check wallet balance, deploy to lending (Aave/Kamino) or staking (Lido/Jito), and monitor positions.
+
+**Tools used:** `get_defi_yield_pools`, `lend_tokens`, `stake_tokens`, `get_lending_positions`, `get_balance`
+**Chains:** EVM (Aave, Lido) and Solana (Kamino, Jito)
+**Time to complete:** 10-15 minutes
+
+## Prerequisites
+
+- Active wallet with stablecoin or native token balance
+- Risk tolerance defined (conservative = lending, moderate = staking)
+
+<Steps>
+
+### Step 1: Research available yield pools
+
+Query DeFi yield pools filtered by TVL and stablecoin focus.
+
+```json
+{
+  "name": "get_defi_yield_pools",
+  "arguments": {
+    "chains": ["Ethereum", "Solana", "Base", "Arbitrum"],
+    "min_tvl_usd": 50000000,
+    "min_apy": 3,
+    "stablecoin_only": true,
+    "exclude_il_risk": true,
+    "max_results": 10
+  }
+}
+```
+
+**Expected result:** List of pools with project name, APY, TVL, and chain. Example: Aave USDC lending on Base at 4.5% APY.
+
+### Step 2: Check wallet balance
+
+Verify available capital for deployment.
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "base",
+    "tokens": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"]
+  }
+}
+```
+
+**Expected result:** USDC balance on Base. Ensure sufficient balance for deployment plus gas.
+
+### Step 3: Deploy to lending protocol
+
+Lend USDC to Aave on Base. Seashail auto-selects Aave for EVM chains.
+
+```json
+{
+  "name": "lend_tokens",
+  "arguments": {
+    "chain": "base",
+    "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amount": "1000",
+    "amount_units": "ui"
+  }
+}
+```
+
+**Expected result:** Transaction signature. USDC is now supplied to Aave and earning yield.
+
+### Step 4: (Alternative) Stake for liquid staking yield
+
+If targeting native token yield, stake SOL on Jito (Solana) instead.
+
+```json
+{
+  "name": "stake_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token": "native",
+    "amount": "10",
+    "amount_units": "ui"
+  }
+}
+```
+
+**Expected result:** Transaction signature. You receive jitoSOL (liquid staking token) representing staked SOL plus accrued yield.
+
+### Step 5: Monitor positions
+
+Check lending positions to track supplied balance and interest accrued.
+
+```json
+{
+  "name": "get_lending_positions",
+  "arguments": {
+    "chain": "base"
+  }
+}
+```
+
+**Expected result:** Position details including supplied USDC, health factor (if borrowing), and current APY.
+
+</Steps>
+
+## Variations
+
+### Leveraged yield
+
+Supply collateral, borrow stablecoin, re-lend the borrowed amount for amplified yield. **Caution:** Increases liquidation risk.
+
+```json
+{
+  "name": "lend_tokens",
+  "arguments": {
+    "chain": "base",
+    "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amount": "2000"
+  }
+}
+```
+
+Then use `borrow_tokens` to borrow against collateral and `lend_tokens` again with borrowed funds.
+
+### Stablecoin-only strategy
+
+Focus exclusively on stablecoin lending to avoid asset price risk. Use `stablecoin_only: true` filter in `get_defi_yield_pools`.
+
+## Notes
+
+- **Impermanent loss:** Not applicable to single-asset lending/staking. Only relevant if providing liquidity to AMM pools (not covered here).
+- **Protocol auto-selection:** Seashail defaults to Aave (EVM) and Kamino (Solana) for lending, Lido (EVM) and Jito (Solana) for staking.
+- **TVL as safety indicator:** Higher TVL generally indicates more battle-tested protocols, but is not a guarantee of safety.
+- **Regular monitoring:** Check positions weekly to ensure health factor stays above 1.5 (if borrowing) and to track yield accumulation.
+
+## See Also
+
+- [DeFi Guide](/docs/guides/defi)
+- [Lending Tools Reference](/docs/reference/tools-lending)
+- [Staking Tools Reference](/docs/reference/tools-staking)

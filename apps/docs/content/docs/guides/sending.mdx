@@ -1,0 +1,85 @@
+---
+title: Sending Tokens
+description: Transfer native tokens and fungible tokens across Solana and EVM chains.
+---
+
+## How Sending Works
+
+`send_transaction` transfers native tokens (SOL, ETH, etc.) or fungible tokens (SPL, ERC-20):
+
+- Seashail handles chain-specific mechanics: ATA creation on Solana, ERC-20 approval on EVM
+- All sends go through policy evaluation — subject to tiered approval, allowlists, and daily caps
+- Address validation happens before signing
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how policy controls work.
+
+## Per-Chain Behavior
+
+### Solana
+
+- Supports native SOL and SPL tokens
+- Seashail auto-creates the recipient's Associated Token Account (ATA) if it doesn't exist
+- Token identifier: SPL mint pubkey or `"native"`
+
+### EVM Chains
+
+- Supports native ETH/MATIC/BNB/AVAX/etc. and ERC-20 tokens
+- Token identifier: ERC-20 contract address or `"native"`
+- Scam-address blocklist may block recipients when configured
+
+See [Chains and Funding](/docs/guides/chains-and-funding) for chain identifiers.
+
+## Address Validation
+
+Seashail validates address format before signing:
+
+- **Solana:** base58-encoded public key (32 bytes)
+- **EVM:** `0x`-prefixed hex address (20 bytes)
+- The scam blocklist (if configured) will reject known scam addresses on EVM chains
+
+## Amount Formats
+
+Amount formatting works the same as swapping:
+
+- `amount` is a decimal string (for example, `"0.5"`, `"100"`)
+- `amount_units` defaults to `"ui"` (human-readable token units)
+- For token sends, `"ui"` uses the token's native decimal precision (for example, 6 decimals for USDC)
+- `"base"` uses raw units (lamports for SOL, wei for ETH)
+
+## Typical Workflow
+
+1. Check your balance: `get_balance` or `get_portfolio`
+2. Send: `send_transaction` with `chain`, `to`, `token`, `amount`
+3. Confirm policy approval if prompted (via MCP elicitation)
+4. Verify: `get_balance` or `get_transaction_history`
+
+Example send (Solana, native SOL):
+
+```json
+{
+  "chain": "solana",
+  "to": "RecipientPublicKey...",
+  "token": "native",
+  "amount": "0.5",
+  "amount_units": "ui"
+}
+```
+
+## When to Send vs Swap vs Bridge
+
+- **Send** when you want to transfer tokens you already hold to another address on the same chain
+- **Swap** when you want to exchange one token for another on the same chain
+- **Bridge** when you want to move tokens to a different chain
+
+You can combine: bridge → swap → send.
+
+## Notes
+
+- Sends of unknown-USD-value tokens may be blocked if `deny_unknown_usd_value` is enabled in policy
+- For exact parameter details: [send_transaction reference](/docs/reference/tools-write#send_transaction)
+- Related: [Wallets Guide](/docs/guides/wallets) for managing wallet addresses
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to insufficient balance, policy rejection, and address validation errors
+- [Glossary](/docs/glossary) for definitions of write op, internal transfer, and ATA

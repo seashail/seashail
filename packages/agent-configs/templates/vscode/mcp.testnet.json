@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "seashail": {
+      "type": "stdio",
+      "command": "seashail",
+      "args": ["mcp", "--network", "testnet"]
+    }
+  }
+}
+

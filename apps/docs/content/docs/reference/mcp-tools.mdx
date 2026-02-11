@@ -1,0 +1,157 @@
+---
+title: MCP Tools
+description: Tool inventory (implemented surfaces only) and where to find detailed reference docs.
+---
+
+All tools are served over MCP stdio via:
+
+```bash
+seashail mcp
+```
+
+For chain-by-chain support, start with:
+
+- `get_capabilities`
+
+## Network And RPC
+
+See: [Tools: Network And RPC](/docs/reference/tools-network)
+
+- `get_network_mode`
+- `set_network_mode`
+- `configure_rpc`
+- `get_testnet_faucet_links`
+- `get_capabilities`
+
+Notes:
+
+- Network mode mainly affects default chain selection when tools omit `chain`/`chains`.
+- Tools that explicitly specify a chain will use that chain regardless of mode.
+
+> Related guide: [Network Mode](/docs/guides/network-mode)
+
+## Read Tools
+
+See: [Tools: Read](/docs/reference/tools-read)
+
+- `inspect_token`
+- `get_defi_yield_pools`
+- `get_balance`
+- `get_portfolio`
+- `get_token_price`
+- `estimate_gas`
+- `get_transaction_history`
+- `get_portfolio_analytics`
+- `get_bridge_status`
+
+Domain-specific read tools are documented alongside their write counterparts: see [Lending](/docs/reference/tools-lending), [Predictions](/docs/reference/tools-predictions), and [Pump.fun](/docs/reference/tools-pumpfun).
+
+> Related guide: [Chains and Funding](/docs/guides/chains-and-funding)
+
+## Wallet And Config Tools
+
+See: [Tools: Wallets](/docs/reference/tools-wallets)
+
+- `list_wallets`
+- `get_wallet_info`
+- `get_deposit_info`
+- `set_active_wallet`
+- `add_account`
+- `create_wallet`
+- `import_wallet`
+- `export_shares`
+- `rotate_shares`
+- `create_wallet_pool`
+- `transfer_between_wallets`
+- `fund_wallets`
+
+> Related guide: [Wallets](/docs/guides/wallets)
+
+## Write Tools
+
+See: [Tools: Send, Swap & Bridge](/docs/reference/tools-write)
+
+- `request_airdrop`
+- `send_transaction`
+- `swap_tokens`
+- `bridge_tokens`
+
+> Related guides: [Sending Guide](/docs/guides/sending) | [Swapping Guide](/docs/guides/swapping) | [Bridging Guide](/docs/guides/bridging)
+
+## Policy Tools
+
+See: [Tools: Policy](/docs/reference/tools-policy)
+
+- `get_policy`
+- `update_policy`
+
+> Related guide: [Policy and Approvals](/docs/guides/policy-and-approvals)
+
+## Perps Tools
+
+See: [Tools: Perps](/docs/reference/tools-perps)
+
+- `get_market_data`
+- `get_positions`
+- `open_perp_position`
+- `close_perp_position`
+- `place_limit_order`
+- `modify_perp_order`
+
+> Related guide: [Perps Trading Guide](/docs/guides/perps)
+
+## NFT Tools
+
+See: [Tools: NFTs](/docs/reference/tools-nfts)
+
+- `get_nft_inventory`
+- `transfer_nft`
+- `buy_nft`
+- `sell_nft`
+- `bid_nft`
+
+> Related guide: [NFT Guide](/docs/guides/nfts)
+
+## DeFi Tools
+
+See: [Tools: Lending](/docs/reference/tools-lending) | [Tools: Staking](/docs/reference/tools-staking) | [Tools: Liquidity](/docs/reference/tools-liquidity)
+
+- `lend_tokens`
+- `withdraw_lending`
+- `borrow_tokens`
+- `repay_borrow`
+- `get_lending_positions`
+- `stake_tokens`
+- `unstake_tokens`
+- `provide_liquidity`
+- `remove_liquidity`
+
+> Related guide: [DeFi Guide](/docs/guides/defi)
+
+## Prediction Market Tools
+
+See: [Tools: Prediction Markets](/docs/reference/tools-predictions)
+
+- `search_prediction_markets`
+- `get_prediction_orderbook`
+- `get_prediction_positions`
+- `place_prediction`
+- `close_prediction`
+
+> Related guide: [Prediction Markets Guide](/docs/guides/predictions)
+
+## Pump.fun Tools
+
+See: [Tools: Pump.fun](/docs/reference/tools-pumpfun)
+
+- `pumpfun_list_new_coins`
+- `pumpfun_get_coin_info`
+- `pumpfun_buy`
+- `pumpfun_sell`
+
+> Related guide: [Pump.fun Guide](/docs/guides/pumpfun)
+
+## Notes
+
+- Writes may require tiered approvals via MCP elicitation depending on policy.
+- Seashail rejects secrets in tool arguments. Imports and signing use MCP elicitation prompts instead.

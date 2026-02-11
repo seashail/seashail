@@ -1,0 +1,410 @@
+---
+title: "Tools: Prediction Markets"
+description: Search markets, read orderbooks and positions, and place or close Polymarket CLOB orders.
+---
+
+Prediction market tools interact with Polymarket's CLOB (Central Limit Order Book) on Polygon. Read tools are keyless; write tools require [policy approval](/docs/reference/tools-policy).
+
+## search_prediction_markets
+
+Search Polymarket events/markets via the Polymarket Gamma API (keyless). Returns outcomes and CLOB `token_id`(s) for trading.
+
+### Parameters
+
+<TypeTable
+  type={{
+    query: {
+      type: "string",
+      description: "Search query.",
+      required: true,
+    },
+    chain: {
+      type: "string",
+      description: "polygon (or polygon-amoy for testing).",
+      default: "'polygon'",
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "Protocol.",
+      default: "'polymarket'",
+    },
+    limit: {
+      type: "integer",
+      description: "Max results per type (1–100).",
+      default: "10",
+    },
+    page: {
+      type: "integer",
+      description: "Page number for pagination.",
+      default: "1",
+    },
+    include_closed: {
+      type: "boolean",
+      description: "If true, include closed markets in results.",
+      default: "false",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "events": [
+    {
+      "title": "2025 US Presidential Election",
+      "markets": [
+        {
+          "question": "Will the Republican nominee win?",
+          "outcomes": [
+            { "name": "Yes", "token_id": "1234567890", "price": 0.55 },
+            { "name": "No", "token_id": "9876543210", "price": 0.45 }
+          ]
+        }
+      ]
+    }
+  ],
+  "count": 1
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{
+  "query": "bitcoin price",
+  "limit": 5,
+  "include_closed": false
+}
+```
+
+### Notes
+
+- The `token_id` returned for each outcome can be passed to `get_prediction_orderbook` or `place_prediction`.
+- Uses the Polymarket Gamma API (no API key required).
+
+## get_prediction_orderbook
+
+Fetch Polymarket CLOB orderbook for a specific outcome `token_id` (keyless read).
+
+### Parameters
+
+<TypeTable
+  type={{
+    token_id: {
+      type: "string",
+      description:
+        "Polymarket outcome token id (CLOB token_id). Accepts decimal or 0x-prefixed hex.",
+      required: true,
+    },
+    chain: {
+      type: "string",
+      description: "polygon (or polygon-amoy for testing).",
+      default: "'polygon'",
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "Protocol.",
+      default: "'polymarket'",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "token_id": "1234567890",
+  "bids": [
+    { "price": 0.54, "size": 1000.0 },
+    { "price": 0.53, "size": 2500.0 }
+  ],
+  "asks": [
+    { "price": 0.56, "size": 800.0 },
+    { "price": 0.57, "size": 1500.0 }
+  ],
+  "mid_price": 0.55
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{
+  "token_id": "1234567890"
+}
+```
+
+### Notes
+
+- Use `search_prediction_markets` first to discover `token_id` values for outcomes you want to inspect.
+
+## get_prediction_positions
+
+Read-only Polymarket positions. Uses the Polymarket Data API (keyless read).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    chain: {
+      type: "string",
+      description: "EVM chain name (e.g. polygon).",
+      default: "'polygon'",
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "Protocol.",
+      default: "'polymarket'",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "positions": [
+    {
+      "market": "Will BTC exceed $100k by March 2025?",
+      "outcome": "Yes",
+      "shares": "50.0",
+      "avg_price": 0.65,
+      "current_price": 0.72,
+      "pnl_usd": 3.5
+    }
+  ]
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{
+  "chain": "polygon"
+}
+```
+
+### Notes
+
+- Positions are fetched from the Polymarket Data API, which does not require an API key.
+- Only Polygon is supported for Polymarket positions.
+
+## place_prediction
+
+Place a Polymarket CLOB order. Order is constructed and signed locally; execution is via the Polymarket CLOB API. Requires [policy approval](/docs/reference/tools-policy).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    chain: {
+      type: "string",
+      description: "polygon (or polygon-amoy for testing).",
+      required: true,
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "Protocol.",
+      default: "'polymarket'",
+    },
+    token_id: {
+      type: "string",
+      description:
+        "Polymarket outcome token id (CLOB token_id). Accepts decimal or 0x-prefixed hex.",
+      required: true,
+    },
+    side: {
+      type: '"buy" | "sell"',
+      description: "Order side.",
+      required: true,
+    },
+    order_kind: {
+      type: '"limit" | "market"',
+      description:
+        "Order type. Limit requires price+size; market requires amount_usdc.",
+      default: '"limit"',
+    },
+    price: {
+      type: "string",
+      description:
+        "Limit price in USD per share (0.01 tick size typical). Required when order_kind='limit'.",
+    },
+    size: {
+      type: "string",
+      description: "Limit size in shares. Required when order_kind='limit'.",
+    },
+    amount_usdc: {
+      type: "string",
+      description:
+        "Market order notional in USDC. Required when order_kind='market'.",
+    },
+    time_in_force: {
+      type: '"gtc" | "gtd" | "fok" | "fak"',
+      description:
+        "GTC=good-til-canceled, GTD=good-til-date, FOK=fill-or-kill, FAK=fill-and-kill.",
+      default: '"gtc"',
+    },
+    post_only: {
+      type: "boolean",
+      description:
+        "If true, order only posts to the book (won't cross spread).",
+      default: "false",
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Optional override for policy approval (defaults to amount_usdc for market orders).",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "If true, skip price discovery and use usd_value as-is.",
+      default: "false",
+    },
+  }}
+/>
+
+### Examples
+
+<Tabs items={["Limit order", "Market order"]}>
+  <Tab value="Limit order">
+    ```json
+    {
+      "chain": "polygon",
+      "token_id": "1234567890",
+      "side": "buy",
+      "order_kind": "limit",
+      "price": "0.55",
+      "size": "100",
+      "time_in_force": "gtc"
+    }
+    ```
+
+    Places a limit buy order for 100 shares at $0.55 per share, good-til-canceled.
+
+  </Tab>
+  <Tab value="Market order">
+    ```json
+    {
+      "chain": "polygon",
+      "token_id": "1234567890",
+      "side": "buy",
+      "order_kind": "market",
+      "amount_usdc": "50"
+    }
+    ```
+
+    Places a market buy order for $50 USDC worth of shares at current market price.
+
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "order_id": "0xabcdef...",
+  "status": "placed",
+  "filled_size": "0",
+  "avg_fill_price": null
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Notes
+
+- Uses Polymarket CLOB API (requires HTTPS or localhost).
+- polygon-amoy is supported for testing.
+- Limit orders require both `price` and `size`; market orders require `amount_usdc`.
+- See also: [Policy and Approvals](/docs/guides/policy-and-approvals).
+
+## close_prediction
+
+Cancel an existing Polymarket CLOB order by order_id. Requires [policy approval](/docs/reference/tools-policy).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    chain: {
+      type: "string",
+      description: "polygon (or polygon-amoy for testing).",
+      required: true,
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "Protocol.",
+      default: "'polymarket'",
+    },
+    order_id: {
+      type: "string",
+      description: "Polymarket CLOB order id to cancel.",
+      required: true,
+    },
+    usd_value: {
+      type: "number",
+      description: "Optional override for policy approval.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "If true, skip price discovery and use usd_value as-is.",
+      default: "false",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "order_id": "0xabcdef...",
+  "status": "canceled"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{
+  "chain": "polygon",
+  "order_id": "0xabcdef123456"
+}
+```
+
+### Notes
+
+- The order_id is returned from `place_prediction` when an order is placed.
+- See also: [Policy and Approvals](/docs/guides/policy-and-approvals).

@@ -1,0 +1,218 @@
+---
+title: Security Model
+description: Threat model, policy enforcement, encrypted keys, and concurrency guarantees.
+---
+
+## Threat Model
+
+Seashail assumes the agent process may be malicious or compromised. The binary is the security boundary:
+
+- The agent can request reads and propose writes.
+- Seashail enforces a policy engine on every write.
+- Key material is encrypted at rest and decrypted only for signing.
+
+## Key Storage
+
+- Generated wallets use Shamir Secret Sharing (2-of-3).
+- Imported wallets are encrypted at rest using AES-256-GCM with a passphrase-derived key.
+
+## Policy Engine
+
+Every write is gated by:
+
+- per-tx USD caps
+- daily USD caps (UTC)
+- slippage caps (swaps)
+- recipient allowlisting (sends)
+- contract allowlisting (swaps)
+- operation toggles
+- tiered approvals via MCP elicitation
+
+## Concurrency / Multi-Agent
+
+MCP is stdio-based, so multiple clients will spawn multiple `seashail mcp` processes. To avoid
+split-brain state, `seashail mcp` proxies to a singleton local daemon that owns the keystore.
+
+Guarantees:
+
+- The daemon holds an exclusive filesystem lock at `data_dir/seashail-daemon.lock` so only one process owns keys/state.
+- All connected clients share the same in-memory passphrase session.
+- All state mutations are serialized inside the daemon for correctness.
+
+## Threat Analysis
+
+Seashail assumes a hostile environment where agents may be compromised or malicious. This section documents specific attack scenarios, their impact, and how Seashail defends against them.
+
+### Malicious Agent Process
+
+**Attack scenario:** A compromised or malicious agent attempts to exfiltrate user funds by submitting unauthorized transactions.
+
+**Impact:** Complete loss of wallet funds if successful.
+
+**Mitigations:**
+
+- Policy engine enforces per-transaction and daily USD caps on all write operations
+- Tiered approval system via MCP elicitation requires user confirmation for high-value or risky transactions
+- Allowlists for recipient addresses and contract interactions
+- Operation toggles let users disable specific transaction types
+- Scam address blocklist and OFAC SDN blocking prevent sends to known-bad addresses
+
+**Residual risk:** User may approve malicious transaction during elicitation if social engineering is effective. Policy caps limit but do not eliminate exposure.
+
+### Compromised Agent Logs
+
+**Attack scenario:** Agent conversation history (stored by LLM provider or local cache) contains private keys or passphrases.
+
+**Impact:** Attacker with access to logs can reconstruct keys and steal funds.
+
+**Mitigations:**
+
+- MCP elicitation protocol: Seashail prompts user directly via MCP, keys/passphrases never sent to agent
+- Tool schema explicitly rejects `secret` parameter for any key material
+- Private keys never appear in tool responses (only public addresses and transaction hashes)
+- Passphrase is zeroized from memory on drop
+
+**Residual risk:** User could manually paste passphrase into agent conversation, bypassing elicitation. Documentation warnings mitigate but cannot prevent user error.
+
+### Split-Brain State
+
+**Attack scenario:** Multiple Seashail processes modify keystore simultaneously, causing corruption or double-spending.
+
+**Impact:** Keystore corruption, failed transactions, potential fund loss if nonces conflict.
+
+**Mitigations:**
+
+- Exclusive filesystem lock (`seashail-daemon.lock`) ensures only one daemon process owns keystore
+- All MCP clients proxy to singleton daemon rather than accessing keystore directly
+- Lock acquisition failure causes graceful error rather than concurrent access
+
+**Residual risk:** Force-killing daemon while holding lock could leave stale lockfile. Seashail detects stale locks via process ID validation and reclaims them.
+
+### Passphrase Theft
+
+**Attack scenario:** Attacker gains access to in-memory passphrase via process memory dump or debugger.
+
+**Impact:** Attacker can decrypt keystore and sign arbitrary transactions.
+
+**Mitigations:**
+
+- Passphrase sessions have configurable TTL (default: 1 hour), forcing re-authentication
+- Passphrase is zeroized from memory immediately on session expiry or daemon shutdown
+- Environment variable opt-in (`SEASHAIL_PASSPHRASE`) is discouraged and documented as high-risk
+- Memory is never swapped to disk (mlock on sensitive buffers)
+
+**Residual risk:** Attacker with kernel-level access or debugger privileges during active session can extract passphrase. Physical security and OS-level protections are user responsibility.
+
+### Remote Transaction Injection
+
+**Attack scenario:** Malicious aggregator (swap provider, NFT marketplace adapter) returns transaction bytes that transfer funds to attacker-controlled address instead of intended recipient.
+
+**Impact:** Funds sent to wrong address, unrecoverable.
+
+**Mitigations:**
+
+- `require_user_confirm_for_remote_tx` policy field forces elicitation before signing remote-constructed transactions
+- Allowlists for aggregator endpoints (only trusted providers)
+- Transaction simulation before broadcast detects suspicious balance changes
+- Seashail parses and validates transaction structure against tool parameters
+
+**Residual risk:** Sophisticated attacks that pass simulation (e.g., time-delayed exploits, oracle manipulation) may succeed if user approves during elicitation. Aggregator trust is unavoidable for complex operations.
+
+### Phishing / Scam Addresses
+
+**Attack scenario:** Agent is tricked into sending funds to phishing address or known scam contract.
+
+**Impact:** Permanent loss of transferred funds.
+
+**Mitigations:**
+
+- Scam address blocklist (signed, auto-updated) rejects known-bad addresses
+- OFAC SDN list blocks sanctioned addresses
+- Recipient allowlists (if configured) reject all non-allowlisted addresses
+- User confirmation via elicitation provides last-line-of-defense review
+
+**Residual risk:** Zero-day scams not yet in blocklist may succeed. Allowlist-only mode eliminates this risk but reduces flexibility.
+
+### Excessive Spending
+
+**Attack scenario:** Runaway agent submits hundreds of transactions, draining wallet.
+
+**Impact:** Unintended depletion of funds.
+
+**Mitigations:**
+
+- Per-transaction USD caps (e.g., `max_usd_per_tx=1000`)
+- Daily USD caps reset at UTC midnight (e.g., `max_usd_per_day=5000`)
+- Operation toggles disable specific transaction types globally
+- Rate limiting on policy engine (not yet implemented)
+
+**Residual risk:** Agent can drain up to daily cap if user has approved high limits. Caps are user-configured trade-off between convenience and safety.
+
+### Unknown USD Value Exploit
+
+**Attack scenario:** Agent tricks policy engine by transacting unpriced or stale-priced tokens that policy cannot convert to USD.
+
+**Impact:** Transaction bypasses USD-based policy caps.
+
+**Mitigations:**
+
+- `deny_unknown_usd_value=true` (fail-closed) rejects transactions where USD value cannot be determined
+- Price feeds from multiple sources (Binance, Jupiter, on-chain oracles)
+- Staleness checks reject prices older than 5 minutes
+- Manual USD overrides require explicit user confirmation
+
+**Residual risk:** Price oracle failures could block legitimate transactions if fail-closed is enabled. Users must choose between safety (deny unknown) and availability (allow unknown with manual review).
+
+### Key Loss
+
+**Attack scenario:** User loses passphrase and all backup shares, making keystore permanently inaccessible.
+
+**Impact:** Permanent, irrecoverable loss of all funds in affected wallets.
+
+**Mitigations:**
+
+- Shamir Secret Sharing (2-of-3) for generated wallets: losing one share is non-fatal
+- Backup share export via MCP tools during wallet creation
+- Clear warnings during setup about non-custodial nature
+- `list_wallets` reminds users to verify backups
+
+**Residual risk:** If user loses 2 of 3 shares or forgets passphrase for imported wallet, funds are unrecoverable. No backdoor exists by design.
+
+### Leverage Explosion
+
+**Attack scenario:** Perpetual futures position is opened with excessive leverage, leading to rapid liquidation.
+
+**Impact:** Collateral loss from liquidation.
+
+**Mitigations:**
+
+- `max_leverage` policy field caps leverage per position (e.g., `5x`)
+- `max_usd_per_position` caps total notional value
+- `perps_enabled=false` disables perpetuals entirely
+- Liquidation price included in position tool responses for user review
+
+**Residual risk:** High volatility can cause liquidation even within policy caps. Perpetuals are inherently high-risk; policy reduces but cannot eliminate leverage risk.
+
+## Key Custody Comparison
+
+Understanding Seashail's security model is easier in context of alternatives:
+
+| Aspect         | Seashail                                            | Browser Wallet                              | Cloud Custody                                        |
+| -------------- | --------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------- |
+| Key location   | Local encrypted keystore                            | Browser extension storage                   | Remote server (provider-controlled)                  |
+| Agent access   | Policy-gated MCP tools                              | Direct signing (user clicks)                | API with provider-held keys                          |
+| Multi-device   | Daemon coordinates across MCP clients               | Per-browser instance                        | Centralized across all devices                       |
+| Recovery       | Shamir 2-of-3 shares + passphrase                   | Seed phrase (12/24 words)                   | Provider recovery flow (email, 2FA)                  |
+| Risk model     | Agent constrained by policy, user is final approver | User must verify every transaction manually | Provider is trusted third party with full key access |
+| Threat surface | Compromised agent + user approval error             | Malicious dapp + phishing                   | Provider breach or insider threat                    |
+| Best for       | Autonomous agents with safety rails                 | Manual DeFi usage                           | Users prioritizing convenience over custody          |
+
+Key insight: Seashail assumes agent compromise but defends via policy enforcement and elicitation. Browser wallets assume user vigilance on every transaction. Cloud custody assumes provider trustworthiness.
+
+For more on the daemon/proxy architecture that enforces this security boundary, see the [architecture overview](../reference/architecture).
+
+## Related Documentation
+
+- [Policy and Approvals Guide](./policy-and-approvals) — Detailed explanation of tiered approval system and policy configuration
+- [Policy Tools Reference](../reference/tools-policy) — Complete schema for all 33 policy fields
+- [Troubleshooting](../reference/troubleshooting) — Resolving policy rejection errors and common security-related issues

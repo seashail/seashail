@@ -1,0 +1,82 @@
+---
+title: Any MCP Client (Stdio)
+description: Connect Seashail to any MCP client using a stdio command (no SSE, no URL).
+---
+
+Seashail is **self-hosted** and **stdio-only**.
+
+If your client UI asks for a “server URL” (SSE/HTTP), Seashail will not work with that mode. You must configure it as a **local command** the client launches.
+
+## The Only Two Fields You Need
+
+Most MCP clients ultimately ask for:
+
+- **Command:** `seashail`
+- **Args:** `mcp`
+
+Testnet (optional):
+
+- **Args:** `mcp --network testnet`
+
+If `seashail` is not on your `PATH`, use an absolute path for **Command** instead (for example `/usr/local/bin/seashail`).
+
+## Common Config File Shapes
+
+If your MCP host uses an `mcpServers` JSON shape, this is the minimal config:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+If your MCP host uses the VS Code `servers` JSON shape, this is the minimal config:
+
+```json
+{
+  "servers": {
+    "seashail": {
+      "type": "stdio",
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## “No Install” Option (Still Stdio)
+
+If you want a one-liner that can run Seashail without placing `seashail` on your `PATH`, configure your MCP client to run via `npx`:
+
+- **Command:** `npx`
+- **Args:** `-y @seashail/mcp --`
+
+Testnet (optional):
+
+- **Args:** `-y @seashail/mcp -- --network testnet`
+
+This still runs Seashail locally over stdio. (It may download the wrapper package the first time.)
+
+If you prefer Python tooling, you can also run via `uvx`:
+
+- **Command:** `uvx`
+- **Args:** `seashail-mcp --`
+
+Testnet (optional):
+
+- **Args:** `seashail-mcp -- --network testnet`
+
+## Verification
+
+After configuring your client, ask:
+
+```
+What's my SOL balance?
+```
+
+Your client should invoke Seashail’s `get_balance` tool.

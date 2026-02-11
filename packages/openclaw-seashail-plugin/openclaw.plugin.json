@@ -1,0 +1,47 @@
+{
+  "id": "seashail",
+  "name": "Seashail",
+  "description": "Expose Seashail wallet boundary tools as native OpenClaw tools (spawns `seashail mcp` locally).",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "seashailPath": {
+        "type": "string",
+        "default": "seashail",
+        "description": "Path to the Seashail executable (default: seashail on PATH)."
+      },
+      "network": {
+        "type": "string",
+        "enum": ["mainnet", "testnet"],
+        "default": "mainnet",
+        "description": "Session-only network override for this OpenClaw plugin."
+      },
+      "standalone": {
+        "type": "boolean",
+        "default": false,
+        "description": "If true, run Seashail MCP in standalone mode (no daemon)."
+      },
+      "toolPrefix": {
+        "type": "boolean",
+        "default": false,
+        "description": "If true, prefix all tool names (avoids collisions)."
+      },
+      "prefix": {
+        "type": "string",
+        "default": "seashail_",
+        "description": "Tool name prefix used when toolPrefix=true."
+      },
+      "passphraseEnvVar": {
+        "type": "string",
+        "default": "SEASHAIL_PASSPHRASE",
+        "description": "If set and present in the OpenClaw gateway environment, the plugin will auto-answer Seashail passphrase prompts with this env var (recommended for non-interactive clients)."
+      },
+      "env": {
+        "type": "object",
+        "additionalProperties": { "type": "string" },
+        "description": "Extra environment variables to pass to the Seashail subprocess."
+      }
+    }
+  }
+}

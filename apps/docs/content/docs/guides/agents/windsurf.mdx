@@ -1,0 +1,91 @@
+---
+title: Windsurf
+description: Connect Seashail to Windsurf via MCP config.
+---
+
+Windsurf reads MCP server configuration from `~/.codeium/windsurf/mcp_config.json` (global).
+
+> Seashail is **stdio-only**. Configure Windsurf to run a local command (`seashail mcp`), not a “server URL”.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- Windsurf installed
+
+## Setup (Recommended)
+
+Use the one-click installer:
+
+```bash
+seashail agent install windsurf
+```
+
+This writes the config to `~/.codeium/windsurf/mcp_config.json`.
+
+## Manual Setup
+
+Create or edit `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## “No Install” Option (npx)
+
+If you don’t want to install `seashail` onto your `PATH`, you can run via `npx`:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "npx",
+      "args": ["-y", "@seashail/mcp", "--"]
+    }
+  }
+}
+```
+
+## Testnet Mode
+
+```bash
+seashail agent install windsurf --network testnet
+```
+
+Or manually set args to `["mcp", "--network", "testnet"]`.
+
+## Verification
+
+After setup, open a Windsurf chat and ask:
+
+```
+What's my SOL balance?
+```
+
+Windsurf should invoke Seashail's MCP tools to check your balance.
+
+## Troubleshooting
+
+**Config file location**
+Windsurf uses a global config only. Make sure the path is `~/.codeium/windsurf/mcp_config.json` (not a project-local file).
+
+**"seashail: command not found"**
+Use the absolute path in the config:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "/usr/local/bin/seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```

@@ -1,0 +1,111 @@
+---
+title: Jupiter vs Uniswap vs 1inch
+description: Compare swap providers to understand which aggregator routes your trades.
+---
+
+Seashail automatically selects the best swap provider based on the chain you're trading on. This comparison explains the differences and when you might want to explicitly choose a provider.
+
+## Feature Comparison
+
+| Feature           | Jupiter                   | Uniswap                 | 1inch                   |
+| ----------------- | ------------------------- | ----------------------- | ----------------------- |
+| Chain             | Solana                    | EVM chains              | EVM chains              |
+| Auto-selected for | Solana swaps              | EVM swaps (default)     | EVM swaps (alternative) |
+| Provider param    | `"jupiter"`               | `"uniswap"`             | `"1inch"`               |
+| Route aggregation | Multi-hop via Jupiter API | Uniswap router          | 1inch aggregation       |
+| Slippage control  | `slippage_bps`            | `slippage_bps`          | `slippage_bps`          |
+| Token format      | SPL mint address          | ERC-20 contract address | ERC-20 contract address |
+
+## When to Use Auto (Recommended)
+
+The `provider: "auto"` parameter (default) automatically selects the best provider for your chain:
+
+- **Solana swaps** → Jupiter
+- **EVM swaps** → Uniswap (default)
+
+Most users should use `provider: "auto"` and let Seashail handle routing.
+
+## When to Use Explicit Provider Selection
+
+You might explicitly choose a provider when:
+
+- You want to use 1inch for EVM swaps (requires 1inch API configuration)
+- You're comparing routes across providers
+- You have a specific requirement for a particular aggregator
+
+## Usage Examples
+
+### Auto-selected (Recommended)
+
+Swap on Solana (auto-selects Jupiter):
+
+```json
+{
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "1",
+  "amount_units": "ui",
+  "provider": "auto"
+}
+```
+
+Swap on Base (auto-selects Uniswap):
+
+```json
+{
+  "chain": "base",
+  "token_in": "native",
+  "token_out": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "amount_in": "0.1",
+  "amount_units": "ui",
+  "provider": "auto"
+}
+```
+
+### Explicit Provider Selection
+
+Use Jupiter explicitly on Solana:
+
+```json
+{
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "1",
+  "amount_units": "ui",
+  "provider": "jupiter"
+}
+```
+
+Use Uniswap explicitly on Ethereum:
+
+```json
+{
+  "chain": "ethereum",
+  "token_in": "native",
+  "token_out": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount_in": "0.1",
+  "amount_units": "ui",
+  "provider": "uniswap"
+}
+```
+
+Use 1inch explicitly on Arbitrum (requires 1inch configuration):
+
+```json
+{
+  "chain": "arbitrum",
+  "token_in": "native",
+  "token_out": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+  "amount_in": "0.1",
+  "amount_units": "ui",
+  "provider": "1inch"
+}
+```
+
+## See Also
+
+- [Swapping Tokens Guide](/docs/guides/swapping) — How swapping works in Seashail
+- [Tools: Write Reference](/docs/reference/tools-write#swap_tokens) — Detailed `swap_tokens` parameters
+- [Chains and Funding](/docs/guides/chains-and-funding) — Supported chains for each provider

@@ -1,0 +1,172 @@
+---
+title: Glossary
+description: Terminology used throughout Seashail documentation.
+---
+
+This glossary covers terms used throughout Seashail's documentation. Terms are listed alphabetically.
+
+## A
+
+### allowlist
+
+An explicit list of permitted destination addresses or contracts. Transactions to addresses not on the allowlist are blocked by the policy engine. This provides fine-grained control over where funds can be sent.
+
+**Used in:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+### ATA (Associated Token Account)
+
+A Solana account derived from a wallet address and a token mint address. Each SPL token requires its own ATA to hold balances. ATAs are deterministically generated using the wallet's public key and the token's mint address.
+
+**Used in:** [Sending Guide](/docs/guides/sending), [Read Tools Reference](/docs/reference/tools-read)
+
+## B
+
+### bps (basis points)
+
+A unit of measurement equal to 1/100th of a percent (0.01%). 100 bps = 1%. Used throughout Seashail for slippage tolerance and fee percentages. For example, 50 bps = 0.5% slippage.
+
+**Used in:** [Swapping Guide](/docs/guides/swapping), [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+## D
+
+### daemon
+
+A singleton background process (`seashail daemon`) that holds the exclusive keystore lock and coordinates all MCP clients. The daemon manages passphrase sessions, policy evaluation, and transaction signing. Multiple MCP proxies can connect to a single daemon.
+
+**Used in:** [Architecture Reference](/docs/reference/architecture), [Quickstart Guide](/docs/getting-started/quickstart)
+
+## E
+
+### elicitation
+
+An MCP mechanism for prompting user input during tool execution. Seashail uses elicitation to request passphrases, transaction confirmations, and backup share verification without exposing sensitive data in agent conversation history.
+
+**Used in:** [Security Model Guide](/docs/guides/security-model), [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+### ERC-20
+
+The Ethereum token standard for fungible tokens. Used on all EVM-compatible chains including Ethereum, Base, Arbitrum, Optimism, and Polygon. Seashail supports ERC-20 tokens across all supported EVM chains.
+
+**Used in:** [Swapping Guide](/docs/guides/swapping), [DeFi Guide](/docs/guides/defi)
+
+## I
+
+### internal transfer
+
+A transfer between wallets or accounts managed by the same Seashail instance. Internal transfers may be subject to different policy limits than external sends, as they don't leave the user's control.
+
+**Used in:** [Sending Guide](/docs/guides/sending), [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+## M
+
+### MCP (Model Context Protocol)
+
+An Anthropic-developed protocol for agent-tool communication over stdio. Seashail exposes all its functionality via MCP tools, enabling integration with Claude Desktop, Cursor, and other MCP-compatible agents.
+
+**Used in:** [Quickstart Guide](/docs/getting-started/quickstart), [Architecture Reference](/docs/reference/architecture)
+
+## N
+
+### network mode
+
+A global setting that determines whether Seashail uses mainnet or testnet by default for all chains. Network mode affects default RPC endpoints and chain IDs. It can be overridden on a per-tool-call basis.
+
+**Used in:** [Network Mode Guide](/docs/guides/network-mode), [Configuration Guide](/docs/getting-started/configuration)
+
+## O
+
+### OFAC SDN (Specially Designated Nationals)
+
+The U.S. Office of Foreign Assets Control's list of individuals and entities subject to sanctions. Seashail can optionally check transaction destinations against the SDN list for compliance purposes.
+
+**Used in:** [Security Model Guide](/docs/guides/security-model), [Troubleshooting](/docs/troubleshooting)
+
+## P
+
+### passphrase session
+
+A cached decryption key with a configurable time-to-live (TTL). Seashail keeps the passphrase in memory for a limited duration to avoid prompting the user for every operation. After expiry, the user must re-enter their passphrase via elicitation.
+
+**Used in:** [Security Model Guide](/docs/guides/security-model), [Troubleshooting](/docs/troubleshooting)
+
+### policy context
+
+Transaction metadata (amount, destination, token, USD value, slippage, etc.) evaluated by the policy engine before signing. The policy engine uses this context to determine whether to auto-approve, require confirmation, or block the transaction.
+
+**Used in:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+### proxy
+
+A lightweight stdio process (`seashail mcp`) that forwards MCP messages to the daemon. Multiple proxies can run simultaneously, all communicating with the same daemon via Unix socket, named pipe, or TCP loopback.
+
+**Used in:** [Architecture Reference](/docs/reference/architecture), [Quickstart Guide](/docs/getting-started/quickstart)
+
+## R
+
+### remote tx
+
+Transaction bytes constructed by an external aggregator (DEX router, bridge, etc.) rather than locally by Seashail. Remote transactions require additional policy scrutiny because Seashail cannot fully verify their contents before signing. Policy option `require_user_confirm_for_remote_tx` forces confirmation for all remote transactions.
+
+**Used in:** [Swapping Guide](/docs/guides/swapping), [Bridging Guide](/docs/guides/bridging)
+
+## S
+
+### scam blocklist
+
+A signed, regularly-updated list of known-bad addresses (scams, rug pulls, compromised contracts). Seashail can optionally check transaction destinations against this list to prevent sends to known malicious addresses.
+
+**Used in:** [Scam Blocklist Guide](/docs/guides/scam-blocklist), [Security Model Guide](/docs/guides/security-model)
+
+### Shamir (Shamir Secret Sharing)
+
+A cryptographic technique for splitting a secret into N shares, where any M-of-N shares are required to reconstruct the secret. Seashail uses 2-of-3 Shamir secret sharing for generated wallets: one share stays with the keystore, one is shown to the user for backup, and one is derived from the passphrase.
+
+**Used in:** [Wallets Guide](/docs/guides/wallets), [Security Model Guide](/docs/guides/security-model)
+
+### slippage
+
+The difference between the quoted price and the actual execution price of a transaction. Higher slippage tolerance allows more price movement between quote and execution, which is necessary for volatile markets or low-liquidity tokens.
+
+**Used in:** [Swapping Guide](/docs/guides/swapping), [DeFi Guide](/docs/guides/defi)
+
+### SPL (Solana Program Library)
+
+Solana's token standard for fungible tokens. SPL tokens require Associated Token Accounts (ATAs) to hold balances. Each SPL token has a unique mint address.
+
+**Used in:** [Sending Guide](/docs/guides/sending), [Read Tools Reference](/docs/reference/tools-read)
+
+## T
+
+### tiered approval
+
+A policy system with three evaluation levels:
+
+- **Auto-approve**: Transaction proceeds without confirmation (within low-risk limits)
+- **Confirm**: User must approve via elicitation before signing
+- **Hard-block**: Transaction is rejected and cannot proceed
+
+The policy engine evaluates each transaction against configured thresholds to determine which tier applies.
+
+**Used in:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals)
+
+### tool envelope
+
+An MCP tool call wrapper containing the tool name and its parameters. Seashail's MCP server receives tool envelopes, validates parameters, evaluates policy, and returns results or errors.
+
+**Used in:** [Architecture Reference](/docs/reference/architecture)
+
+## U
+
+### USD value
+
+The estimated dollar value of a transaction, used by the policy engine to evaluate spending limits. Seashail fetches USD prices from price feeds. If USD value cannot be determined, the transaction is blocked by default (fail-closed), unless `deny_unknown_usd_value` is set to false.
+
+**Used in:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals), [Troubleshooting](/docs/troubleshooting)
+
+## W
+
+### write op (write operation)
+
+Any transaction that modifies on-chain state: send, swap, bridge, DeFi operations, NFT trades, etc. All write operations pass through the policy engine for evaluation. Read operations (balance checks, position queries) do not require policy evaluation.
+
+**Used in:** [Policy and Approvals Guide](/docs/guides/policy-and-approvals), [Architecture Reference](/docs/reference/architecture)

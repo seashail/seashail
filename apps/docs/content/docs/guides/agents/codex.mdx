@@ -1,0 +1,58 @@
+---
+title: Codex
+description: Connect Seashail to OpenAI Codex via MCP.
+---
+
+[Codex](https://openai.com/index/introducing-codex/) supports MCP servers via its TOML configuration file. See the [Codex MCP docs](https://developers.openai.com/codex/mcp) for full details.
+
+> Seashail is **stdio-only**. Codex must be configured to run a local command (`seashail mcp`), not connect to a server URL.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- Codex CLI installed ([install guide](https://github.com/openai/codex#readme))
+
+## Setup
+
+Add the following to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.seashail]
+command = "seashail"
+args = ["mcp"]
+```
+
+## Testnet Mode
+
+```toml
+[mcp_servers.seashail-testnet]
+command = "seashail"
+args = ["mcp", "--network", "testnet"]
+```
+
+You can have both `seashail` and `seashail-testnet` in your config and Codex will connect to both.
+
+## Verification
+
+After setup, start a Codex session and ask:
+
+```
+What's my SOL balance?
+```
+
+Codex should invoke the `get_balance` tool via Seashail.
+
+## Troubleshooting
+
+**"seashail: command not found"**
+Use the absolute path to the binary in the config:
+
+```toml
+[mcp_servers.seashail]
+command = "/usr/local/bin/seashail"
+args = ["mcp"]
+```
+
+**MCP tools not available**
+Ensure your Codex version supports MCP servers. Check the [Codex changelog](https://github.com/openai/codex/releases) for MCP support status.

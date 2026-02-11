@@ -1,0 +1,85 @@
+---
+title: Swapping Tokens
+description: Swap tokens across chains using Jupiter (Solana) and Uniswap or 1inch (EVM).
+---
+
+## How Swapping Works
+
+Seashail's `swap_tokens` tool handles routing automatically:
+
+- On Solana: routes through Jupiter aggregator
+- On EVM chains: routes through Uniswap by default; 1inch available when configured
+- Policy evaluation happens before signing — swaps are subject to the same tiered approval as any write operation
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how tiered approval works.
+
+## Choosing Your Chain
+
+Swaps are chain-specific: you must specify which chain the swap executes on.
+
+- Solana swaps use Jupiter (best-route aggregation across Raydium, Orca, etc.)
+- EVM swaps default to Uniswap; 1inch is available on chains where configured (check `get_capabilities`)
+- Cross-chain swaps are NOT supported by `swap_tokens` — use `bridge_tokens` first, then swap on the destination chain
+
+See [Chains and Funding](/docs/guides/chains-and-funding) for supported chains.
+
+## Token Identifiers
+
+Token identifier format varies by chain:
+
+- **Solana:** use the SPL mint pubkey (for example, `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` for USDC)
+- **EVM:** use the ERC-20 contract address (for example, `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` for USDC on Ethereum)
+- **Native tokens:** use `"native"` for SOL, ETH, MATIC, etc.
+
+Use `inspect_token` to look up token details, or `get_balance` / `get_portfolio` to see what you hold.
+
+## Slippage
+
+Slippage tolerance controls how much price movement you'll tolerate during a swap:
+
+- Default slippage tolerance is set in your policy (`max_slippage_bps`)
+- You can override per-swap with the `slippage_bps` parameter (basis points: 100 bps = 1%)
+- If actual slippage exceeds the limit, the swap is rejected before signing
+- For volatile tokens or low-liquidity pairs, you may need higher slippage
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for default slippage configuration.
+
+## Amount Formats
+
+The `amount` and `amount_units` parameters control how amounts are interpreted:
+
+- `amount` is a decimal string (for example, `"10"`, `"0.5"`)
+- `amount_units`: `"ui"` (default) for human-readable amounts, `"base"` for raw units (lamports, wei)
+
+Use `"ui"` unless you have a specific reason to use base units.
+
+## Typical Workflow
+
+1. Check your balance: `get_balance` or `get_portfolio`
+2. (Optional) Look up a token: `inspect_token`
+3. Swap: `swap_tokens` with `chain`, `token_in`, `token_out`, `amount_in`
+4. Confirm policy approval if prompted (via MCP elicitation)
+5. Verify the swap landed: `get_balance` or `get_portfolio`
+
+Example swap (Solana, SOL → USDC):
+
+```json
+{
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "1",
+  "amount_units": "ui"
+}
+```
+
+## Notes
+
+- Routing is automatic — Seashail picks the best route via Jupiter (Solana) or Uniswap (EVM)
+- For exact parameter details: [swap_tokens reference](/docs/reference/tools-write#swap_tokens)
+- Related: [Bridging Guide](/docs/guides/bridging) for cross-chain transfers before swapping
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to slippage exceeded and price impact errors
+- [Glossary](/docs/glossary) for definitions of slippage and bps (basis points)

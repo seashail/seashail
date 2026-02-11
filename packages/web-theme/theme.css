@@ -1,0 +1,75 @@
+:root {
+  --brand-bg: #ffffff;
+  --brand-text: #0a0a0a;
+  --brand-accent: #ff1f1f;
+  --brand-alt-bg: #f2f2f2;
+  --brand-border: #0a0a0a;
+
+  /*
+    Fumadocs design tokens.
+    Fumadocs UI uses --color-fd-* vars to theme both light and dark modes.
+    We keep these aligned with Seashail brand tokens so landing + docs share a look.
+  */
+  --color-fd-background: hsl(0 0% 100%);
+  --color-fd-foreground: hsl(0 0% 4%);
+  --color-fd-muted: hsl(0 0% 96%);
+  --color-fd-muted-foreground: hsl(0 0% 35%);
+  --color-fd-popover: hsl(0 0% 100%);
+  --color-fd-popover-foreground: hsl(0 0% 10%);
+  --color-fd-card: hsl(0 0% 98%);
+  --color-fd-card-foreground: hsl(0 0% 4%);
+  --color-fd-border: hsl(0 0% 10% / 0.25);
+  --color-fd-primary: hsl(0 0% 4%);
+  --color-fd-primary-foreground: hsl(0 0% 100%);
+  --color-fd-secondary: hsl(0 0% 92%);
+  --color-fd-secondary-foreground: hsl(0 0% 5%);
+  --color-fd-accent: hsl(0 0% 50% / 0.18);
+  --color-fd-accent-foreground: hsl(0 0% 5%);
+  --color-fd-ring: hsl(0 100% 50%);
+}
+
+.dark {
+  --brand-bg: #0b0b0b;
+  --brand-text: #f5f5f5;
+  --brand-accent: #ff3a3a;
+  --brand-alt-bg: #121212;
+  --brand-border: #f5f5f5;
+
+  --color-fd-background: hsl(0 0% 6%);
+  --color-fd-foreground: hsl(0 0% 96%);
+  --color-fd-muted: hsl(0 0% 10%);
+  --color-fd-muted-foreground: hsl(0 0% 74% / 0.85);
+  --color-fd-popover: hsl(0 0% 9%);
+  --color-fd-popover-foreground: hsl(0 0% 92%);
+  --color-fd-card: hsl(0 0% 8.5%);
+  --color-fd-card-foreground: hsl(0 0% 96%);
+  --color-fd-border: hsl(0 0% 100% / 0.16);
+  --color-fd-primary: hsl(0 0% 96%);
+  --color-fd-primary-foreground: hsl(0 0% 8%);
+  --color-fd-secondary: hsl(0 0% 12%);
+  --color-fd-secondary-foreground: hsl(0 0% 96%);
+  --color-fd-accent: hsl(0 0% 100% / 0.12);
+  --color-fd-accent-foreground: hsl(0 0% 96%);
+  --color-fd-ring: hsl(0 100% 60%);
+}
+
+body {
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family:
+    var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--brand-accent) 25%, transparent);
+}

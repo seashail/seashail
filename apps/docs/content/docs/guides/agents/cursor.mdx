@@ -1,0 +1,80 @@
+---
+title: Cursor
+description: Connect Seashail to Cursor via MCP config.
+---
+
+Cursor reads MCP server configuration from `.cursor/mcp.json` (project-level) or `~/.cursor/mcp.json` (global).
+
+> Seashail is **stdio-only**. Configure Cursor to run a local command (`seashail mcp`), not a “server URL”.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- Cursor installed
+
+## Setup (Recommended)
+
+Use the one-click installer for project-level config:
+
+```bash
+seashail agent install cursor
+```
+
+This creates `.cursor/mcp.json` in your current workspace.
+
+## Manual Setup
+
+Create `.cursor/mcp.json` in your project root (or `~/.cursor/mcp.json` for global):
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## “No Install” Option (npx)
+
+If you don’t want to install `seashail` onto your `PATH`, you can run via `npx`:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "npx",
+      "args": ["-y", "@seashail/mcp", "--"]
+    }
+  }
+}
+```
+
+## Testnet Mode
+
+```bash
+seashail agent install cursor --network testnet
+```
+
+Or manually set args to `["mcp", "--network", "testnet"]`.
+
+## Verification
+
+After setup, open a Cursor chat and ask:
+
+```
+What's my SOL balance?
+```
+
+Cursor should discover and use Seashail's MCP tools automatically.
+
+## Troubleshooting
+
+**MCP server not detected**
+Make sure the config file is in the right location. For workspace-local config, it must be at `.cursor/mcp.json` relative to the project root you opened in Cursor.
+
+**Global vs. local**
+Global config (`~/.cursor/mcp.json`) applies to all projects. Local config (`.cursor/mcp.json` in the project) overrides global for that workspace.

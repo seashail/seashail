@@ -1,0 +1,74 @@
+---
+title: OpenClaw
+description: Connect Seashail to OpenClaw via MCP stdio.
+---
+
+OpenClaw can connect to Seashail via MCP stdio if your build supports it.
+
+> Recommended: install the **Seashail OpenClaw plugin** for first-class native tools.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- An OpenClaw build with MCP support
+
+## Setup (Recommended: OpenClaw Plugin)
+
+If you already have OpenClaw installed, you can set everything up with one command:
+
+```bash
+seashail openclaw install
+```
+
+This installs the Seashail OpenClaw plugin and enables it in `~/.openclaw/openclaw.json`.
+
+### Manual (OpenClaw CLI)
+
+If you prefer OpenClaw’s CLI directly (for example on a machine that doesn’t have `seashail` on PATH yet):
+
+```bash
+openclaw plugins install @seashail/seashail
+openclaw plugins enable seashail
+openclaw gateway restart
+```
+
+## Setup (Fallback: Native MCP Support)
+
+If your OpenClaw build supports MCP stdio servers directly, you can also configure an MCP server named `seashail` with:
+
+- **Command:** `seashail`
+- **Args:** `mcp`
+
+## Setup (Bridge/Proxy)
+
+If your OpenClaw build does not support MCP natively, use an MCP bridge tool that can run stdio MCP servers and proxy tool calls. Point the bridge at:
+
+```bash
+seashail mcp
+```
+
+If your bridge reads an `mcpServers` JSON file (often named `.mcp.json`), you can use the config shape in [Any MCP Client (Stdio)](/docs/guides/agents/any-mcp-client).
+
+## Testnet Mode
+
+- **Command:** `seashail`
+- **Args:** `mcp --network testnet`
+
+## Verification
+
+After setup, ask OpenClaw to check your balance:
+
+```
+What's my SOL balance?
+```
+
+OpenClaw should invoke the `get_balance` tool via Seashail.
+
+## Troubleshooting
+
+**MCP not supported**
+Check if your OpenClaw build version supports MCP stdio. If not, use a bridge/proxy that can forward tool calls to a local stdio process.
+
+**"seashail: command not found"**
+Use the absolute path to the Seashail binary.

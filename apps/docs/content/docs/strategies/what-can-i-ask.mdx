@@ -1,0 +1,344 @@
+---
+title: What Can I Ask?
+description: Discover Seashail's capabilities through natural-language examples grouped by what you want to do.
+---
+
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+
+Seashail understands natural language requests and translates them into secure, policy-enforced transactions. This page shows what you can ask for, grouped by what you want to accomplish — no technical knowledge required.
+
+## Portfolio & Balances
+
+<Accordions>
+  <Accordion title="Check my balances">
+    **Examples:**
+    - "Show my Solana balances"
+    - "What's my total portfolio value?"
+    - "List all my wallets"
+    - "How much ETH do I have?"
+    - "Show my USDC balance on Base"
+
+    **Tools used:** `get_balance`, `get_portfolio`, `list_wallets`
+
+    **Learn more:** [Chains and Funding](/docs/guides/chains-and-funding)
+
+  </Accordion>
+
+  <Accordion title="Track portfolio performance">
+    **Examples:**
+    - "How has my portfolio performed this week?"
+    - "Show my transaction volume breakdown"
+    - "What's my 30-day P&L?"
+    - "Show me my trading history"
+
+    **Tools used:** `get_portfolio` (with `include_history`), `get_portfolio_analytics`, `get_transaction_history`
+
+    **Learn more:** [Chains and Funding](/docs/guides/chains-and-funding)
+
+  </Accordion>
+
+  <Accordion title="Get deposit addresses">
+    **Examples:**
+    - "Give me my Solana deposit address"
+    - "Show a QR code for receiving USDC on Base"
+    - "What's my ETH address?"
+    - "Where can I send funds to this wallet?"
+
+    **Tools used:** `get_deposit_info`, `get_wallet_info`
+
+    **Learn more:** [Chains and Funding](/docs/guides/chains-and-funding)
+
+  </Accordion>
+</Accordions>
+
+## Trading
+
+<Accordions>
+  <Accordion title="Swap tokens">
+    **Examples:**
+    - "Swap 10 USDC for SOL"
+    - "Exchange 0.1 ETH for USDC on Base"
+    - "Trade 100 USDC for BONK on Solana"
+    - "Convert my SOL to USDT"
+
+    **Tools used:** `swap_tokens`
+
+    **Learn more:** [Swapping Tokens](/docs/guides/swapping)
+
+  </Accordion>
+
+  <Accordion title="Send tokens">
+    **Examples:**
+    - "Send 5 SOL to [address]"
+    - "Transfer 100 USDC on Ethereum to [address]"
+    - "Send 0.5 ETH to my friend's address"
+    - "Move funds between my wallets"
+
+    **Tools used:** `send_transaction`, `transfer_between_wallets`
+
+    **Learn more:** [Sending Tokens](/docs/guides/sending)
+
+  </Accordion>
+
+  <Accordion title="Bridge across chains">
+    **Examples:**
+    - "Bridge 100 USDC from Solana to Base"
+    - "Transfer ETH from Ethereum to Arbitrum"
+    - "Check my bridge status"
+    - "Move USDC from Base to Polygon"
+
+    **Tools used:** `bridge_tokens`, `get_bridge_status`
+
+    **Learn more:** [Bridging Guide](/docs/guides/bridging)
+
+  </Accordion>
+
+  <Accordion title="Estimate fees">
+    **Examples:**
+    - "How much would it cost to swap on Solana?"
+    - "Estimate gas for sending ETH"
+    - "What's the fee for swapping 100 USDC?"
+
+    **Tools used:** `estimate_gas`
+
+    **Learn more:** [Sending Tokens](/docs/guides/sending), [Swapping Tokens](/docs/guides/swapping)
+
+  </Accordion>
+</Accordions>
+
+## DeFi
+
+<Accordions>
+  <Accordion title="Lend and earn yield">
+    **Examples:**
+    - "Lend 1000 USDC on Aave"
+    - "Withdraw my lending position on Kamino"
+    - "Supply ETH to Aave and earn interest"
+    - "Check my lending positions"
+
+    **Tools used:** `lend_tokens`, `withdraw_lending`, `get_lending_positions`
+
+    **Learn more:** [DeFi Guide](/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="Stake tokens">
+    **Examples:**
+    - "Stake 1 ETH with Lido"
+    - "Stake SOL with Jito"
+    - "Unstake my stETH"
+
+    **Tools used:** `stake_tokens`, `unstake_tokens`
+
+    **Learn more:** [DeFi Guide](/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="Provide liquidity">
+    **Examples:**
+    - "Add liquidity to the SOL/USDC pool on Orca"
+    - "Provide liquidity to Uniswap"
+    - "Remove my liquidity from a pool"
+
+    **Tools used:** `provide_liquidity`, `remove_liquidity`
+
+    **Learn more:** [DeFi Guide](/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="Research yield opportunities">
+    **Examples:**
+    - "Show me the best stablecoin yields"
+    - "What are the highest APY pools on Solana?"
+    - "Find safe yield opportunities with low risk"
+
+    **Tools used:** `get_defi_yield_pools`
+
+    **Learn more:** [DeFi Guide](/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="Check DeFi positions">
+    **Examples:**
+    - "Show my Aave positions"
+    - "What's my health factor on Kamino?"
+    - "Show all my DeFi positions"
+
+    **Tools used:** `get_lending_positions`, `get_portfolio` (with `include_health`)
+
+    **Learn more:** [DeFi Guide](/docs/guides/defi)
+
+  </Accordion>
+</Accordions>
+
+## Perpetual Trading
+
+<Accordions>
+  <Accordion title="Open perp positions">
+    **Examples:**
+    - "Open a 5x long on SOL"
+    - "Short BTC with $500 on Hyperliquid"
+    - "Go 10x long ETH with $100"
+
+    **Tools used:** `open_perp_position`
+
+    **Learn more:** [Perps Guide](/docs/guides/perps)
+
+  </Accordion>
+
+  <Accordion title="Manage perp positions">
+    **Examples:**
+    - "Close my SOL long"
+    - "Place a limit order for ETH at $3000"
+    - "Modify my BTC order"
+    - "Close half my position"
+
+    **Tools used:** `close_perp_position`, `modify_perp_order`, `place_limit_order`
+
+    **Learn more:** [Perps Guide](/docs/guides/perps)
+
+  </Accordion>
+
+  <Accordion title="Check market data">
+    **Examples:**
+    - "Show me BTC perp market data"
+    - "What are my open positions?"
+    - "What's the funding rate for ETH?"
+    - "Show all Hyperliquid markets"
+
+    **Tools used:** `get_market_data`, `get_positions`
+
+    **Learn more:** [Perps Guide](/docs/guides/perps)
+
+  </Accordion>
+</Accordions>
+
+## NFTs
+
+<Accordions>
+  <Accordion title="View and transfer NFTs">
+    **Examples:**
+    - "Show my Solana NFTs"
+    - "List my NFT collection"
+    - "Transfer [NFT] to [address]"
+    - "What NFTs do I own?"
+
+    **Tools used:** `get_nft_inventory`, `transfer_nft`
+
+    **Learn more:** [NFT Guide](/docs/guides/nfts)
+
+  </Accordion>
+
+  <Accordion title="Trade NFTs">
+    **Examples:**
+    - "Buy this NFT on Magic Eden"
+    - "List my NFT on Tensor"
+    - "Place a bid on OpenSea"
+    - "Sell my NFT for 5 SOL"
+
+    **Tools used:** `buy_nft`, `sell_nft`, `bid_nft`
+
+    **Learn more:** [NFT Guide](/docs/guides/nfts)
+
+  </Accordion>
+</Accordions>
+
+## Meme Coins & Predictions
+
+<Accordions>
+  <Accordion title="Trade pump.fun coins">
+    **Examples:**
+    - "Show me new pump.fun launches"
+    - "Buy 0.5 SOL of [coin]"
+    - "Sell 50% of my pump.fun holdings"
+    - "Get info on [pump.fun coin]"
+
+    **Tools used:** `pumpfun_list_new_coins`, `pumpfun_get_coin_info`, `pumpfun_buy`, `pumpfun_sell`
+
+    **Learn more:** [Pump.fun & Predictions Guide](/docs/guides/pumpfun-predictions)
+
+  </Accordion>
+
+  <Accordion title="Trade prediction markets">
+    **Examples:**
+    - "Search for election markets on Polymarket"
+    - "Buy Yes shares on [market]"
+    - "What are the odds on this event?"
+    - "Show my prediction positions"
+
+    **Tools used:** `search_prediction_markets`, `place_prediction`, `get_prediction_positions`, `get_prediction_orderbook`
+
+    **Learn more:** [Pump.fun & Predictions Guide](/docs/guides/pumpfun-predictions)
+
+  </Accordion>
+</Accordions>
+
+## Wallet Management
+
+<Accordions>
+  <Accordion title="Create and manage wallets">
+    **Examples:**
+    - "Create a new wallet called 'trading'"
+    - "Import my existing private key"
+    - "Switch to my other wallet"
+    - "Add a new account to my wallet"
+
+    **Tools used:** `create_wallet`, `import_wallet`, `set_active_wallet`, `add_account`, `create_wallet_pool`
+
+    **Learn more:** [Getting Started](/docs), [Wallet Security](/docs/wallet-security)
+
+  </Accordion>
+
+  <Accordion title="Configure security">
+    **Examples:**
+    - "Set a $500 daily spending limit"
+    - "Show my current policy"
+    - "Block NFT purchases"
+    - "Allow auto-approval for small swaps"
+
+    **Tools used:** `update_policy`, `get_policy`
+
+    **Learn more:** [Policy and Approvals](/docs/guides/policy-and-approvals)
+
+  </Accordion>
+</Accordions>
+
+## Network & Configuration
+
+<Accordions>
+  <Accordion title="Switch networks">
+    **Examples:**
+    - "Switch to testnet"
+    - "Am I on mainnet or testnet?"
+    - "Change to mainnet mode"
+
+    **Tools used:** `set_network_mode`, `get_network_mode`
+
+    **Learn more:** [Getting Started](/docs)
+
+  </Accordion>
+
+  <Accordion title="Configure RPC">
+    **Examples:**
+    - "Set a custom Solana RPC endpoint"
+    - "Use my own RPC for Ethereum"
+
+    **Tools used:** `configure_rpc`
+
+    **Learn more:** [Reference: Session & Config Tools](/docs/reference/tools-session-config)
+
+  </Accordion>
+
+  <Accordion title="Check capabilities">
+    **Examples:**
+    - "What chains does Seashail support?"
+    - "What features are available?"
+    - "Can I trade on Arbitrum?"
+    - "Show me supported networks"
+
+    **Tools used:** `get_capabilities`, `get_testnet_faucet_links`
+
+    **Learn more:** [Getting Started](/docs), [Chains and Funding](/docs/guides/chains-and-funding)
+
+  </Accordion>
+</Accordions>

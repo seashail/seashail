@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Seashail installer (source-build).
+#
+# This script clones the repo and builds the `seashail` binary with Cargo.
+# It intentionally does NOT download a prebuilt binary.
+#
+# Usage:
+#   curl -fsSL https://seashail.com/install | sh
+#
+# Environment overrides:
+#   SEASHAIL_REPO           (default: https://github.com/seashail/seashail)
+#   SEASHAIL_REF            (default: main)       # branch/tag/commit
+#   SEASHAIL_VERSION        (alias for SEASHAIL_REF)
+#   SEASHAIL_INSTALL_DIR    (default: ~/.local/bin)
+
+REPO="${SEASHAIL_REPO:-https://github.com/seashail/seashail}"
+REF="${SEASHAIL_VERSION:-${SEASHAIL_REF:-main}}"
+INSTALL_DIR="${SEASHAIL_INSTALL_DIR:-$HOME/.local/bin}"
+BIN_NAME="seashail"
+
+msg() { printf '%s\n' "$*" >&2; }
+die() { msg "seashail install: $*"; exit 1; }
+need_cmd() { command -v "$1" >/dev/null 2>&1 || die "missing dependency: $1"; }
+
+need_cmd git
+need_cmd cargo
+
+tmp="$(mktemp -d 2>/dev/null || mktemp -d -t seashail-install)"
+cleanup() { rm -rf "$tmp"; }
+trap cleanup EXIT
+
+msg "Cloning $REPO ($REF)..."
+git clone --quiet --depth 1 --branch "$REF" "$REPO" "$tmp/seashail" \
+  || die "git clone failed (try: SEASHAIL_REF=main)"
+
+msg "Building (release)..."
+(
+  cd "$tmp/seashail"
+  cargo build -p seashail --release
+)
+
+mkdir -p "$INSTALL_DIR"
+cp "$tmp/seashail/target/release/$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
+chmod +x "$INSTALL_DIR/$BIN_NAME"
+
+msg "Installed: $INSTALL_DIR/$BIN_NAME"
+if ! command -v "$BIN_NAME" >/dev/null 2>&1; then
+  msg "Add to PATH (example):"
+  msg "  export PATH=\"$INSTALL_DIR:\$PATH\""
+fi
+msg "Run MCP (stdio):"
+msg "  $BIN_NAME mcp"
+

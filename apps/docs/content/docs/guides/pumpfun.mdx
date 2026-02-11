@@ -1,0 +1,162 @@
+---
+title: Pump.fun
+description: Discover, buy, and sell meme coins on Pump.fun (Solana only).
+---
+
+## What Is Pump.fun
+
+Pump.fun is a Solana-based platform for launching and trading meme coins. Unlike traditional token launches, Pump.fun tokens follow a bonding curve mechanism: the price increases as more people buy, and decreases as they sell. This creates a market-driven price discovery model where supply and demand directly impact the token price in real-time.
+
+Seashail provides 4 tools for Pump.fun interaction:
+
+- `pumpfun_list_new_coins` — discover recently launched coins
+- `pumpfun_get_coin_info` — get detailed information about a specific coin
+- `pumpfun_buy` — buy a pump.fun token with SOL
+- `pumpfun_sell` — sell your pump.fun tokens back to SOL
+
+All Pump.fun tools are Solana-only. You must have a Solana wallet with SOL for gas fees.
+
+## Discovering New Coins
+
+Use `pumpfun_list_new_coins` to see recent token launches. This tool returns a list of coins sorted by launch time (newest first).
+
+The response includes:
+
+- Mint addresses (used for buying/selling)
+- Token names and symbols
+- Descriptions
+- Creation timestamps
+- Bonding curve progress and market cap
+
+You can configure the number of results (up to 200 coins).
+
+This is a read-only operation — no policy approval needed.
+
+## Getting Coin Details
+
+Use `pumpfun_get_coin_info` with a coin's mint address to fetch detailed information about a specific token.
+
+The response includes:
+
+- Name, symbol, and description
+- Creator address
+- Market cap and bonding curve status
+- Virtual SOL and token reserves
+- Associated bonding curve account addresses
+
+This data helps you evaluate the coin's state before trading. Read-only — no policy approval needed.
+
+## Buying Coins
+
+Use `pumpfun_buy` to purchase a pump.fun token. The trade is executed against the bonding curve smart contract.
+
+Required parameters:
+
+- `mint` — the token's mint address (identity-checked for safety)
+- `amount_sol` — the amount of SOL you want to spend
+
+Optional parameters:
+
+- `wallet` — if omitted, uses your active wallet
+- `account_index` — if omitted, uses your active account index
+- `usd_value` — optional override for policy approval evaluation
+
+Buy operations are subject to policy evaluation:
+
+- `enable_swap` must be `true` in your policy
+- Transaction value is checked against `max_usd_per_tx` and daily caps
+- Tiered approval applies (may be auto-approved, require confirmation, or be blocked based on USD value)
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how tiered approval works.
+
+### Typical Buy Workflow
+
+1. Discover coins: `pumpfun_list_new_coins`
+2. Investigate a specific coin: `pumpfun_get_coin_info` with the mint address
+3. Buy: `pumpfun_buy` with mint and SOL amount
+4. Confirm if prompted (via MCP elicitation)
+
+Example buy:
+
+```json
+{
+  "mint": "ABC123...",
+  "amount_sol": 0.5
+}
+```
+
+This spends 0.5 SOL to buy the pump.fun token at the current bonding curve price.
+
+### Bonding Curve Mechanics
+
+The bonding curve means:
+
+- The more you buy, the higher the price rises for subsequent buyers
+- Large buys can significantly move the price
+- Price impact depends on the size of your buy relative to the curve's reserves
+
+## Selling Coins
+
+Use `pumpfun_sell` to sell your pump.fun tokens back to SOL.
+
+Required parameters:
+
+- `mint` — the token's mint address (identity-checked)
+- `percent` — percentage of your holdings to sell (0-100)
+
+Use `percent: 100` to sell your entire position.
+
+Sell operations are subject to the same policy controls as buying.
+
+Example sell:
+
+```json
+{
+  "mint": "ABC123...",
+  "percent": 100
+}
+```
+
+This sells 100% of your holdings for that token, receiving SOL back at the current bonding curve price.
+
+## Risk Considerations
+
+**Pump.fun trading carries extreme risks. Only trade with capital you can afford to lose completely.**
+
+### Volatility
+
+Meme coins can lose 90% or more of their value in minutes. Price movements of 50%+ in either direction within seconds are common. The bonding curve mechanism amplifies volatility: large sells crater the price, large buys spike it.
+
+### Rug Pulls
+
+Token creators can dump their holdings at any time, often after initial hype drives up the price. This is extremely common in the meme coin space.
+
+### Liquidity Risk
+
+Bonding curve tokens may have very thin liquidity. Large sells can move the price dramatically downward — you may receive far less SOL than expected.
+
+### No Fundamental Value
+
+Most meme coins have no underlying utility, revenue, or real-world use case. Value is driven purely by speculation and sentiment.
+
+### Policy Safeguards
+
+Use policy controls to limit exposure:
+
+- Set conservative `max_usd_per_tx` limits
+- Use `max_usd_per_day` to cap daily meme coin spending
+- Consider separate per-wallet policy overrides for experimental trading
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for configuration details.
+
+## Notes
+
+- For exact parameter details: [Pump.fun Tools Reference](/docs/reference/tools-pumpfun)
+- Pump.fun tools are Solana-only — ensure your active wallet has a Solana address with SOL for gas
+- Related: [Swapping Guide](/docs/guides/swapping) for standard token swaps (non-bonding-curve)
+- All pump.fun trades execute on-chain against the bonding curve contract — no centralized orderbook
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to slippage exceeded and RPC errors
+- [Glossary](/docs/glossary) for definitions of slippage, bps (basis points), and bonding curve

@@ -1,0 +1,17 @@
+{
+  "name": "@seashail/oxlint",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo \"no build\"",
+    "test": "echo \"no tests\"",
+    "lint": "node -e \"import('./plugin.mjs')\"",
+    "format": "oxfmt --ignore-path ../../.gitignore --write .",
+    "format:check": "oxfmt --ignore-path ../../.gitignore --check .",
+    "check-types": "echo \"no types\""
+  },
+  "devDependencies": {
+    "oxfmt": "latest",
+    "oxlint": "latest"
+  }
+}

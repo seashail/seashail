@@ -1,0 +1,654 @@
+---
+title: "Tools: Read"
+description: Balances, portfolio, token inspection, gas estimates, prices, transaction history, and bridge status. Domain-specific reads are co-located with their write tools.
+---
+
+## inspect_token
+
+Read-only token inspection (authorities, decimals, supply) to help evaluate risk for newly launched tokens.
+
+### Parameters
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: "solana or an EVM chain name.",
+      required: true,
+    },
+    token: {
+      type: "string",
+      description: "native, or a token mint (Solana) / contract address (EVM).",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "name": "Wrapped SOL",
+  "symbol": "SOL",
+  "decimals": 9,
+  "supply": "549805996.47",
+  "mint_authority": null,
+  "freeze_authority": null,
+  "warnings": []
+}
+```
+
+### Example
+
+Args (Solana SPL mint):
+
+```json
+{ "chain": "solana", "token": "So11111111111111111111111111111111111111112" }
+```
+
+Args (EVM ERC-20 contract):
+
+```json
+{ "chain": "base", "token": "0x..." }
+```
+
+### Notes
+
+- On Solana, Seashail returns mint authorities, freeze authorities, and warnings when they are present.
+- On EVM, Seashail attempts ERC-20 metadata and also detects common EIP-1967 proxy patterns.
+
+## get_defi_yield_pools
+
+Fetch and filter DeFi yield pool metadata (best-effort) for agent research. Read-only; does not execute transactions.
+
+### Parameters
+
+<TypeTable
+  type={{
+    chains: {
+      type: "string[]",
+      description:
+        "Optional chain filter (matches upstream chain names, e.g. Ethereum, Arbitrum, Base, Solana).",
+    },
+    query: {
+      type: "string",
+      description:
+        "Optional substring filter applied to project/symbol (case-insensitive).",
+    },
+    min_tvl_usd: {
+      type: "number",
+      description: "Filter out small pools.",
+      default: "10000000",
+    },
+    min_apy: {
+      type: "number",
+      description: "Minimum APY (percent).",
+      default: "0",
+    },
+    stablecoin_only: {
+      type: "boolean",
+      description:
+        "If true, only include pools flagged as stablecoin-focused by the upstream dataset.",
+      default: "true",
+    },
+    exclude_il_risk: {
+      type: "boolean",
+      description:
+        "If true, exclude pools with IL risk flagged by the upstream dataset.",
+      default: "true",
+    },
+    max_results: {
+      type: "integer",
+      description: "Max results returned (1–100).",
+      default: "20",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "pools": [
+    {
+      "chain": "Ethereum",
+      "project": "aave-v3",
+      "symbol": "USDC",
+      "tvl_usd": 1200000000,
+      "apy": 3.42,
+      "stablecoin": true,
+      "il_risk": false
+    }
+  ],
+  "count": 1
+}
+```
+
+### Example
+
+```json
+{
+  "chains": ["Ethereum", "Arbitrum", "Base"],
+  "query": "aave",
+  "min_tvl_usd": 10000000,
+  "min_apy": 0,
+  "stablecoin_only": true,
+  "exclude_il_risk": true,
+  "max_results": 20
+}
+```
+
+### Notes
+
+- `chains` filters by the upstream dataset's chain naming (for example `Ethereum`, `Arbitrum`, `Base`), which is different from Seashail's `chain` identifiers used for transactions.
+
+## get_balance
+
+Query token balances for a wallet.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    chain: {
+      type: "string",
+      description:
+        "solana, bitcoin, or an EVM chain name (ethereum, base, arbitrum, optimism, polygon, bnb, avalanche, monad, sepolia, base-sepolia, arbitrum-sepolia, optimism-sepolia, polygon-amoy, bnb-testnet, avalanche-fuji, monad-testnet). If omitted, returns default chains based on network mode.",
+    },
+    tokens: {
+      type: "string[]",
+      description:
+        "Optional token addresses/mints to query. If omitted, returns native + a small default set.",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "balances": [
+    {
+      "chain": "solana",
+      "token": "native",
+      "symbol": "SOL",
+      "balance": "1.5",
+      "decimals": 9,
+      "usd_value": 225.0
+    }
+  ]
+}
+```
+
+### Example
+
+Args (use active wallet, default chains for current network mode):
+
+```json
+{}
+```
+
+Args (specific chain + token list):
+
+```json
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "chain": "solana",
+  "tokens": ["native", "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"]
+}
+```
+
+## get_portfolio
+
+Aggregate portfolio view with USD values across all wallets.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallets: {
+      type: "string[]",
+      description:
+        "Optional list of wallet names. If omitted, uses all wallets.",
+    },
+    chains: {
+      type: "string[]",
+      description: "Optional list of chains. If omitted, uses default chains.",
+    },
+    tokens: {
+      type: "object",
+      description:
+        "Optional per-chain token list to include in addition to native. Keys are chain names, values are arrays of token identifiers (Solana mint or EVM contract address).",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "total_usd": 5432.1,
+  "holdings": [
+    {
+      "wallet": "my-wallet",
+      "chain": "solana",
+      "token": "native",
+      "symbol": "SOL",
+      "balance": "20.0",
+      "usd_value": 3000.0
+    }
+  ]
+}
+```
+
+### Example
+
+```json
+{
+  "wallets": ["my-wallet"],
+  "chains": ["solana", "base"]
+}
+```
+
+## get_token_price
+
+Current USD price estimate for a token.
+
+### Parameters
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: "solana or an EVM chain name.",
+      required: true,
+    },
+    token: {
+      type: "string",
+      description: "native, or a token mint (Solana) / contract address (EVM).",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "symbol": "SOL",
+  "price_usd": 150.0
+}
+```
+
+### Example
+
+```json
+{ "chain": "solana", "token": "native" }
+```
+
+## estimate_gas
+
+Estimate gas/fees for a proposed send or swap.
+
+### Parameters
+
+<TypeTable
+  type={{
+    op: {
+      type: "'send_transaction' | 'swap_tokens'",
+      description: "Operation type to estimate.",
+      required: true,
+    },
+    chain: {
+      type: "string",
+      description: "Chain to estimate on.",
+      required: true,
+    },
+    to: {
+      type: "string",
+      description: "Recipient address (required when op is send_transaction).",
+    },
+    token: {
+      type: "string",
+      description:
+        "Token to send — native or mint/contract address (used when op is send_transaction).",
+    },
+    amount: {
+      type: "string",
+      description: "Amount to send (used when op is send_transaction).",
+    },
+    amount_units: {
+      type: "'ui' | 'base'",
+      description: "Amount unit interpretation.",
+      default: "'ui'",
+    },
+    token_in: {
+      type: "string",
+      description: "Input token for swap (used when op is swap_tokens).",
+    },
+    token_out: {
+      type: "string",
+      description: "Output token for swap (used when op is swap_tokens).",
+    },
+    amount_in: {
+      type: "string",
+      description: "Input amount for swap (used when op is swap_tokens).",
+    },
+    slippage_bps: {
+      type: "integer",
+      description: "Slippage tolerance in basis points (0–5000, swap only).",
+      default: "100",
+    },
+    provider: {
+      type: "'auto' | 'jupiter' | 'uniswap' | '1inch'",
+      description: "Swap provider selection (swap only).",
+      default: "'auto'",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "op": "send_transaction",
+  "chain": "solana",
+  "estimated_fee": "0.000005",
+  "fee_token": "SOL",
+  "fee_usd": 0.00075
+}
+```
+
+### Example
+
+Args (Solana send):
+
+```json
+{
+  "op": "send_transaction",
+  "chain": "solana",
+  "to": "11111111111111111111111111111111",
+  "token": "native",
+  "amount": "0.01",
+  "amount_units": "ui"
+}
+```
+
+Args (EVM send):
+
+```json
+{
+  "op": "send_transaction",
+  "chain": "base",
+  "to": "0x...",
+  "token": "native",
+  "amount": "0.001",
+  "amount_units": "ui"
+}
+```
+
+Args (swap):
+
+```json
+{
+  "op": "swap_tokens",
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "0.05",
+  "slippage_bps": 100,
+  "provider": "auto"
+}
+```
+
+## get_transaction_history
+
+Return locally tracked transaction history (newest first) with optional filtering.
+
+### Parameters
+
+<TypeTable
+  type={{
+    limit: {
+      type: "integer",
+      description: "Max results (1–1000).",
+      default: "50",
+    },
+    wallet: {
+      type: "string",
+      description: "Optional wallet name to filter.",
+    },
+    chain: {
+      type: "string",
+      description:
+        "Optional chain name to filter (solana, ethereum, base, ...).",
+    },
+    type: {
+      type: "'send' | 'swap' | 'approve' | 'airdrop' | 'wallet_created' | 'wallet_imported'",
+      description: "Optional event type to filter.",
+    },
+    since_ts: {
+      type: "string",
+      description:
+        "Optional RFC 3339 timestamp (inclusive). Only return events at or after this time.",
+    },
+    until_ts: {
+      type: "string",
+      description:
+        "Optional RFC 3339 timestamp (inclusive). Only return events at or before this time.",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "transactions": [
+    {
+      "type": "send",
+      "chain": "solana",
+      "wallet": "my-wallet",
+      "token": "native",
+      "amount": "0.5",
+      "to": "11111111111111111111111111111111",
+      "tx_hash": "5xYz...",
+      "timestamp": "2025-01-15T14:30:00Z",
+      "usd_value": 75.0
+    }
+  ],
+  "count": 1
+}
+```
+
+### Example
+
+```json
+{
+  "limit": 100,
+  "wallet": "my-wallet",
+  "chain": "solana",
+  "type": "swap"
+}
+```
+
+## get_portfolio_analytics
+
+Portfolio analytics computed from local transaction history: totals and USD volume breakdowns by type, chain, and day.
+
+### Parameters
+
+<TypeTable
+  type={{
+    limit: {
+      type: "integer",
+      description: "Max transaction records to analyze (1–10000).",
+      default: "500",
+    },
+    wallet: {
+      type: "string",
+      description: "Optional wallet name to filter.",
+    },
+    chain: {
+      type: "string",
+      description: "Optional chain name to filter.",
+    },
+    type: {
+      type: "string",
+      description: "Optional event type to filter.",
+    },
+    since_ts: {
+      type: "string",
+      description: "Optional RFC 3339 timestamp (inclusive).",
+    },
+    until_ts: {
+      type: "string",
+      description: "Optional RFC 3339 timestamp (inclusive).",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "total_transactions": 42,
+  "total_usd_volume": 12500.0,
+  "by_type": {
+    "send": { "count": 20, "usd_volume": 5000.0 },
+    "swap": { "count": 22, "usd_volume": 7500.0 }
+  },
+  "by_chain": {
+    "solana": { "count": 30, "usd_volume": 9000.0 },
+    "base": { "count": 12, "usd_volume": 3500.0 }
+  },
+  "by_day": [{ "date": "2025-01-15", "count": 5, "usd_volume": 1200.0 }]
+}
+```
+
+### Example
+
+```json
+{
+  "wallet": "my-wallet",
+  "since_ts": "2025-01-01T00:00:00Z",
+  "until_ts": "2025-01-31T23:59:59Z"
+}
+```
+
+### Notes
+
+- Analytics are computed from Seashail's local transaction ledger only (transactions executed through Seashail).
+- USD values are best-effort estimates recorded at transaction time.
+
+## get_lending_positions
+
+See [Tools: Lending](/docs/reference/tools-lending#get_lending_positions) for full documentation.
+
+---
+
+## get_bridge_status
+
+Read-only bridge status. Wormhole uses Wormholescan (keyless) when `bridge_id` is a Wormhole id; LayerZero uses a configured DeFi adapter.
+
+### Parameters
+
+<TypeTable
+  type={{
+    bridge_id: {
+      type: "string",
+      description:
+        "Bridge operation id (use the initiating tx signature/txid).",
+      required: true,
+    },
+    bridge_provider: {
+      type: "'wormhole' | 'layerzero'",
+      description: "Bridge provider.",
+      default: "'wormhole'",
+    },
+    include_vaa_bytes: {
+      type: "boolean",
+      description: "If true, include signed VAA bytes (base64) when available.",
+      default: "false",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "bridge_id": "5xYz...",
+  "provider": "wormhole",
+  "status": "completed",
+  "source_chain": "solana",
+  "destination_chain": "ethereum",
+  "token": "USDC",
+  "amount": "100.0",
+  "source_tx": "5xYz...",
+  "destination_tx": "0xabc..."
+}
+```
+
+### Example
+
+```json
+{
+  "bridge_id": "5xYzABC123...",
+  "bridge_provider": "wormhole"
+}
+```
+
+### Notes
+
+- Wormhole lookups use the public Wormholescan API (no API key required).
+- The `bridge_id` should be the transaction signature/hash from the initiating bridge transaction.
+
+## get_prediction_positions
+
+See [Tools: Prediction Markets](/docs/reference/tools-predictions#get_prediction_positions) for full documentation.
+
+---
+
+## search_prediction_markets
+
+See [Tools: Prediction Markets](/docs/reference/tools-predictions#search_prediction_markets) for full documentation.
+
+---
+
+## get_prediction_orderbook
+
+See [Tools: Prediction Markets](/docs/reference/tools-predictions#get_prediction_orderbook) for full documentation.
+
+---
+
+## pumpfun_list_new_coins
+
+See [Tools: Pump.fun](/docs/reference/tools-pumpfun#pumpfun_list_new_coins) for full documentation.
+
+---
+
+## pumpfun_get_coin_info
+
+See [Tools: Pump.fun](/docs/reference/tools-pumpfun#pumpfun_get_coin_info) for full documentation.
+
+---
+
+## See Also
+
+- [Swapping Guide](/docs/guides/swapping) -- Swap workflows using read tools for price checks and balances
+- [Sending Guide](/docs/guides/sending) -- Send workflows using balance and gas estimation
+- [DeFi Guide](/docs/guides/defi) -- DeFi operations using yield pool and lending position reads
+- [Bridging Guide](/docs/guides/bridging) -- Bridge workflows using bridge status tracking
+- [Predictions Guide](/docs/guides/predictions) -- Prediction market workflows using search and orderbook reads

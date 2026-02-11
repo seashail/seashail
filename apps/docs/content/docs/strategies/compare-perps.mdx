@@ -1,0 +1,114 @@
+---
+title: Jupiter Perps vs Hyperliquid
+description: Compare perp venues to decide which is best for your trading strategy.
+---
+
+When trading perpetual futures with Seashail, you can choose between Jupiter Perps (Solana) and Hyperliquid (EVM-based L1). This comparison helps you decide which venue fits your needs.
+
+## Feature Comparison
+
+| Feature          | Jupiter Perps           | Hyperliquid                                  |
+| ---------------- | ----------------------- | -------------------------------------------- |
+| Chain            | Solana                  | Hyperliquid L1 (EVM address)                 |
+| Order types      | Market only             | Market, limit                                |
+| Position sizing  | USD only                | USD or asset units                           |
+| Partial close    | Full close only         | Partial or full                              |
+| Modify orders    | Not supported           | `modify_perp_order` tool                     |
+| Limit orders     | Not supported           | `place_limit_order` tool                     |
+| Funding rate     | 8h intervals            | 1h intervals                                 |
+| Max leverage     | Varies by market        | Varies by market                             |
+| Slippage control | `slippage_bps` (market) | `slippage_bps` (market), exact price (limit) |
+| Network mode     | Mainnet only            | Mainnet and testnet                          |
+
+## When to Use Jupiter Perps
+
+- You're trading on Solana and want native integration
+- You prefer simple market orders without complex order management
+- Lower fees are a priority
+- You want fast execution on Solana's high-throughput network
+
+## When to Use Hyperliquid
+
+- You need advanced order types (limit orders, order modification)
+- You want to partially close positions
+- You need more frequent funding rate updates (1h vs 8h)
+- You're comfortable using an EVM-based L1
+
+## Usage Examples
+
+### Jupiter Perps
+
+Open a 5x long on SOL with market order:
+
+```json
+{
+  "provider": "jupiter_perps",
+  "market": "SOL",
+  "side": "long",
+  "size": "100",
+  "size_units": "usd",
+  "leverage": 5,
+  "order_type": "market",
+  "slippage_bps": 50
+}
+```
+
+Close entire position:
+
+```json
+{
+  "provider": "jupiter_perps",
+  "market": "SOL",
+  "slippage_bps": 50
+}
+```
+
+### Hyperliquid
+
+Open a 5x long on BTC with market order:
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "side": "long",
+  "size": "100",
+  "size_units": "usd",
+  "leverage": 5,
+  "order_type": "market",
+  "slippage_bps": 50
+}
+```
+
+Place a limit order for ETH:
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "ETH",
+  "side": "short",
+  "size": "50",
+  "size_units": "usd",
+  "leverage": 2,
+  "order_type": "limit",
+  "limit_px": "2500"
+}
+```
+
+Partially close a position (close 0.5 BTC):
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "size": "0.5",
+  "size_units": "asset",
+  "slippage_bps": 50
+}
+```
+
+## See Also
+
+- [Perps Guide](/docs/guides/perps) — How perpetual futures work in Seashail
+- [Tools: Perps Reference](/docs/reference/tools-perps) — Detailed parameter documentation
+- [Policy and Approvals](/docs/guides/policy-and-approvals) — Configure approval rules for perp trades

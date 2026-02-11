@@ -1,0 +1,267 @@
+---
+title: "Tools: Policy"
+description: View and update transaction policy rules that gate every write operation.
+---
+
+Seashail evaluates every write tool call against policy **before** decrypting key material. Policy controls tiered approval (auto-approve / confirm / hard-block), per-surface operation toggles, transaction limits, and address allowlisting.
+
+See also:
+
+- [Policy & Approvals Guide](/docs/guides/policy-and-approvals)
+- [Write Tools](/docs/reference/tools-write) — the tools that policy gates
+
+## get_policy
+
+Returns the effective policy configuration. When `wallet` is provided, returns the effective policy for that wallet (global defaults merged with any wallet-specific overrides).
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description:
+        "Wallet name. If omitted, returns the global default policy.",
+    },
+  }}
+/>
+
+### Response
+
+The response is the full Policy object with all fields and their current values. When no overrides are set, all fields return their defaults:
+
+```json
+{
+  "auto_approve_usd": 10.0,
+  "confirm_up_to_usd": 1000.0,
+  "hard_block_over_usd": 1000.0,
+  "max_usd_per_tx": 100.0,
+  "max_usd_per_day": 500.0,
+  "max_slippage_bps": 100,
+  "deny_unknown_usd_value": true,
+  "require_user_confirm_for_remote_tx": true,
+  "enable_send": true,
+  "enable_swap": true,
+  "enable_perps": true,
+  "enable_nft": true,
+  "enable_pumpfun": true,
+  "enable_bridge": true,
+  "enable_lending": true,
+  "enable_staking": true,
+  "enable_liquidity": true,
+  "enable_prediction": true,
+  "enable_ofac_sdn": true,
+  "send_allow_any": false,
+  "send_allowlist": [],
+  "contract_allow_any": false,
+  "contract_allowlist": [],
+  "max_leverage": 3,
+  "max_usd_per_position": 100.0,
+  "max_usd_per_nft_tx": 100.0,
+  "pumpfun_max_sol_per_buy": 0.1,
+  "pumpfun_max_buys_per_hour": 10,
+  "max_usd_per_bridge_tx": 100.0,
+  "max_usd_per_lending_tx": 200.0,
+  "max_usd_per_stake_tx": 500.0,
+  "max_usd_per_liquidity_tx": 100.0,
+  "max_usd_per_prediction_tx": 100.0
+}
+```
+
+### Examples
+
+Get the global default policy:
+
+```json
+{}
+```
+
+Get the effective policy for a specific wallet (includes wallet overrides when present):
+
+```json
+{ "wallet": "my-wallet" }
+```
+
+## update_policy
+
+Updates policy rules. Only the fields you include are changed — all other fields keep their current values.
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description:
+        "Wallet name. If omitted, updates the global default policy.",
+    },
+    policy: {
+      type: "object",
+      description:
+        "Policy fields to update. Required unless clear is true. Only include the fields you want to change.",
+    },
+    clear: {
+      type: "boolean",
+      default: "false",
+      description:
+        "Remove the wallet-specific override, reverting to the global default. Only valid when wallet is provided.",
+    },
+  }}
+/>
+
+### Response
+
+Returns the full updated policy object (same shape as `get_policy` response).
+
+### Examples
+
+Update global tiered approval thresholds:
+
+```json
+{
+  "policy": {
+    "auto_approve_usd": 5,
+    "confirm_up_to_usd": 500
+  }
+}
+```
+
+Set a wallet-specific override (lower per-transaction limit for a hot wallet):
+
+```json
+{
+  "wallet": "hot-wallet",
+  "policy": {
+    "max_usd_per_tx": 10
+  }
+}
+```
+
+Clear a wallet override (revert to global defaults):
+
+```json
+{ "wallet": "hot-wallet", "clear": true }
+```
+
+Disable specific operation surfaces:
+
+```json
+{
+  "policy": {
+    "enable_perps": false,
+    "enable_pumpfun": false,
+    "enable_prediction": false
+  }
+}
+```
+
+Configure address allowlisting for sends:
+
+```json
+{
+  "policy": {
+    "send_allow_any": false,
+    "send_allowlist": [
+      "11111111111111111111111111111111",
+      "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
+    ]
+  }
+}
+```
+
+## Policy Fields Reference
+
+All policy fields, grouped by category. Defaults are sourced from the Seashail Rust source (`policy.rs` `Default` impl).
+
+### Tiered Approval
+
+These three fields define the approval tiers for transactions based on USD value:
+
+| Field                 | Type   | Default  | Description                                                       |
+| --------------------- | ------ | -------- | ----------------------------------------------------------------- |
+| `auto_approve_usd`    | number | `10.0`   | Auto-approve transactions below this USD amount                   |
+| `confirm_up_to_usd`   | number | `1000.0` | Require user confirmation (MCP elicitation) up to this USD amount |
+| `hard_block_over_usd` | number | `1000.0` | Hard-block transactions above this USD amount                     |
+
+A transaction at $50 with defaults: `$50 > auto_approve_usd (10)` → confirmation required; `$50 ≤ confirm_up_to_usd (1000)` → allowed after user confirms.
+
+### Transaction Limits
+
+| Field              | Type    | Default | Description                                                 |
+| ------------------ | ------- | ------- | ----------------------------------------------------------- |
+| `max_usd_per_tx`   | number  | `100.0` | Hard per-transaction USD limit (independent of tiering)     |
+| `max_usd_per_day`  | number  | `500.0` | Daily (UTC) aggregate USD limit across all write ops        |
+| `max_slippage_bps` | integer | `100`   | Maximum allowed slippage for swaps (basis points; 100 = 1%) |
+
+### Safety Controls
+
+| Field                                | Type    | Default | Description                                                                                                                        |
+| ------------------------------------ | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `deny_unknown_usd_value`             | boolean | `true`  | Block writes where USD value can't be computed (fail closed). Prevents `usd_value=0` from becoming an auto-approval bypass.        |
+| `require_user_confirm_for_remote_tx` | boolean | `true`  | Require confirmation for any transaction whose bytes were constructed remotely (e.g. aggregator APIs). Independent of USD tiering. |
+| `enable_ofac_sdn`                    | boolean | `true`  | Block transactions to OFAC SDN-listed addresses. Can be disabled if not applicable to your jurisdiction.                           |
+
+### Operation Toggles
+
+Each toggle enables or disables an entire operation surface. When disabled, any tool call for that surface is rejected before policy evaluation.
+
+| Field               | Type    | Default | Description                                                                           |
+| ------------------- | ------- | ------- | ------------------------------------------------------------------------------------- |
+| `enable_send`       | boolean | `true`  | Enable/disable send operations (`send_transaction`)                                   |
+| `enable_swap`       | boolean | `true`  | Enable/disable swap operations (`swap_tokens`)                                        |
+| `enable_perps`      | boolean | `true`  | Enable/disable perpetuals trading (`open_perp_position`, `close_perp_position`, etc.) |
+| `enable_nft`        | boolean | `true`  | Enable/disable NFT operations (`buy_nft`, `sell_nft`, `transfer_nft`, etc.)           |
+| `enable_pumpfun`    | boolean | `true`  | Enable/disable pump.fun operations (`pumpfun_buy`, `pumpfun_sell`)                    |
+| `enable_bridge`     | boolean | `true`  | Enable/disable cross-chain bridging (`bridge_tokens`)                                 |
+| `enable_lending`    | boolean | `true`  | Enable/disable lending/borrowing (`lend_tokens`, `withdraw_lending`, `borrow_tokens`) |
+| `enable_staking`    | boolean | `true`  | Enable/disable staking/yield (`stake_tokens`, `unstake_tokens`)                       |
+| `enable_liquidity`  | boolean | `true`  | Enable/disable liquidity provision (`add_liquidity`, `remove_liquidity`)              |
+| `enable_prediction` | boolean | `true`  | Enable/disable prediction market operations                                           |
+
+### Address Allowlisting
+
+| Field                | Type     | Default | Description                                                                                                                                  |
+| -------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `send_allow_any`     | boolean  | `false` | Allow sending to any address (disables allowlisting)                                                                                         |
+| `send_allowlist`     | string[] | `[]`    | Allowed recipient addresses. When empty and `send_allow_any` is false, all sends are blocked.                                                |
+| `contract_allow_any` | boolean  | `false` | Allow DeFi interactions with any contract (disables allowlisting)                                                                            |
+| `contract_allowlist` | string[] | `[]`    | Allowed contract addresses. When empty and `contract_allow_any` is false, Seashail enforces a built-in allowlist for known protocol routers. |
+
+### Per-Surface Limits
+
+Per-surface caps are enforced **in addition to** the global `max_usd_per_tx` and tiered approval thresholds.
+
+| Field                       | Type    | Default | Description                                                        |
+| --------------------------- | ------- | ------- | ------------------------------------------------------------------ |
+| `max_leverage`              | integer | `3`     | Maximum leverage for perpetuals                                    |
+| `max_usd_per_position`      | number  | `100.0` | Maximum USD per perpetuals position                                |
+| `max_usd_per_nft_tx`        | number  | `100.0` | Maximum USD per NFT transaction                                    |
+| `max_usd_per_bridge_tx`     | number  | `100.0` | Maximum USD per bridge transaction                                 |
+| `max_usd_per_lending_tx`    | number  | `200.0` | Maximum USD per lending transaction                                |
+| `max_usd_per_stake_tx`      | number  | `500.0` | Maximum USD per staking transaction                                |
+| `max_usd_per_liquidity_tx`  | number  | `100.0` | Maximum USD per liquidity provision transaction                    |
+| `max_usd_per_prediction_tx` | number  | `100.0` | Maximum USD per prediction market transaction                      |
+| `pumpfun_max_sol_per_buy`   | number  | `0.1`   | Maximum SOL per pump.fun buy (chain-native units, not USD)         |
+| `pumpfun_max_buys_per_hour` | integer | `10`    | Maximum pump.fun buys per hour per wallet+account (rolling window) |
+
+## How Policy Evaluation Works
+
+Every write tool call goes through this evaluation flow before key material is decrypted:
+
+1. **Operation toggle** — Is the surface enabled? (`enable_send`, `enable_swap`, etc.) If disabled → **blocked**.
+2. **Per-surface limit** — Does the transaction exceed the surface-specific cap? (`max_usd_per_nft_tx`, `max_leverage`, `pumpfun_max_sol_per_buy`, etc.) If exceeded → **blocked**.
+3. **Address allowlist** — Is the recipient/contract on the allowlist? (`send_allowlist`, `contract_allowlist`). If not → **blocked**.
+4. **Per-transaction limit** — Does the amount exceed `max_usd_per_tx`? If exceeded → **blocked**.
+5. **Tiered approval** — Where does the USD amount fall?
+   - Below `auto_approve_usd` → **auto-approved**
+   - Between `auto_approve_usd` and `confirm_up_to_usd` → **user confirmation required** (MCP elicitation)
+   - Above `hard_block_over_usd` → **hard-blocked**
+6. **Unknown USD value** — If `deny_unknown_usd_value` is true and pricing is unavailable → **blocked** (fail closed).
+7. **Remote transaction** — If `require_user_confirm_for_remote_tx` is true and the transaction bytes were constructed remotely → **user confirmation required**.
+8. **Daily aggregate** — Would this transaction push the day's total above `max_usd_per_day`? If so → **blocked**.
+
+Notes:
+
+- Prefer: `get_policy` first, then modify only the intended fields, then `update_policy`. This reduces the chance of accidentally loosening unrelated safeguards.
+- Wallet-specific overrides replace the global defaults entirely (they do not merge field-by-field). When in doubt, `get_policy` with the wallet name to see the effective configuration.
+
+See also:
+
+- [Policy & Approvals Guide](/docs/guides/policy-and-approvals)
+- [Write Tools](/docs/reference/tools-write) — send, swap, bridge, lend, and other policy-gated tools

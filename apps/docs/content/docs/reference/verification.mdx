@@ -1,0 +1,34 @@
+---
+title: Verification
+description: Verify release assets and SBOMs with Sigstore Cosign.
+---
+
+This repository uses:
+
+- GitHub Releases for distribution (`cargo-dist`)
+- Keyless signing with Sigstore Cosign
+- SBOM generation (SPDX-JSON)
+
+## Verify Release Asset Signatures
+
+Download a release asset and its `.sig` and `.crt` files. Then:
+
+```bash
+cosign verify-blob \
+  --certificate <asset>.crt \
+  --signature <asset>.sig \
+  <asset>
+```
+
+## Verify SBOM
+
+```bash
+cosign verify-blob \
+  --certificate sbom.spdx.json.crt \
+  --signature sbom.spdx.json.sig \
+  sbom.spdx.json
+```
+
+## Notes
+
+Cosign keyless verification checks the signing identity in the certificate. Ensure it matches this repository and the expected workflow context.

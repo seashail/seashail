@@ -1,0 +1,154 @@
+---
+title: "Recipe: New Wallet Setup"
+description: Create, secure, and fund a new wallet with policy controls
+---
+
+## Overview
+
+Set up a new Seashail wallet from scratch: create with Shamir shares for secure backup, configure policy limits, and fund it for first use.
+
+**Tools used:** `create_wallet`, `export_shares`, `update_policy`, `set_active_wallet`, `get_deposit_info`, `get_balance`
+**Chains:** All supported chains
+**Time to complete:** 5-10 minutes
+
+## Prerequisites
+
+- Seashail installed and daemon running
+- Secure storage for backup shares (password manager, paper backup, hardware device)
+
+<Steps>
+
+### Step 1: Create the wallet
+
+Create a new generated wallet using Shamir 2-of-3 secret sharing.
+
+```json
+{
+  "name": "create_wallet",
+  "arguments": {
+    "name": "trading-main"
+  }
+}
+```
+
+**Expected result:** Wallet created with share1 retained by Seashail, shares 2+3 ready for export. Wallet is now active.
+
+### Step 2: Export backup shares
+
+Export shares 2 and 3 for offline storage. Store these in separate secure locations.
+
+```json
+{
+  "name": "export_shares",
+  "arguments": {
+    "wallet": "trading-main"
+  }
+}
+```
+
+**Expected result:** JSON response with `share2` and `share3` as base64-encoded strings. Copy these immediately to secure storage.
+
+### Step 3: Configure spending policy
+
+Set conservative limits for automated trading.
+
+```json
+{
+  "name": "update_policy",
+  "arguments": {
+    "wallet": "trading-main",
+    "policy": {
+      "max_usd_per_swap": 500,
+      "max_usd_per_send": 200,
+      "max_usd_per_bridge": 1000,
+      "require_confirmation_above_usd": 2000,
+      "allowed_chains": ["solana", "base", "arbitrum"],
+      "blocked_tokens": []
+    }
+  }
+}
+```
+
+**Expected result:** Policy updated. All transactions from this wallet will be subject to these limits.
+
+### Step 4: Get deposit address
+
+Get the Solana deposit address for funding.
+
+```json
+{
+  "name": "get_deposit_info",
+  "arguments": {
+    "wallet": "trading-main",
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+**Expected result:** Solana address displayed. Send SOL from an exchange or another wallet to this address.
+
+### Step 5: Verify funding
+
+Check the wallet balance after depositing.
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "wallet": "trading-main",
+    "chain": "solana"
+  }
+}
+```
+
+**Expected result:** Balance shows deposited SOL. Wallet is now funded and ready for trading.
+
+</Steps>
+
+## Variations
+
+### Import existing wallet
+
+Use `import_wallet` instead of `create_wallet` if you have an existing private key or mnemonic.
+
+```json
+{
+  "name": "import_wallet",
+  "arguments": {
+    "name": "imported-wallet",
+    "kind": "mnemonic"
+  }
+}
+```
+
+Seashail will prompt for the mnemonic via an interactive form (never pass secrets in tool arguments).
+
+### Multi-account setup
+
+Create a pool of spending accounts under one root wallet.
+
+```json
+{
+  "name": "create_wallet_pool",
+  "arguments": {
+    "wallet": "trading-main",
+    "count": 5
+  }
+}
+```
+
+This creates 5 new account indexes for isolated spending budgets.
+
+## Notes
+
+- **Store shares securely:** Losing both backup shares means you cannot recover your wallet if share1 is lost.
+- **Test with small amounts:** Fund with a small amount first to verify addresses are correct.
+- **Testnet first:** Consider creating a testnet wallet first (`set_network_mode` to "testnet") to practice the workflow.
+- **Policy inheritance:** Wallet-specific policies override the global default policy. Use `get_policy` without arguments to see the global default.
+
+## See Also
+
+- [Wallet & Account Tools](/docs/reference/tools-wallet)
+- [Policy Configuration](/docs/reference/tools-policy)
+- [Getting Started Guide](/docs/getting-started/quickstart)

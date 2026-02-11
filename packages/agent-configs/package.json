@@ -1,0 +1,23 @@
+{
+  "name": "@seashail/agent-configs",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Static, copy-pasteable MCP configuration templates for Seashail (Cursor, VS Code/Copilot, Windsurf, Claude Desktop, etc.).",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seashail/seashail.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "README.md",
+    "templates/**/*"
+  ],
+  "scripts": {
+    "lint": "bun run validate",
+    "test": "bun run validate",
+    "validate": "bun scripts/validate.mjs"
+  }
+}

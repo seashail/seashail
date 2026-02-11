@@ -1,0 +1,26 @@
+---
+title: Strategies & Recipes
+description: Multi-tool workflow recipes for common trading and portfolio operations.
+---
+
+Recipes are multi-tool workflows showing how to compose Seashail's MCP tools for real tasks. Each recipe provides step-by-step instructions with JSON tool call examples you can follow or adapt for your own use cases.
+
+## Available Recipes
+
+**[New Wallet Setup](/docs/strategies/new-wallet-setup)** — Create, secure, and fund a new wallet with policy controls.
+Tools: `create_wallet`, `export_shares`, `update_policy`, `get_deposit_info`, `get_balance`
+
+**[Portfolio Rebalancing](/docs/strategies/portfolio-rebalancing)** — Rebalance a multi-token portfolio to target allocations using swaps.
+Tools: `get_balance`, `get_token_price`, `swap_tokens`
+
+**[Dollar-Cost Averaging (DCA)](/docs/strategies/dca)** — Execute periodic DCA buys using fixed USD amounts.
+Tools: `get_balance`, `swap_tokens`, `get_token_price`
+
+**[Yield Farming](/docs/strategies/yield-farming)** — Research yield pools and deploy capital to lending or staking protocols.
+Tools: `get_defi_yield_pools`, `lend_tokens`, `stake_tokens`, `get_lending_positions`
+
+**[Multi-Chain Management](/docs/strategies/multi-chain-management)** — Move capital between chains, swap on destination, and distribute to sub-accounts.
+Tools: `get_balance`, `bridge_tokens`, `get_bridge_status`, `swap_tokens`, `transfer_between_wallets`
+
+**[Risk Monitoring](/docs/strategies/risk-monitoring)** — Monitor portfolio health, open positions, and liquidation risk across protocols.
+Tools: `get_portfolio`, `get_portfolio_analytics`, `get_positions`, `get_lending_positions`

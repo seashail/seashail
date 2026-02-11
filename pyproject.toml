@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seashail-mcp"
+version = "0.1.0"
+description = "Run the Seashail MCP server in one line (uvx)."
+readme = "python/README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+urls = { Homepage = "https://seashail.com", Repository = "https://github.com/seashail/seashail" }
+
+[project.scripts]
+seashail-mcp = "seashail_mcp.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["python/src"]
+

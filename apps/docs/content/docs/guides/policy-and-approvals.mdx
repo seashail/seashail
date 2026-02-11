@@ -1,0 +1,56 @@
+---
+title: Policy And Approvals
+description: Set spending caps, allowlists, and when user confirmation is required.
+---
+
+Seashail evaluates every write (for example `send_transaction`, `swap_tokens`, `open_perp_position`, `buy_nft`) against policy before any key material is decrypted.
+
+## Tiered Approvals
+
+The default policy is designed to:
+
+- auto-approve small transactions
+- require explicit user confirmation for larger ones (MCP elicitation)
+- hard-block transactions above a maximum
+
+## Common Controls
+
+- Per-transaction and daily USD caps: `max_usd_per_tx`, `max_usd_per_day`
+- Swap slippage cap (basis points): `max_slippage_bps`
+- Fail-closed when USD value is unknown: `deny_unknown_usd_value`
+- Force confirmation for remote-constructed transactions: `require_user_confirm_for_remote_tx`
+- Send allowlisting: `send_allow_any`, `send_allowlist`
+- Contract allowlisting: `contract_allow_any`, `contract_allowlist`
+- Operation toggles: `enable_send`, `enable_swap`
+- Perps controls: `enable_perps`, `max_leverage`, `max_usd_per_position`
+- NFT controls: `enable_nft`, `max_usd_per_nft_tx`
+
+## Viewing And Updating Policy
+
+Use:
+
+- `get_policy` to view current policy
+- `update_policy` to replace policy rules
+
+### Per-Wallet Overrides
+
+Seashail supports per-wallet policy overrides:
+
+- `get_policy({ wallet })` shows the effective policy for that wallet
+- `update_policy({ wallet, policy })` sets an override for that wallet
+- `update_policy({ wallet, clear: true })` removes the override
+
+If you update policy via an agent, prefer a workflow like:
+
+1. Read `get_policy`
+2. Modify only the intended fields
+3. Apply with `update_policy`
+
+This avoids accidentally loosening unrelated safeguards.
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for policy error solutions
+- [Security Model](/docs/guides/security-model) for threat analysis and tiered approval rationale
+- [Glossary](/docs/glossary) for definitions of tiered approval, bps (basis points), and policy terms
+- [Policy Tools Reference](/docs/reference/tools-policy) for exact parameter details

@@ -1,0 +1,72 @@
+# Dependencies
+node_modules/
+
+# JS build artifacts
+dist/
+build/
+out/
+.next/
+.astro/
+.source/
+*.tsbuildinfo
+
+# Rust build artifacts
+target/
+
+# Env
+.env
+.env*.local
+
+# OS/editor
+.DS_Store
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+coverage/
+.nyc_output/
+
+# Turbo
+.turbo/
+
+# Local chain state / tooling caches
+.anvil-state/
+packages/e2e/evm-mocks/out/
+packages/e2e/evm-mocks/cache/
+packages/e2e/evm-mocks/broadcast/
+packages/e2e/evm-mocks/artifacts/
+packages/e2e/test-ledger/
+
+# Migration scratch
+legacy/
+
+# Agent/editor local config (keep in repo locally, do not commit)
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.opencode/
+.planning/
+.ruler/
+.vscode/
+.docs/
+.logs/
+legacy/
+references/
+# Keep local planning/docs artifacts out of git by default...
+reference/**
+.entire/
+
+.mcp.json
+.mcp.json.bak
+/AGENT.md
+/AGENTS.md
+/AGENTS.md.bak
+/CLAUDE.md
+/CLAUDE.md.bak

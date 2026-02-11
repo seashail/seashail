@@ -1,0 +1,389 @@
+---
+title: "Tools: Staking"
+description: Stake and unstake tokens across Lido, Eigenlayer, Marinade, and Jito.
+---
+
+Staking tools manage liquid staking positions. All tools require [policy approval](/docs/reference/tools-policy). Protocol is auto-selected by chain when omitted (EVM defaults to Lido, Solana defaults to Jito).
+
+## stake_tokens
+
+Stake tokens to earn staking rewards. Native staking paths are supported for Lido (Ethereum) and Jito (Solana); other protocols execute via transaction envelope fallback.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description:
+        'Chain to execute on: "ethereum" or "solana". Other EVM chains require tx envelope fallback.',
+      required: true,
+    },
+    protocol: {
+      type: '"lido" | "eigenlayer" | "marinade" | "jito"',
+      description:
+        "Protocol selection. If omitted, defaults by chain: EVM defaults to Lido, Solana defaults to Jito.",
+    },
+    token: {
+      type: "string",
+      description:
+        'Token to stake. For native staking: use "native" for ETH (Lido) or SOL (Jito).',
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        "Amount to stake as a decimal string. Native staking paths require this field.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        "ui = human-readable token units (ETH, SOL). base = raw units (wei, lamports).",
+      default: '"ui"',
+    },
+    slippage_bps: {
+      type: "integer",
+      description:
+        "Slippage tolerance in basis points (1 bps = 0.01%) for Jito staking (uses Jupiter swap). Not applicable for Lido. Range: 0–2000.",
+      default: "100",
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Override flag indicating whether usd_value is known. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+    to: {
+      type: "string",
+      description:
+        "EVM: transaction recipient/contract address. Used in tx envelope fallback mode.",
+    },
+    data: {
+      type: "string",
+      description: "EVM: 0x-prefixed calldata. Use 0x for empty.",
+    },
+    value_wei: {
+      type: "string",
+      description: "EVM: value in wei as a decimal string.",
+      default: '"0"',
+    },
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana: base64-encoded VersionedTransaction bytes (unsigned; Seashail will sign).",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana: allowlist of program IDs. Every instruction program id must be in this list.",
+    },
+    asset: {
+      type: "object",
+      description:
+        "Protocol-specific request object used by an optional adapter to construct a tx envelope.",
+    },
+  }}
+/>
+
+### Per-Protocol Behavior
+
+<Tabs
+  items={[
+    "Lido (EVM)",
+    "Eigenlayer (EVM)",
+    "Jito (Solana)",
+    "Marinade (Solana)",
+  ]}
+>
+  <Tab value="Lido (EVM)">
+    - Default protocol for EVM chains when `protocol` is omitted - Stake: Wraps
+    native ETH to stETH via Lido staking contract - Token identifier: `"native"`
+    (ETH) - Native execution path: calls Lido `submit(address _referral)` with
+    ETH value - Returns transaction hash (`txid`) and USD value - Supported on
+    Ethereum mainnet
+  </Tab>
+  <Tab value="Eigenlayer (EVM)">
+    - Set `protocol: "eigenlayer"` explicitly - Executes via transaction
+    envelope fallback - Requires agent or adapter to provide envelope fields
+    (`to`, `data`, `value_wei`)
+  </Tab>
+  <Tab value="Jito (Solana)">
+    - Default protocol for Solana when `protocol` is omitted - Stake: Swaps
+    native SOL for JitoSOL via Jupiter swap - Token identifier: `"native"` (SOL)
+    - Native execution path: uses Jupiter swap aggregator under the hood -
+    `slippage_bps` controls swap slippage tolerance - Returns signature and USD
+    value - Supported on Solana mainnet
+  </Tab>
+  <Tab value="Marinade (Solana)">
+    - Set `protocol: "marinade"` explicitly - Executes via transaction envelope
+    fallback - Requires agent or adapter to provide envelope fields (`tx_b64`,
+    `allowed_program_ids`)
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "chain": "solana",
+  "protocol": "jito",
+  "signature": "5UfD...txid",
+  "usd_value": 42.5
+}
+```
+
+Response shape is representative; actual fields may vary by protocol. Lido returns `txid` instead of `signature`.
+
+### Examples
+
+<Tabs items={["Lido (Ethereum)", "Jito (Solana)"]}>
+  <Tab value="Lido (Ethereum)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "lido",
+      "token": "native",
+      "amount": "0.1",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="Jito (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "jito",
+      "token": "native",
+      "amount": "1.5",
+      "amount_units": "ui",
+      "slippage_bps": 100
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- **Protocol auto-selection:** If `protocol` is omitted, Seashail selects by chain (EVM → Lido, Solana → Jito).
+- **Jito swap mechanism:** Jito staking on Solana uses Jupiter swap to convert SOL to JitoSOL. `slippage_bps` controls the maximum slippage tolerance for this swap.
+- **Native execution paths:** Lido (Ethereum ETH) and Jito (Solana SOL) have native execution paths when `token`, `amount`, and `chain` are provided. Other protocols fall back to transaction envelope mode.
+- **Transaction envelope fallback:** If native execution is not available or envelope fields are provided, Seashail executes the supplied transaction envelope.
+- See also: [DeFi Guide](/docs/guides/defi)
+
+---
+
+## unstake_tokens
+
+Unstake tokens and redeem staking rewards. Native unstaking paths are supported for Lido (Ethereum, creates withdrawal request) and Jito (Solana, swaps back to SOL); other protocols execute via transaction envelope fallback.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description:
+        'Chain to execute on: "ethereum" or "solana". Other EVM chains require tx envelope fallback.',
+      required: true,
+    },
+    protocol: {
+      type: '"lido" | "eigenlayer" | "marinade" | "jito"',
+      description:
+        "Protocol selection. If omitted, defaults by chain: EVM defaults to Lido, Solana defaults to Jito.",
+    },
+    token: {
+      type: "string",
+      description:
+        "Token to unstake. For native unstaking: stETH (Lido, default) or JitoSOL (Jito, default).",
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        "Amount to unstake as a decimal string. Native unstaking paths require this field.",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        "ui = human-readable token units (stETH, JitoSOL). base = raw units (wei, lamports).",
+      default: '"ui"',
+    },
+    request_id: {
+      type: "string",
+      description:
+        "Optional async request id to resume/claim (future support). For now, native Lido unstake returns request_ids but claim is not implemented.",
+    },
+    slippage_bps: {
+      type: "integer",
+      description:
+        "Slippage tolerance in basis points (1 bps = 0.01%) for Jito unstaking (uses Jupiter swap). Not applicable for Lido. Range: 0–2000.",
+      default: "100",
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Override flag indicating whether usd_value is known. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+    to: {
+      type: "string",
+      description:
+        "EVM: transaction recipient/contract address. Used in tx envelope fallback mode.",
+    },
+    data: {
+      type: "string",
+      description: "EVM: 0x-prefixed calldata. Use 0x for empty.",
+    },
+    value_wei: {
+      type: "string",
+      description: "EVM: value in wei as a decimal string.",
+      default: '"0"',
+    },
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana: base64-encoded VersionedTransaction bytes (unsigned; Seashail will sign).",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana: allowlist of program IDs. Every instruction program id must be in this list.",
+    },
+    asset: {
+      type: "object",
+      description:
+        "Protocol-specific request object used by an optional adapter to construct a tx envelope.",
+    },
+  }}
+/>
+
+### Per-Protocol Behavior
+
+<Tabs
+  items={[
+    "Lido (EVM)",
+    "Eigenlayer (EVM)",
+    "Jito (Solana)",
+    "Marinade (Solana)",
+  ]}
+>
+  <Tab value="Lido (EVM)">
+    - Default protocol for EVM chains when `protocol` is omitted - Unstake:
+    Creates a withdrawal request via Lido WithdrawalQueue - Token identifier:
+    `"stETH"` (or use default) - Native execution path: approves stETH to
+    WithdrawalQueue, then calls `requestWithdrawals` - Returns transaction hash
+    (`txid`), withdrawal request IDs (`request_ids`), and next action - **Claim
+    functionality not yet implemented** — monitor withdrawal claimability via
+    Lido UI or on-chain reads - Supported on Ethereum mainnet
+  </Tab>
+  <Tab value="Eigenlayer (EVM)">
+    - Set `protocol: "eigenlayer"` explicitly - Executes via transaction
+    envelope fallback - Requires agent or adapter to provide envelope fields
+    (`to`, `data`, `value_wei`)
+  </Tab>
+  <Tab value="Jito (Solana)">
+    - Default protocol for Solana when `protocol` is omitted - Unstake: Swaps
+    JitoSOL back to native SOL via Jupiter swap - Token identifier: `"JitoSOL"`
+    (or use default) - Native execution path: uses Jupiter swap aggregator under
+    the hood - `slippage_bps` controls swap slippage tolerance - Returns
+    signature and USD value - Supported on Solana mainnet
+  </Tab>
+  <Tab value="Marinade (Solana)">
+    - Set `protocol: "marinade"` explicitly - Executes via transaction envelope
+    fallback - Requires agent or adapter to provide envelope fields (`tx_b64`,
+    `allowed_program_ids`)
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "chain": "ethereum",
+  "protocol": "lido",
+  "status": "pending",
+  "txid": "0xabc...txhash",
+  "request_ids": ["123456"],
+  "next_action": "Monitor Lido WithdrawalQueue claimability in the Lido UI or via on-chain reads; Seashail claim support is not implemented yet.",
+  "usd_value": 42.5
+}
+```
+
+Response shape is representative; actual fields may vary by protocol. Lido returns additional fields (`status`, `request_ids`, `next_action`). Jito returns `signature` instead of `txid`.
+
+### Examples
+
+<Tabs items={["Lido (Ethereum)", "Jito (Solana)"]}>
+  <Tab value="Lido (Ethereum)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "lido",
+      "amount": "0.5",
+      "amount_units": "ui"
+    }
+    ```
+
+    Note: `token` defaults to `"stETH"` for Lido unstaking.
+
+  </Tab>
+  <Tab value="Jito (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "jito",
+      "amount": "2.0",
+      "amount_units": "ui",
+      "slippage_bps": 100
+    }
+    ```
+
+    Note: `token` defaults to `"JitoSOL"` for Jito unstaking.
+
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- **Protocol auto-selection:** If `protocol` is omitted, Seashail selects by chain (EVM → Lido, Solana → Jito).
+- **Jito swap mechanism:** Jito unstaking on Solana uses Jupiter swap to convert JitoSOL back to SOL. `slippage_bps` controls the maximum slippage tolerance for this swap.
+- **Lido withdrawal limitation:** Lido unstaking creates a withdrawal request asynchronously. The response includes `request_ids` for tracking, but Seashail does not yet implement the claim functionality. Monitor withdrawal claimability via the Lido UI or on-chain reads.
+- **Native execution paths:** Lido (Ethereum stETH) and Jito (Solana JitoSOL) have native execution paths when `amount` and `chain` are provided. Other protocols fall back to transaction envelope mode.
+- **Transaction envelope fallback:** If native execution is not available or envelope fields are provided, Seashail executes the supplied transaction envelope.
+- See also: [DeFi Guide](/docs/guides/defi)

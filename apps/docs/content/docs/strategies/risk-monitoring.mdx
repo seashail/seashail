@@ -1,0 +1,147 @@
+---
+title: "Recipe: Risk Monitoring"
+description: Monitor portfolio health, open positions, and liquidation risk across protocols
+---
+
+## Overview
+
+Establish a risk monitoring routine by checking portfolio P&L, position health across lending/perps/predictions, and identifying liquidation risks before they materialize.
+
+**Tools used:** `get_portfolio`, `get_portfolio_analytics`, `get_positions`, `get_lending_positions`, `get_prediction_positions`
+**Chains:** All supported chains
+**Time to complete:** 5-10 minutes
+
+## Prerequisites
+
+- Active wallet(s) with positions deployed across protocols
+- Understanding of health factor (lending) and liquidation price (perps)
+
+<Steps>
+
+### Step 1: Get portfolio overview
+
+Fetch portfolio totals with historical P&L tracking.
+
+```json
+{
+  "name": "get_portfolio",
+  "arguments": {
+    "include_history": true,
+    "history_limit": 7,
+    "include_health": true
+  }
+}
+```
+
+**Expected result:** Portfolio snapshot with total USD value, 7-day change, and any persisted position health snapshots.
+
+### Step 2: Run portfolio analytics
+
+Get USD volume breakdowns by type, chain, and recent activity.
+
+```json
+{
+  "name": "get_portfolio_analytics",
+  "arguments": {
+    "limit": 500,
+    "since_ts": "2026-02-03T00:00:00Z"
+  }
+}
+```
+
+**Expected result:** Volume totals by transaction type (swap, send, lend) and by chain. Identifies where capital is most active.
+
+### Step 3: Check open perp positions
+
+Review leverage exposure and liquidation risk.
+
+```json
+{
+  "name": "get_positions",
+  "arguments": {
+    "provider": "hyperliquid"
+  }
+}
+```
+
+**Expected result:** Open positions with size, leverage, entry price, current PnL, and liquidation price. **Red flag:** Position with liquidation price within 5% of current mark price.
+
+### Step 4: Check lending positions
+
+Verify health factor is safe (above 1.5 for conservative risk tolerance).
+
+```json
+{
+  "name": "get_lending_positions",
+  "arguments": {
+    "chain": "base"
+  }
+}
+```
+
+**Expected result:** Supplied collateral, borrowed amounts, health factor. **Red flag:** Health factor below 1.3 (liquidation at 1.0).
+
+### Step 5: Review prediction market exposure
+
+Check active Polymarket positions and outcome probabilities.
+
+```json
+{
+  "name": "get_prediction_positions",
+  "arguments": {
+    "chain": "polygon"
+  }
+}
+```
+
+**Expected result:** Active market positions with current probability and unrealized P&L. **Note:** Prediction markets don't have liquidation risk, but can go to zero if outcome resolves against your position.
+
+</Steps>
+
+## Variations
+
+### Single-chain monitoring
+
+Focus monitoring on one high-activity chain to reduce noise.
+
+```json
+{
+  "name": "get_portfolio",
+  "arguments": {
+    "chains": ["solana"],
+    "include_history": true
+  }
+}
+```
+
+### Focused position monitoring (perps only)
+
+Skip portfolio overview and jump directly to perp positions if that's your only risk exposure.
+
+```json
+{
+  "name": "get_positions",
+  "arguments": {
+    "provider": "hyperliquid"
+  }
+}
+```
+
+Then manually check liquidation prices against current market prices.
+
+## Notes
+
+- **Set up regular cadence:** Run this recipe daily if actively trading, weekly for passive yield farming.
+- **Health factor thresholds:**
+  - Above 2.0: Very safe
+  - 1.5-2.0: Safe for most market conditions
+  - 1.2-1.5: Caution zone; add collateral or reduce borrow if volatility increases
+  - Below 1.2: High risk; immediate action required
+- **Funding rate awareness (perps):** Positive funding means longs pay shorts; negative means shorts pay longs. Check funding rates in `get_market_data` to understand ongoing costs.
+- **No liquidation alerts:** Seashail does not auto-alert on liquidation risk. You must manually monitor or build automation on top of these tools.
+
+## See Also
+
+- [Portfolio Tools Reference](/docs/reference/tools-read)
+- [Perps Tools Reference](/docs/reference/tools-perps)
+- [Lending Tools Reference](/docs/reference/tools-lending)

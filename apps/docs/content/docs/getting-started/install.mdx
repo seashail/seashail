@@ -1,0 +1,151 @@
+---
+title: Install
+description: Install Seashail and configure your agent to use it as an MCP server.
+---
+
+## Recommended: Install The `seashail` Binary
+
+Seashail is a local binary. Your agent runs it as an MCP stdio server (via `seashail mcp`).
+
+Choose one:
+
+1. Native installer (macOS/Linux/Windows, **builds from source**)
+2. Homebrew (macOS, prebuilt binaries from GitHub Releases)
+
+For the native installer, you need:
+
+- `git`
+- `cargo` (Rust toolchain)
+
+### macOS / Linux
+
+```bash
+curl -fsSL https://seashail.com/install | sh
+```
+
+If `seashail` is not found after install, add the default install dir to your shell `PATH`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Windows (PowerShell)
+
+If you have WSL, you can run the macOS/Linux installer inside WSL.
+
+Otherwise, install with PowerShell (source build):
+
+```powershell
+irm https://seashail.com/install.ps1 | iex
+```
+
+If `seashail` is not found after install, add the default install dir to your `PATH` for the current session:
+
+```powershell
+$env:Path = "$HOME\.local\bin;$env:Path"
+```
+
+### macOS (Homebrew)
+
+```bash
+brew install seashail/seashail/seashail
+# or:
+# brew tap seashail/seashail
+# brew install seashail
+```
+
+## No-Install Options
+
+If you don't want to install the `seashail` binary, you can reference these wrappers in your agent's MCP config instead. They install and run Seashail automatically.
+
+### npx (Node.js)
+
+Use this as your MCP server command:
+
+- **Command:** `npx`
+- **Args:** `-y @seashail/mcp --`
+
+Testnet:
+
+- **Args:** `-y @seashail/mcp -- --network testnet`
+
+### uvx (Python)
+
+Use this as your MCP server command:
+
+- **Command:** `uvx`
+- **Args:** `seashail-mcp`
+
+Testnet:
+
+- **Args:** `seashail-mcp -- --network testnet`
+
+> These wrappers call `seashail mcp` under the hood. If `seashail` is already installed, they will use it; otherwise they run the hosted installer (source build).
+
+## OpenClaw Users
+
+If you use [OpenClaw](https://openclaw.ai), install Seashail as a native plugin:
+
+```bash
+seashail openclaw install
+```
+
+Or via the OpenClaw CLI directly:
+
+```bash
+openclaw plugins install @seashail/seashail
+openclaw plugins enable seashail
+openclaw gateway restart
+```
+
+See the [OpenClaw setup guide](../guides/agents/openclaw) for full details.
+
+## Verify Installation
+
+After installing, verify the binary is working correctly:
+
+```bash
+seashail doctor
+```
+
+This checks for common issues (missing dependencies, permissions, path configuration). For detailed diagnostics, see the [CLI reference](../reference/cli#doctor).
+
+## Build From Source (Dev)
+
+If you are hacking on the repo:
+
+```bash
+bun install
+bun run check
+
+cargo build -p seashail
+```
+
+The binary will be at:
+
+```bash
+./target/debug/seashail
+```
+
+To use the dev binary with your agent, point your agent config to:
+
+- **Command:** `./target/debug/seashail`
+- **Args:** `mcp`
+
+You can also print the resolved config and data paths:
+
+```bash
+./target/debug/seashail paths
+```
+
+## Next Steps
+
+- [Connect Your Agent](../guides/agents) — Set up Claude Desktop, Cursor, VS Code, OpenClaw, and more
+- [Quickstart](./quickstart) — Create your first wallet and start trading
+- [Configuration](./configuration) — Customize paths, network mode, and RPC endpoints
+
+## Notes
+
+- Seashail is non-custodial: if you lose your passphrase and/or recovery share(s), funds can be permanently unrecoverable.
+- Transactions are irreversible.
+- For common installation issues, see [Troubleshooting](../troubleshooting).

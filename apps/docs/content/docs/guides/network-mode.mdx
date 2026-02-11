@@ -1,0 +1,120 @@
+---
+title: Network Mode (Mainnet/Testnet)
+description: How Seashail switches defaults between mainnet and testnet, and what it does (and does not) enforce.
+---
+
+Seashail supports two network modes:
+
+- `mainnet` (default)
+- `testnet`
+
+Network mode is a convenience setting. It influences defaults when tools omit `chain` or `chains`.
+It does not hard-block mainnet/testnet usage: if a tool explicitly specifies a chain (for example `chain="ethereum"`),
+Seashail will use that chain regardless of the current mode.
+
+## What Changes With Network Mode
+
+When a tool omits `chain` or `chains`:
+
+- `mainnet` defaults to: `solana` plus EVM mainnets (for example `ethereum`, `base`, `arbitrum`, `optimism`, `polygon`, `bnb`, `avalanche`)
+- `testnet` defaults to: `solana` plus EVM testnets (for example `sepolia`, `base-sepolia`, `bnb-testnet`)
+
+You can always override the defaults per call:
+
+- `get_balance` accepts a single `chain`
+- `get_portfolio` accepts a `chains` list
+
+## Check The Current Mode
+
+From an agent, call:
+
+- `get_network_mode`
+
+It returns:
+
+- `effective`: the mode currently applied (including any per-session override)
+- `configured`: the mode persisted in `config.toml` (if set)
+- `legacy_testnet_mode`: legacy boolean flag retained for compatibility
+
+## Set The Mode (Persistent)
+
+### Option 1: MCP (Recommended For Agents)
+
+Call:
+
+- `set_network_mode`
+
+This persists to `config.toml`. It also supports `apply_default_solana_rpc` which, when true, switches Solana RPC to the built-in default for that mode.
+
+### Option 2: Edit `config.toml`
+
+Add or change:
+
+```toml
+network_mode = "testnet"
+```
+
+## Set The Mode (Per-Session Override)
+
+This affects only that `seashail mcp` process and does not modify `config.toml`:
+
+```bash
+seashail mcp --network testnet
+```
+
+This is useful when you want two different MCP clients (or two different workspaces) to run with different defaults.
+
+## First Run Defaults (Zero-Config)
+
+If you want Seashail to initialize `config.toml` for testnet on first run only (before `config.toml` exists), set:
+
+```bash
+export SEASHAIL_NETWORK_MODE=testnet
+```
+
+Alias:
+
+```bash
+export SEASHAIL_NETWORK=testnet
+```
+
+Legacy compatibility (not recommended):
+
+```bash
+export SEASHAIL_TESTNET_MODE=1
+```
+
+## Solana RPC, Devnet/Testnet, And Airdrops
+
+- `request_airdrop` is only supported on Solana devnet/testnet/local validators.
+- Seashail blocks airdrops on Solana mainnet-beta by checking the cluster genesis hash, even if `network_mode="testnet"`.
+
+If you are using testnet mode, set `rpc.solana_rpc_url` to:
+
+- devnet: `https://api.devnet.solana.com`
+- testnet: `https://api.testnet.solana.com`
+- local validator: `http://127.0.0.1:<port>`
+
+You can also persist a custom RPC with:
+
+- `configure_rpc`
+
+## EVM Testnets And Faucets
+
+EVM networks are selected by chain name (for example `ethereum`, `sepolia`, `base-sepolia`).
+
+Most EVM faucets require a browser/captcha and cannot be automated reliably from the CLI, but Seashail provides:
+
+- `get_testnet_faucet_links` (informational only)
+
+Recommended starting points:
+
+- Solana devnet faucet: https://faucet.solana.com/
+- Ethereum Sepolia + Base Sepolia: Coinbase Developer Platform (CDP) faucets: https://docs.cdp.coinbase.com/faucets/docs/welcome
+- BNB Chain testnet faucet: https://www.bnbchain.org/en/testnet-faucet
+
+## See Also
+
+- [CLI Reference](/docs/reference/cli) for the `--network` flag and CLI network configuration
+- [Troubleshooting](/docs/troubleshooting) for solutions to wrong network errors
+- [Glossary](/docs/glossary) for definitions of network mode and testnet

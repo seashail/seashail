@@ -1,0 +1,13 @@
+{
+  "name": "@seashail/web-theme",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./fonts": "./src/fonts.ts",
+    "./theme.css": "./theme.css"
+  },
+  "dependencies": {
+    "next": "^16.1.6"
+  }
+}

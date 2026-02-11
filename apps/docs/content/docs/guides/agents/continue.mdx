@@ -1,0 +1,79 @@
+---
+title: Continue
+description: Connect Seashail to Continue via MCP.
+---
+
+[Continue](https://www.continue.dev) supports MCP servers over stdio. See the [Continue MCP docs](https://docs.continue.dev/customize/deep-dives/mcp) for full details.
+
+> Seashail is **stdio-only**. Configure Continue to launch a local command (`seashail mcp`), not a server URL.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- Continue extension installed
+
+## Setup (Option 1: Standalone File)
+
+Create `.continue/mcpServers/seashail.yaml` in your project:
+
+```yaml
+name: Seashail
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: seashail
+    command: seashail
+    args:
+      - mcp
+```
+
+## Setup (Option 2: config.yaml)
+
+Add to your `.continue/config.yaml`:
+
+```yaml
+mcpServers:
+  - name: seashail
+    command: seashail
+    args:
+      - mcp
+```
+
+## Setup (Option 3: JSON File)
+
+Continue also reads JSON files dropped into `.continue/mcpServers/`. Create `.continue/mcpServers/seashail.json`:
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## Testnet Mode
+
+For YAML, change args to:
+
+```yaml
+args:
+  - mcp
+  - "--network"
+  - testnet
+```
+
+For JSON, change args to `["mcp", "--network", "testnet"]`.
+
+## Verify
+
+Ask Continue:
+
+```
+What's my SOL balance?
+```
+
+It should call Seashail's MCP tools.

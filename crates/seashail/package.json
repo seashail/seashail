@@ -1,0 +1,13 @@
+{
+  "name": "@seashail/rust",
+  "private": true,
+  "scripts": {
+    "dev": "cargo run --quiet -- mcp",
+    "build": "cargo build && bun -e \"import { mkdirSync, writeFileSync } from 'node:fs'; mkdirSync('dist', { recursive: true }); writeFileSync('dist/.turbo-output', 'ok\\n');\"",
+    "test": "cargo test",
+    "lint": "cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings",
+    "format": "cargo fmt",
+    "format:check": "cargo fmt --check",
+    "check-types": "cargo check"
+  }
+}

@@ -1,0 +1,501 @@
+---
+title: "Tools: NFTs"
+description: Inventory, transfers, and marketplace trading (buy, sell, bid) via transaction envelopes.
+---
+
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+NFT tools cover inventory reads (Solana only), direct transfers, and marketplace trading via agent-supplied transaction envelopes. Write tools require [policy approval](/docs/reference/tools-policy). Supported marketplaces: Blur, Magic Eden, OpenSea, Tensor.
+
+## get_nft_inventory
+
+Lists NFT-like mints owned by a wallet. Currently Solana only.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to query. Currently only 'solana' is supported.",
+      required: true,
+    },
+    limit: {
+      type: "integer",
+      description: "Maximum number of results to return.",
+      default: "200",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "items": [
+    {
+      "chain": "solana",
+      "mint": "ABC123...",
+      "owner": "11111111111111111111111111111111"
+    }
+  ]
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Solana"]}>
+  <Tab value="Solana">
+    ```json
+    {
+      "chain": "solana",
+      "limit": 100
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- For non-Solana chains, Seashail currently returns `not_supported`. EVM NFT inventory is planned for a future release.
+- The `chain` parameter is required even though only Solana is currently supported.
+
+---
+
+## transfer_nft
+
+Transfers an NFT. Uses SPL token transfer on Solana and ERC-721 `safeTransferFrom` on EVM. Requires policy approval.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to execute on (solana or an EVM chain name).",
+      required: true,
+    },
+    to: {
+      type: "string",
+      description: "Recipient address.",
+      required: true,
+    },
+    mint: {
+      type: "string",
+      description:
+        "Token mint address (Solana). Required for Solana transfers.",
+    },
+    contract: {
+      type: "string",
+      description: "NFT contract address (EVM). Required for EVM transfers.",
+    },
+    token_id: {
+      type: "string",
+      description:
+        "Token ID within the contract (EVM). Required for EVM transfers. Decimal string.",
+    },
+  }}
+/>
+
+### Per-Chain Behavior
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    - Uses SPL token transfer (transfers exactly 1 token) - Provide `mint`
+    parameter: Solana mint pubkey - Seashail creates the recipient's associated
+    token account (ATA) if needed - Scam blocklist applies to both recipient and
+    mint addresses
+  </Tab>
+  <Tab value="EVM">
+    - Uses ERC-721 `safeTransferFrom` - Provide `contract` and `token_id`
+    parameters - Token ID must be a decimal string (e.g., "1234") - Transactions
+    are simulated before broadcast - Scam blocklist applies to both recipient
+    and contract addresses
+  </Tab>
+</Tabs>
+
+### Response
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    ```json
+    {
+      "chain": "solana",
+      "signature": "5UfD...txid"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM">
+    ```json
+    {
+      "chain": "base",
+      "tx_hash": "0x..."
+    }
+    ```
+  </Tab>
+</Tabs>
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    ```json
+    {
+      "chain": "solana",
+      "to": "11111111111111111111111111111111",
+      "mint": "So11111111111111111111111111111111111111112"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM">
+    ```json
+    {
+      "chain": "base",
+      "to": "0xRecipientAddress",
+      "contract": "0xContractAddress",
+      "token_id": "1234"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy). Transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration.
+- Solana transfers always transfer exactly 1 token (the NFT quantity).
+- See also: [NFT Guide](/docs/guides/nfts)
+
+---
+
+## buy_nft
+
+Buy an NFT via a marketplace by executing a transaction envelope (agent-supplied or fetched from a configured marketplace adapter). Requires policy approval.
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "Wallet name. If omitted, uses the active wallet.",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "Account index within the wallet. If omitted, uses the active account index.",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "Chain to execute on (solana or an EVM chain name).",
+      required: true,
+    },
+    marketplace: {
+      type: '"blur" | "magic_eden" | "opensea" | "tensor"',
+      description: "Marketplace selection.",
+      required: true,
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Optional override. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana: base64-encoded VersionedTransaction bytes (unsigned; Seashail will sign).",
+    },
+    allowed_program_ids: {
+      type: "array",
+      description:
+        "Solana: allowlist of program IDs; every instruction program id must be in this list.",
+    },
+    to: {
+      type: "string",
+      description: "EVM: transaction recipient/contract address.",
+    },
+    data: {
+      type: "string",
+      description: "EVM: 0x-prefixed calldata. Use 0x for empty.",
+    },
+    value_wei: {
+      type: "string",
+      description: "EVM: value in wei as a decimal string.",
+      default: '"0"',
+    },
+    asset: {
+      type: "object",
+      description:
+        "Marketplace-specific asset identifier passed to marketplace adapters when fetching a tx envelope.",
+    },
+  }}
+/>
+
+### Per-Chain Envelope
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    - Provide `tx_b64`: base64-encoded `VersionedTransaction` bytes (unsigned;
+    Seashail will sign) - Provide `allowed_program_ids`: allowlist of program
+    IDs (every instruction must be in this set) - Alternatively, provide `asset`
+    object for marketplace adapter to fetch envelope - Solana marketplace
+    envelopes are **always force-confirmed** (user confirmation required
+    regardless of policy) - After policy approval, the transaction is signed and
+    broadcast to Solana
+  </Tab>
+  <Tab value="EVM">
+    - Provide `to`: contract/recipient address - Provide `data`: 0x-prefixed
+    calldata (use `0x` for empty) - Provide `value_wei`: optional ETH value as a
+    decimal string (default: "0") - Alternatively, provide `asset` object for
+    marketplace adapter to fetch envelope - Transaction is simulated before
+    broadcast - Scam blocklist applies to `to` address
+  </Tab>
+</Tabs>
+
+### Response
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    ```json
+    {
+      "chain": "solana",
+      "marketplace": "magic_eden",
+      "signature": "5UfD...txid"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM">
+    ```json
+    {
+      "chain": "base",
+      "marketplace": "opensea",
+      "tx_hash": "0x..."
+    }
+    ```
+  </Tab>
+</Tabs>
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Solana: Magic Eden", "EVM: OpenSea"]}>
+  <Tab value="Solana: Magic Eden">
+    ```json
+    {
+      "chain": "solana",
+      "marketplace": "magic_eden",
+      "usd_value": 50,
+      "tx_b64": "BASE64...",
+      "allowed_program_ids": [
+        "ComputeBudget111111111111111111111111111111",
+        "11111111111111111111111111111111"
+      ]
+    }
+    ```
+  </Tab>
+  <Tab value="EVM: OpenSea">
+    ```json
+    {
+      "chain": "base",
+      "marketplace": "opensea",
+      "usd_value": 50,
+      "to": "0x...",
+      "data": "0x...",
+      "value_wei": "0"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy). Transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- The agent or a configured adapter must construct the transaction envelope. Seashail does not construct marketplace transaction envelopes itself.
+- Solana marketplace envelopes are **always force-confirmed** (user confirmation required regardless of policy).
+- If neither envelope fields (`tx_b64`/`to`/`data`) nor `asset` are provided, Seashail returns an error.
+- See also: [NFT Guide](/docs/guides/nfts)
+
+---
+
+## sell_nft
+
+Sell an NFT via a marketplace by executing a transaction envelope (agent-supplied or fetched from a configured marketplace adapter). Requires policy approval.
+
+### Parameters
+
+Same as [`buy_nft`](#buy_nft) above. All three marketplace tools (`buy_nft`, `sell_nft`, `bid_nft`) share the same parameter set.
+
+### Per-Chain Envelope
+
+Same as [`buy_nft`](#buy_nft) above. See the Per-Chain Envelope section for Solana and EVM envelope format details.
+
+### Response
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    ```json
+    {
+      "chain": "solana",
+      "marketplace": "tensor",
+      "signature": "5UfD...txid"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM">
+    ```json
+    {
+      "chain": "ethereum",
+      "marketplace": "blur",
+      "tx_hash": "0x..."
+    }
+    ```
+  </Tab>
+</Tabs>
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Solana: Tensor", "EVM: Blur"]}>
+  <Tab value="Solana: Tensor">
+    ```json
+    {
+      "chain": "solana",
+      "marketplace": "tensor",
+      "usd_value": 100,
+      "tx_b64": "BASE64...",
+      "allowed_program_ids": [
+        "TCMPhJdwDryooaGGZjYoHRlM2vvDXcAP2BW2hhBKRmb"
+      ]
+    }
+    ```
+  </Tab>
+  <Tab value="EVM: Blur">
+    ```json
+    {
+      "chain": "ethereum",
+      "marketplace": "blur",
+      "usd_value": 100,
+      "to": "0x...",
+      "data": "0x...",
+      "value_wei": "0"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Use [`get_nft_inventory`](#get_nft_inventory) to discover owned NFTs before selling.
+- See [`buy_nft`](#buy_nft) notes for envelope construction, policy approval, and force-confirm behavior.
+- See also: [NFT Guide](/docs/guides/nfts)
+
+---
+
+## bid_nft
+
+Place a bid or offer for an NFT via a marketplace by executing a transaction envelope (agent-supplied or fetched from a configured marketplace adapter). Requires policy approval.
+
+### Parameters
+
+Same as [`buy_nft`](#buy_nft) above. All three marketplace tools (`buy_nft`, `sell_nft`, `bid_nft`) share the same parameter set.
+
+### Per-Chain Envelope
+
+Same as [`buy_nft`](#buy_nft) above. See the Per-Chain Envelope section for Solana and EVM envelope format details.
+
+### Response
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    ```json
+    {
+      "chain": "solana",
+      "marketplace": "magic_eden",
+      "signature": "5UfD...txid"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM">
+    ```json
+    {
+      "chain": "polygon",
+      "marketplace": "opensea",
+      "tx_hash": "0x..."
+    }
+    ```
+  </Tab>
+</Tabs>
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Solana: Magic Eden", "EVM: OpenSea"]}>
+  <Tab value="Solana: Magic Eden">
+    ```json
+    {
+      "chain": "solana",
+      "marketplace": "magic_eden",
+      "usd_value": 25,
+      "tx_b64": "BASE64...",
+      "allowed_program_ids": [
+        "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K"
+      ]
+    }
+    ```
+  </Tab>
+  <Tab value="EVM: OpenSea">
+    ```json
+    {
+      "chain": "polygon",
+      "marketplace": "opensea",
+      "usd_value": 25,
+      "to": "0x...",
+      "data": "0x...",
+      "value_wei": "0"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- See [`buy_nft`](#buy_nft) notes for envelope construction, policy approval, and force-confirm behavior.
+- See also: [NFT Guide](/docs/guides/nfts)
+- See also: [Policy and Approvals](/docs/guides/policy-and-approvals)

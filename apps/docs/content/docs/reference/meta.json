@@ -1,0 +1,25 @@
+{
+  "title": "Reference",
+  "description": "MCP tool reference documentation",
+  "pages": [
+    "index",
+    "mcp-tools",
+    "tools-network",
+    "tools-wallets",
+    "tools-read",
+    "tools-write",
+    "tools-lending",
+    "tools-staking",
+    "tools-liquidity",
+    "tools-perps",
+    "tools-nfts",
+    "tools-predictions",
+    "tools-pumpfun",
+    "tools-policy",
+    "capabilities",
+    "chains",
+    "verification",
+    "cli",
+    "architecture"
+  ]
+}

@@ -1,0 +1,141 @@
+---
+title: "Recipe: Dollar-Cost Averaging (DCA)"
+description: Execute periodic DCA buys using fixed USD amounts
+---
+
+## Overview
+
+Execute a dollar-cost averaging strategy by swapping a fixed USD amount of stablecoin into a target asset at regular intervals. This recipe shows one DCA execution; scheduling can be manual or automated via external tooling.
+
+**Tools used:** `get_balance`, `swap_tokens`, `get_token_price`
+**Chains:** Solana (example uses USDC → SOL)
+**Time to complete:** 2-5 minutes per execution
+
+## Prerequisites
+
+- Active wallet with stablecoin balance (USDC, USDT, etc.)
+- Target asset defined (e.g., SOL, BTC, ETH)
+- Fixed USD amount per DCA buy (e.g., $100)
+
+<Steps>
+
+### Step 1: Check stablecoin balance
+
+Verify sufficient funds for the DCA buy.
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"]
+  }
+}
+```
+
+**Expected result:** USDC balance displayed. Ensure balance exceeds DCA amount plus gas fees.
+
+### Step 2: (Optional) Check current token price
+
+Optionally verify the current price before buying.
+
+```json
+{
+  "name": "get_token_price",
+  "arguments": {
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+**Expected result:** Current SOL price in USD. This is informational only; DCA doesn't time the market.
+
+### Step 3: Execute DCA swap
+
+Swap fixed USD amount of USDC into SOL.
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "token_out": "native",
+    "amount_in": "100",
+    "amount_units": "usd",
+    "slippage_bps": 100,
+    "provider": "jupiter"
+  }
+}
+```
+
+**Expected result:** Swap executes with transaction signature. You now hold more SOL.
+
+### Step 4: Verify new balance
+
+Confirm the SOL balance increased by the expected amount.
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": ["native"]
+  }
+}
+```
+
+**Expected result:** SOL balance reflects the DCA purchase.
+
+</Steps>
+
+## Variations
+
+### Multi-token DCA
+
+Split your DCA budget across multiple assets (e.g., 50% SOL, 50% ETH).
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "token_out": "native",
+    "amount_in": "50",
+    "amount_units": "usd"
+  }
+}
+```
+
+Then bridge to another chain and DCA into ETH, or swap USDC to a bridged ETH token on Solana.
+
+### Price-conditional DCA
+
+Only execute the DCA buy if the price is below a threshold.
+
+```json
+{
+  "name": "get_token_price",
+  "arguments": {
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+If price < $150, proceed with `swap_tokens`. Otherwise, skip this interval.
+
+## Notes
+
+- **Scheduling:** This recipe shows one DCA execution. For recurring buys, use cron jobs, GitHub Actions, or agent workflows to call this recipe on a schedule (daily, weekly, monthly).
+- **Slippage in volatile markets:** DCA during high volatility may result in worse execution. Consider lowering `slippage_bps` to 50 for more conservative fills.
+- **Tax implications:** Each DCA buy is a taxable event in many jurisdictions. Track your cost basis for each purchase.
+- **Gas optimization on EVM:** If DCA-ing on Ethereum mainnet, batch multiple DCA buys or use L2s (Base, Arbitrum) to reduce gas costs.
+
+## See Also
+
+- [Token Swapping Guide](/docs/guides/swapping)
+- [Write Tools Reference](/docs/reference/tools-write)
+- [Policy Configuration](/docs/reference/tools-policy)

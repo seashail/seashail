@@ -1,0 +1,159 @@
+---
+title: "Recipe: Multi-Chain Management"
+description: Move capital between chains, swap on destination, and distribute to sub-accounts
+---
+
+## Overview
+
+Manage capital across multiple chains: survey balances, bridge tokens between chains, swap to target assets on destination, and optionally distribute to sub-accounts for isolated budgets.
+
+**Tools used:** `get_balance`, `bridge_tokens`, `get_bridge_status`, `swap_tokens`, `transfer_between_wallets`
+**Chains:** Solana, Base, Arbitrum, Polygon (example: Solana → Base)
+**Time to complete:** 15-30 minutes (includes bridge wait time)
+
+## Prerequisites
+
+- Active wallet with balances on multiple chains
+- Destination chain has gas for transactions (ETH on Base, SOL on Solana)
+
+<Steps>
+
+### Step 1: Survey balances across chains
+
+Check balances on all active chains to identify capital allocation.
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": ["native", "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"]
+  }
+}
+```
+
+Repeat for Base, Arbitrum, Polygon. **Expected result:** Balances by chain. Example: 1000 USDC on Solana, 200 USDC on Base.
+
+### Step 2: Identify capital to move
+
+Decide which tokens to bridge and to which chain. **Example:** Move 500 USDC from Solana to Base for DeFi deployment.
+
+### Step 3: Bridge tokens
+
+Execute bridge transaction using Wormhole (native path).
+
+```json
+{
+  "name": "bridge_tokens",
+  "arguments": {
+    "chain": "solana",
+    "to_chain": "base",
+    "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "amount": "500",
+    "amount_units": "ui",
+    "bridge_provider": "wormhole",
+    "redeem": true
+  }
+}
+```
+
+**Expected result:** Transaction signature for Solana bridge initiation. Seashail will auto-redeem on Base when VAA is available.
+
+### Step 4: Monitor bridge status
+
+Poll bridge status until completion. Wormhole typically completes in 5-15 minutes.
+
+```json
+{
+  "name": "get_bridge_status",
+  "arguments": {
+    "bridge_id": "5x9z...abc",
+    "bridge_provider": "wormhole"
+  }
+}
+```
+
+**Expected result:** Status "completed" when tokens arrive on Base. Check destination balance with `get_balance` to confirm.
+
+### Step 5: Swap to target tokens on destination
+
+If you need a different token, swap on the destination chain.
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "base",
+    "token_in": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "token_out": "0x4200000000000000000000000000000000000006",
+    "amount_in": "250",
+    "amount_units": "ui",
+    "slippage_bps": 100
+  }
+}
+```
+
+**Expected result:** Swapped 250 USDC to WETH on Base.
+
+### Step 6: (Optional) Distribute to sub-accounts
+
+Distribute capital to multiple managed accounts for isolated budgets.
+
+```json
+{
+  "name": "transfer_between_wallets",
+  "arguments": {
+    "chain": "base",
+    "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amount": "100",
+    "amount_units": "ui",
+    "from_wallet": "trading-main",
+    "from_account_index": 0,
+    "to_wallet": "trading-main",
+    "to_account_index": 1
+  }
+}
+```
+
+**Expected result:** 100 USDC transferred to account index 1 for isolated spending.
+
+</Steps>
+
+## Variations
+
+### EVM-to-EVM bridging
+
+Bridging between EVM chains (e.g., Arbitrum → Base) is simpler and faster than cross-VM bridging.
+
+```json
+{
+  "name": "bridge_tokens",
+  "arguments": {
+    "chain": "arbitrum",
+    "to_chain": "base",
+    "token": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    "amount": "1000",
+    "amount_units": "ui",
+    "bridge_provider": "wormhole"
+  }
+}
+```
+
+Bridge times are typically 5-10 minutes.
+
+### Consolidation (reverse direction)
+
+Consolidate capital from multiple chains back to one chain. Reverse the steps: bridge from Base/Arbitrum → Solana.
+
+## Notes
+
+- **Bridge times vary:** Cross-VM bridging (Solana ↔ EVM) takes 10-20 minutes. EVM-to-EVM is faster (5-10 minutes).
+- **Ensure destination gas:** Before bridging, verify the destination chain has native token for gas. Use `get_balance` with `chain: "base"` and `tokens: ["native"]`.
+- **Bridge provider support:** Not all routes support all providers. Wormhole has the broadest coverage; LayerZero is EVM-focused.
+- **Wrapped tokens:** Bridged tokens arrive as wrapped versions (e.g., wUSDC). Check token addresses carefully on destination chain.
+
+## See Also
+
+- [Bridging Guide](/docs/guides/bridging)
+- [Bridge Tools Reference](/docs/reference/tools-bridge)
+- [Multi-Wallet Management Guide](/docs/guides/wallets)

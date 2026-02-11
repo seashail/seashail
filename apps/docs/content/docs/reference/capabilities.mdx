@@ -1,0 +1,41 @@
+---
+title: Capabilities
+description: Discover which chains and integrations are available on your machine.
+---
+
+Because Seashail is self-hosted and configurable, the set of chains and integrations may differ between machines. Use:
+
+- `get_capabilities`
+
+to get a single JSON object describing:
+
+- effective network mode
+- configured chains and RPC endpoints
+- optional integrations that require API keys (for example 1inch)
+- supported "surfaces" (spot, perps, NFTs)
+
+## Example Use
+
+Call the tool with no arguments:
+
+```json
+{}
+```
+
+Key fields to look at in the response:
+
+- `network_mode.effective`: `mainnet` or `testnet`
+- `chains.solana.supports`: which Solana-specific operations are enabled
+- `chains.evm[]`: per-EVM-chain support flags, including whether 1inch is available
+- `services.jupiter.api_key_configured`: whether you have configured an optional Jupiter API key
+- `services.oneinch.configured`: whether 1inch swaps are enabled (requires an API key)
+
+## How This Relates To Tools
+
+`get_capabilities` is the "truth" for:
+
+- which `chain` strings are configured
+- which swap providers are usable on a given chain (Uniswap vs 1inch)
+- which NFT surfaces are enabled on EVM vs Solana
+
+If a tool returns `unsupported_chain` or `provider_unavailable`, check `get_capabilities` first.

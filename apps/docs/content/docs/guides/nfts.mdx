@@ -1,0 +1,245 @@
+---
+title: NFT Operations
+description: View inventory, transfer NFTs, and trade on Blur, Magic Eden, OpenSea, and Tensor.
+---
+
+## Overview
+
+Seashail's NFT tools cover three categories:
+
+- **Inventory reads:** View NFTs you own
+- **Direct transfers:** Send an NFT to another address
+- **Marketplace trading:** Buy, sell, or bid on NFTs via transaction envelopes
+
+Marketplace trading uses **transaction envelopes** — the agent (or a configured adapter) constructs marketplace-specific transactions, and Seashail signs them after policy evaluation.
+
+Supported marketplaces: **Blur** (Ethereum), **Magic Eden** (Solana + cross-chain), **OpenSea** (Ethereum), **Tensor** (Solana).
+
+## Viewing Your NFTs
+
+Use `get_nft_inventory` to list NFT-like mints in your wallet:
+
+- **Currently Solana only** (EVM inventory support may be added later)
+- Returns mint addresses, metadata URIs, and collection info
+- Specify `chain: "solana"` and optionally `limit` to cap results
+
+Example:
+
+```json
+{
+  "chain": "solana",
+  "limit": 100
+}
+```
+
+This returns all NFT-like mints (tokens with amount = 1 and 0 decimals) owned by your active Solana address.
+
+## Transferring NFTs
+
+Use `transfer_nft` to send an NFT to another address:
+
+- **Solana:** provide `chain: "solana"`, `to` (recipient address), and `mint` (SPL token mint)
+- **EVM:** provide `chain` (e.g., "ethereum", "base"), `to`, `contract` (ERC-721 contract address), and `token_id`
+- Policy evaluation applies — subject to `enable_nft` and `max_usd_per_nft_tx` policy controls
+- Scam blocklist applies to both recipient and contract/mint addresses
+
+### Solana transfers:
+
+- Uses SPL token transfer (transfers exactly 1 token)
+- Seashail creates the recipient's associated token account (ATA) if needed
+
+### EVM transfers:
+
+- Uses ERC-721 `safeTransferFrom`
+- Token ID must be a decimal string (e.g., "1234")
+- Transaction is simulated before broadcast
+
+Example (Solana):
+
+```json
+{
+  "chain": "solana",
+  "to": "11111111111111111111111111111111",
+  "mint": "So11111111111111111111111111111111111111112"
+}
+```
+
+Example (EVM):
+
+```json
+{
+  "chain": "base",
+  "to": "0xRecipientAddress",
+  "contract": "0xContractAddress",
+  "token_id": "1234"
+}
+```
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how tiered approval works.
+
+## Marketplace Trading
+
+### How It Works
+
+Marketplace operations (`buy_nft`, `sell_nft`, `bid_nft`) require **transaction envelopes**:
+
+1. The agent (or adapter) fetches the marketplace listing/offer data
+2. The agent constructs a transaction (or provides an `asset` object for a configured adapter to fetch it)
+3. Seashail verifies it against policy, signs, and broadcasts
+
+This design keeps marketplace-specific logic outside Seashail's security boundary while still enforcing policy controls.
+
+### Buying NFTs
+
+Use `buy_nft` to purchase a listed NFT:
+
+- **Solana:** provide `tx_b64` (base64-encoded unsigned VersionedTransaction) and `allowed_program_ids` (allowlist of program IDs)
+- **EVM:** provide `to` (contract address), `data` (calldata), and optionally `value_wei` (ETH value)
+- Alternatively, provide `asset` object for marketplace adapter to fetch the envelope
+- Policy evaluation applies (`enable_nft`, `max_usd_per_nft_tx`)
+- Solana marketplace envelopes are **always force-confirmed** (user confirmation required regardless of policy tier)
+
+Example (Solana, Magic Eden):
+
+```json
+{
+  "chain": "solana",
+  "marketplace": "magic_eden",
+  "usd_value": 50,
+  "tx_b64": "BASE64...",
+  "allowed_program_ids": [
+    "ComputeBudget111111111111111111111111111111",
+    "11111111111111111111111111111111"
+  ]
+}
+```
+
+Example (EVM, OpenSea):
+
+```json
+{
+  "chain": "base",
+  "marketplace": "opensea",
+  "usd_value": 50,
+  "to": "0x...",
+  "data": "0x...",
+  "value_wei": "0"
+}
+```
+
+### Selling NFTs
+
+Use `sell_nft` to list an NFT for sale or accept an offer:
+
+- Same envelope format as `buy_nft` (see above)
+- The agent constructs a sell/listing transaction for the chosen marketplace
+- Use `get_nft_inventory` to discover which NFTs you own before selling
+
+Example (Solana, Tensor):
+
+```json
+{
+  "chain": "solana",
+  "marketplace": "tensor",
+  "usd_value": 100,
+  "tx_b64": "BASE64...",
+  "allowed_program_ids": ["TCMPhJdwDryooaGGZjYoHRlM2vvDXcAP2BW2hhBKRmb"]
+}
+```
+
+### Bidding On NFTs
+
+Use `bid_nft` to place a bid or offer:
+
+- Same envelope format as `buy_nft` (see above)
+- The agent constructs a bid/offer transaction for the chosen marketplace
+- Policy evaluation applies (same as buy/sell)
+
+Example (EVM, Blur):
+
+```json
+{
+  "chain": "ethereum",
+  "marketplace": "blur",
+  "usd_value": 25,
+  "to": "0x...",
+  "data": "0x...",
+  "value_wei": "0"
+}
+```
+
+## Marketplace Differences
+
+### Blur (Ethereum)
+
+- High-volume Ethereum marketplace
+- Envelope: EVM transaction with `to`, `data`, `value_wei`
+- Transaction is simulated before broadcast
+- Scam blocklist applies to contract addresses
+
+### Magic Eden (Solana + EVM)
+
+- Cross-chain marketplace (Solana, Ethereum, Polygon, and more)
+- Solana envelope: `tx_b64` with `allowed_program_ids`
+- EVM envelope: `to`, `data`, `value_wei`
+- Solana envelopes are force-confirmed (user confirmation required)
+
+### OpenSea (Ethereum)
+
+- Widely used Ethereum marketplace
+- Envelope: EVM transaction with `to`, `data`, `value_wei`
+- Supports Seaport protocol
+- Transaction is simulated before broadcast
+
+### Tensor (Solana)
+
+- Solana-focused NFT marketplace
+- Envelope: `tx_b64` with `allowed_program_ids`
+- Solana envelopes are force-confirmed (user confirmation required)
+- Known for compressed NFT support
+
+## Typical Workflows
+
+### Browse and buy:
+
+1. Agent discovers listing on marketplace (off-chain)
+2. Agent constructs envelope or provides `asset` object
+3. `buy_nft` with the marketplace envelope
+4. Confirm via MCP elicitation
+5. `get_nft_inventory` to verify purchase
+
+### Transfer to friend:
+
+1. `get_nft_inventory` to find the NFT's mint (Solana) or contract + token_id (EVM)
+2. `transfer_nft` with mint/contract+token_id and recipient address
+3. Confirm if prompted
+
+### List for sale:
+
+1. `get_nft_inventory` to see what you own
+2. Agent constructs sell/listing envelope
+3. `sell_nft` with the marketplace envelope
+4. Confirm via MCP elicitation
+
+## Policy Controls
+
+NFT trading is policy-gated:
+
+- `enable_nft`: master toggle (default: `true`)
+- `max_usd_per_nft_tx`: cap per-transaction USD value (default: `1000`)
+- Transactions above the cap are blocked
+- Transactions below the cap may be auto-approved or require confirmation depending on tiered approval settings
+
+See [Policy and Approvals](/docs/guides/policy-and-approvals) for how to configure policy.
+
+## Notes
+
+- For exact parameter details: [NFT Tools Reference](/docs/reference/tools-nfts)
+- **Envelope duality:** the agent can supply the envelope directly, or a configured adapter can fetch it via the `asset` field
+- **Solana marketplace envelopes are always force-confirmed** — user confirmation required regardless of policy tier
+- Related: [Wallets Guide](/docs/guides/wallets) for managing wallet addresses
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to policy errors and marketplace envelope issues
+- [Glossary](/docs/glossary) for definitions of elicitation, force-confirm, and marketplace terms

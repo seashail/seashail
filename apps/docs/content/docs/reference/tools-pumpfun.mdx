@@ -1,0 +1,230 @@
+---
+title: "Tools: Pump.fun"
+description: Discover new coins, get coin info, and buy/sell pump.fun tokens on Solana.
+---
+
+Pump.fun tools interact with the Solana-based pump.fun protocol for token launches. Read tools are keyless; write tools require [policy approval](/docs/reference/tools-policy). All tools are Solana-only.
+
+## pumpfun_list_new_coins
+
+List recent pump.fun launches. Read-only.
+
+### Parameters
+
+<TypeTable
+  type={{
+    limit: {
+      type: "integer",
+      description: "Max results (1–200).",
+      default: "20",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "coins": [
+    {
+      "mint": "ABC123...",
+      "name": "Example Coin",
+      "symbol": "EXC",
+      "created_at": "2025-01-15T14:00:00Z",
+      "market_cap_sol": 12.5
+    }
+  ],
+  "count": 20
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{ "limit": 50 }
+```
+
+### Notes
+
+- Results are sorted by launch time (newest first).
+- Use `pumpfun_get_coin_info` to fetch detailed information for a specific coin.
+
+## pumpfun_get_coin_info
+
+Fetch pump.fun coin details. Read-only.
+
+### Parameters
+
+<TypeTable
+  type={{
+    mint: {
+      type: "string",
+      description: "Token mint address.",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "mint": "ABC123...",
+  "name": "Example Coin",
+  "symbol": "EXC",
+  "description": "An example pump.fun coin.",
+  "image_uri": "https://...",
+  "created_at": "2025-01-15T14:00:00Z",
+  "market_cap_sol": 12.5,
+  "bonding_curve": "6x7y...",
+  "complete": false,
+  "virtual_sol_reserves": 30.0,
+  "virtual_token_reserves": 1000000000
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{ "mint": "ABC123..." }
+```
+
+### Notes
+
+- Returns bonding curve details and reserve information useful for evaluating the coin's state.
+- Use `pumpfun_list_new_coins` to discover recently launched mints.
+
+## pumpfun_buy
+
+Buy a pump.fun coin. Requires [policy approval](/docs/reference/tools-policy).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    mint: {
+      type: "string",
+      description: "Token mint (identity-checked).",
+      required: true,
+    },
+    amount_sol: {
+      type: "number",
+      description: "Exact SOL amount to spend.",
+      required: true,
+    },
+    usd_value: {
+      type: "number",
+      description: "Optional override for policy approval.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "If true, skip price discovery and use usd_value as-is.",
+      default: "false",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "amount_received": "1000000",
+  "mint": "ABC123..."
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{
+  "mint": "ABC123...",
+  "amount_sol": 0.5
+}
+```
+
+### Notes
+
+- The mint is identity-checked for safety.
+- Use `pumpfun_get_coin_info` to evaluate the coin before buying.
+- Requires [policy approval](/docs/reference/tools-policy) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- See also: [Pump.fun Guide](/docs/guides/pumpfun).
+
+## pumpfun_sell
+
+Sell a pump.fun coin. Requires [policy approval](/docs/reference/tools-policy).
+
+### Parameters
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    mint: {
+      type: "string",
+      description: "Token mint (identity-checked).",
+      required: true,
+    },
+    percent: {
+      type: "number",
+      description: "Percent of holdings to sell (0-100).",
+      required: true,
+    },
+    usd_value: {
+      type: "number",
+      description: "Optional override for policy approval.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "If true, skip price discovery and use usd_value as-is.",
+      default: "false",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "signature": "5UfD...txid",
+  "sol_received": "0.48",
+  "tokens_sold": "500000"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Example
+
+```json
+{
+  "mint": "ABC123...",
+  "percent": 100
+}
+```
+
+### Notes
+
+- Use `percent: 100` to sell entire position.
+- Requires [policy approval](/docs/reference/tools-policy) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- See also: [Pump.fun Guide](/docs/guides/pumpfun).

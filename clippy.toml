@@ -1,0 +1,22 @@
+# Clippy configuration — strict thresholds for security-critical code.
+
+# Wildcard imports
+warn-on-all-wildcard-imports = true
+
+# Complexity thresholds (tighter than defaults)
+cognitive-complexity-threshold = 25       # default: 25
+too-many-arguments-threshold = 16         # default: 7
+too-many-lines-threshold = 450            # default: 100
+type-complexity-threshold = 250           # default: 250
+single-char-binding-names-threshold = 4   # default: 4
+
+# Boolean parameter limits
+max-fn-params-bools = 3                   # default: 3
+max-struct-bools = 3                      # default: 3
+
+# Large types
+excessive-nesting-threshold = 6           # default: 0 (disabled)
+large-error-threshold = 128               # default: 128
+
+# MSRV — unlock newer Clippy suggestions
+msrv = "1.74"

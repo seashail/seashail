@@ -1,0 +1,110 @@
+---
+title: Bridging Tokens
+description: Transfer tokens between Solana and EVM chains using Wormhole and LayerZero.
+---
+
+`bridge_tokens` moves tokens between chains: Solana ↔ EVM, or EVM ↔ EVM. Two bridge providers are supported: Wormhole and LayerZero. Bridging is asynchronous — the transaction is initiated on the source chain, and tokens arrive on the destination chain after confirmation.
+
+Policy evaluation applies: bridging is a write operation with the same tiered approval as sends.
+
+See also: [Policy and Approvals](/docs/guides/policy-and-approvals)
+
+## How Bridging Works
+
+1. You call `bridge_tokens` with source chain (`chain`), destination chain (`to_chain`), token, and amount
+2. Seashail executes the bridge transaction on the source chain
+3. The bridge provider relays the transaction to the destination chain
+4. If `redeem: true` (default), Seashail attempts to auto-redeem on the destination chain (requires destination chain gas)
+5. You receive tokens on the destination chain
+
+Bridging is NOT instant. Confirmation times vary by chain (minutes to hours).
+
+## Supported Routes
+
+- **Solana → EVM:** Wormhole or LayerZero
+- **EVM → Solana:** Wormhole or LayerZero
+- **EVM → EVM:** Wormhole or LayerZero (e.g., Ethereum → Arbitrum)
+
+Not all token/chain combinations have routes — check `get_capabilities` for available routes.
+
+## Bridge Providers
+
+### Wormhole (Default)
+
+Broad token support, guardian-based security. Use `bridge_provider: "wormhole"` or let auto-select.
+
+### LayerZero
+
+Ultra-light nodes, fast finality on supported routes. Use `bridge_provider: "layerzero"` explicitly.
+
+If no provider is specified, Seashail defaults to Wormhole.
+
+## Checking Bridge Status
+
+Bridging is NOT instant — confirmation times vary by chain.
+
+Use `get_bridge_status` to track your bridge transfer. Provide the transaction signature as `bridge_id` along with the `bridge_provider`.
+
+### Status Flow
+
+1. **Initiated:** Transaction submitted on source chain
+2. **Confirmed on source:** Source chain finality reached
+3. **Relayed:** Bridge provider relayed to destination chain
+4. **Completed:** Tokens arrived on destination chain
+
+See [Read Tools Reference](/docs/reference/tools-read#get_bridge_status) for details.
+
+## Typical Workflow
+
+1. Check balances on source chain: `get_balance`
+2. Bridge: `bridge_tokens` with `chain`, `to_chain`, `token`, `amount`
+3. Note the bridge transaction ID from the response
+4. Check status: `get_bridge_status` with the transaction ID
+5. Once complete, verify balance on destination chain: `get_balance`
+
+### Example
+
+```json
+{
+  "chain": "solana",
+  "to_chain": "ethereum",
+  "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount": "100",
+  "amount_units": "ui",
+  "bridge_provider": "wormhole",
+  "redeem": true
+}
+```
+
+This bridges 100 USDC from Solana to Ethereum via Wormhole with auto-redeem enabled.
+
+## Timing And Costs
+
+Bridge times depend on source chain finality + bridge provider relay speed:
+
+- **Solana → EVM:** Typically 5-20 minutes (Wormhole guardian consensus)
+- **EVM → Solana:** Varies by EVM chain finality (Ethereum ~15 min, L2s faster)
+
+Bridge fees are typically small but add to gas costs on both source and destination. Seashail handles gas on the source chain; destination chain gas is handled by the bridge relayer (or by Seashail if `redeem: true`).
+
+## When to Bridge vs Swap
+
+- **Bridge** when you want to move the same token (or its wrapped equivalent) to a different chain
+- **Swap** when you want a different token on the same chain
+
+You can combine: bridge USDC from Solana to Ethereum, then swap USDC to ETH.
+
+See also: [Swapping Guide](/docs/guides/swapping) for same-chain token exchanges.
+
+## Notes
+
+- For exact parameter details: [bridge_tokens reference](/docs/reference/tools-write#bridge_tokens)
+- Bridge provider-specific parameters (Wormhole receiver address, LayerZero config) are documented in the reference
+- `redeem: true` (default) requires the destination wallet to have gas for the redeem transaction
+- `amount=max` is NOT supported for Wormhole native path
+- Policy: Bridging must be enabled in your policy configuration (`enable_bridge` field)
+
+## See Also
+
+- [Troubleshooting](/docs/troubleshooting) for solutions to RPC errors and bridge confirmation issues
+- [Glossary](/docs/glossary) for definitions of remote tx and bridge provider terms

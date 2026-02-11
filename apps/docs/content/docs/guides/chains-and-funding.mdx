@@ -1,0 +1,140 @@
+---
+title: Chains And Funding
+description: Supported chain identifiers, what tools work where, and how to fund wallets safely.
+---
+
+Seashail supports **Solana** plus a configurable set of **EVM chains**. Most tools accept a `chain` (or `chains`) argument that must match Seashail's configured chain identifiers.
+
+## Supported Chains (Default Config)
+
+Solana:
+
+- `solana`
+
+EVM mainnets:
+
+- `ethereum`
+- `base`
+- `arbitrum`
+- `optimism`
+- `polygon`
+- `bnb`
+- `avalanche`
+- `monad`
+
+EVM testnets:
+
+- `sepolia`
+- `base-sepolia`
+- `arbitrum-sepolia`
+- `optimism-sepolia`
+- `polygon-amoy`
+- `bnb-testnet`
+- `avalanche-fuji`
+- `monad-testnet`
+
+Notes:
+
+- The actual set of EVM chains is whatever is present in your `config.toml` under `[rpc.evm_rpc_urls]` and `[rpc.evm_chain_ids]`.
+- `configure_rpc` can change RPC URLs for existing configured chains. Adding a brand-new EVM chain requires editing `config.toml` (you need both RPC URL and chain id).
+
+## What Tools Work On Each Chain
+
+The most reliable way to answer "what's available on my machine" is to call:
+
+- `get_capabilities`
+
+It returns a config-derived matrix of chains and supported surfaces (spot sends/swaps, NFT transfer, optional 1inch support, etc).
+
+### Quick Support Summary (Implemented Today)
+
+Read-only tools (all configured chains):
+
+- `get_balance`, `get_portfolio`, `get_transaction_history`
+- `get_token_price`, `inspect_token`, `estimate_gas`
+
+Spot writes:
+
+- Solana (`chain="solana"`): `send_transaction`, `swap_tokens` (Jupiter), `request_airdrop` (devnet/testnet/local only)
+- EVM chains (for example `chain="base"`): `send_transaction`, `swap_tokens` (Uniswap; optional 1inch when configured)
+
+NFTs:
+
+- Solana: `get_nft_inventory`, `transfer_nft`, plus marketplace envelopes (`buy_nft`, `sell_nft`, `bid_nft`)
+- EVM: `transfer_nft`, plus marketplace envelopes (`buy_nft`, `sell_nft`, `bid_nft`)
+
+Perps:
+
+- `hyperliquid`: uses the wallet's EVM address
+- `jupiter_perps`: uses the wallet's Solana address and requires Solana mainnet
+
+## Funding Wallets (Deposits)
+
+Use:
+
+- `get_deposit_info`
+
+This returns:
+
+- the deposit `address` for the selected `wallet` and `account_index`
+- `chain_kind` and best-effort token hints if you pass `token` (for example `token="usdc"`)
+- safety `warnings`
+
+Example (Solana address):
+
+```json
+{
+  "chain": "solana",
+  "token": "usdc"
+}
+```
+
+Example (EVM address):
+
+```json
+{
+  "chain": "base",
+  "token": "native"
+}
+```
+
+Example (Bitcoin address):
+
+```json
+{
+  "chain": "bitcoin",
+  "token": "native"
+}
+```
+
+Safety notes:
+
+- Only send assets on the **same chain** as the deposit address you requested.
+- For EVM L2s, make sure the sender's wallet/network is set to the same L2 (for example Base vs Arbitrum).
+
+## Testnets: Faucets And Airdrops
+
+Faucet links:
+
+- `get_testnet_faucet_links` (informational, official URLs only)
+
+Example:
+
+```json
+{ "chain": "sepolia", "address": "0x..." }
+```
+
+Solana airdrops:
+
+- `request_airdrop` (Solana devnet/testnet/local validator only; it is blocked on mainnet-beta)
+
+Example:
+
+```json
+{ "amount": "1.5", "amount_units": "ui" }
+```
+
+## See Also
+
+- [Architecture](/docs/reference/architecture) for chain layer design
+- [Glossary](/docs/glossary) for definitions of ATA, ERC-20, SPL, and chain identifiers

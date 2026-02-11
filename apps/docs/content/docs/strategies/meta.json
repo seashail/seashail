@@ -1,0 +1,17 @@
+{
+  "title": "Strategies & Recipes",
+  "description": "Multi-tool workflow recipes, capability discovery, and comparison guides",
+  "pages": [
+    "index",
+    "what-can-i-ask",
+    "new-wallet-setup",
+    "portfolio-rebalancing",
+    "dca",
+    "yield-farming",
+    "multi-chain-management",
+    "risk-monitoring",
+    "compare-perps",
+    "compare-swaps",
+    "compare-wallets"
+  ]
+}

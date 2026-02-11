@@ -1,0 +1,330 @@
+---
+title: "Tools: Network And RPC"
+description: Network mode, configured chains, faucet links, and RPC overrides.
+---
+
+## get_network_mode
+
+Returns the effective and configured network mode, plus the current Solana RPC URL. Call this first to understand which chains are active.
+
+### Parameters
+
+No parameters required.
+
+<TypeTable type={{}} />
+
+### Response
+
+```json
+{
+  "configured_mode": "testnet",
+  "effective_mode": "testnet",
+  "solana_rpc_url": "https://api.devnet.solana.com"
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{}
+```
+
+```json title="Response"
+{
+  "configured_mode": "mainnet",
+  "effective_mode": "mainnet",
+  "solana_rpc_url": "https://api.mainnet-beta.solana.com"
+}
+```
+
+### Notes
+
+- `configured_mode` is the value persisted in `config.toml`.
+- `effective_mode` is the runtime mode (may differ if overridden by environment or CLI flag).
+
+---
+
+## set_network_mode
+
+Sets network mode (`mainnet` or `testnet`) and persists it to `config.toml`. Optionally switches the Solana RPC between default mainnet and devnet endpoints.
+
+### Parameters
+
+<TypeTable
+  type={{
+    mode: {
+      type: '"mainnet" | "testnet"',
+      description: "Network mode to set.",
+      required: true,
+    },
+    apply_default_solana_rpc: {
+      type: "boolean",
+      description:
+        "Also switch Solana RPC between default mainnet and devnet endpoints.",
+      default: "true",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "previous_mode": "mainnet",
+  "new_mode": "testnet",
+  "solana_rpc_switched": true,
+  "solana_rpc_url": "https://api.devnet.solana.com"
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "mode": "testnet", "apply_default_solana_rpc": true }
+```
+
+```json title="Response"
+{
+  "previous_mode": "mainnet",
+  "new_mode": "testnet",
+  "solana_rpc_switched": true,
+  "solana_rpc_url": "https://api.devnet.solana.com"
+}
+```
+
+### Notes
+
+- When `apply_default_solana_rpc` is `true` (the default), switching to `testnet` sets the Solana RPC to `https://api.devnet.solana.com`, and switching to `mainnet` restores the mainnet endpoint.
+- The mode change is persisted to `config.toml` and takes effect immediately.
+
+---
+
+## get_capabilities
+
+Returns a machine-specific capabilities object describing which chains are configured, which swap providers are usable on each EVM chain, and which surfaces are enabled (spot, perps, NFTs). See the [capabilities](/docs/reference/capabilities) page for how to interpret the response.
+
+### Parameters
+
+No parameters required.
+
+<TypeTable type={{}} />
+
+### Response
+
+```json
+{
+  "network_mode": {
+    "effective": "mainnet",
+    "configured": "mainnet"
+  },
+  "chains": {
+    "solana": {
+      "rpc_url": "https://api.mainnet-beta.solana.com",
+      "supports": ["spot", "nfts", "perps"]
+    },
+    "evm": [
+      {
+        "name": "base",
+        "rpc_url": "https://mainnet.base.org",
+        "swap_providers": ["uniswap"],
+        "supports": ["spot"]
+      }
+    ]
+  },
+  "services": {
+    "jupiter": { "api_key_configured": false },
+    "oneinch": { "configured": false }
+  }
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{}
+```
+
+```json title="Response"
+{
+  "network_mode": { "effective": "testnet", "configured": "testnet" },
+  "chains": {
+    "solana": {
+      "rpc_url": "https://api.devnet.solana.com",
+      "supports": ["spot", "nfts"]
+    },
+    "evm": [
+      {
+        "name": "sepolia",
+        "rpc_url": "https://rpc.sepolia.org",
+        "swap_providers": ["uniswap"],
+        "supports": ["spot"]
+      }
+    ]
+  },
+  "services": {
+    "jupiter": { "api_key_configured": false },
+    "oneinch": { "configured": false }
+  }
+}
+```
+
+### Notes
+
+- This is the canonical source for which `chain` strings are valid for other tools.
+- If a tool returns `unsupported_chain` or `provider_unavailable`, check `get_capabilities` first.
+- See [capabilities](/docs/reference/capabilities) for a detailed walkthrough.
+
+---
+
+## get_testnet_faucet_links
+
+Returns official faucet links for a supported testnet chain. This is informational only — it does not request funds.
+
+### Parameters
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description:
+        'Testnet chain name: "solana", "sepolia", "base-sepolia", "arbitrum-sepolia", "optimism-sepolia", "polygon-amoy", "bnb-testnet", "avalanche-fuji", or "monad-testnet".',
+      required: true,
+    },
+    address: {
+      type: "string",
+      description: "Optional address to paste into faucet sites.",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "chain": "sepolia",
+  "faucets": [
+    {
+      "name": "Sepolia PoW Faucet",
+      "url": "https://sepolia-faucet.pk910.de/?address=0xYourAddress"
+    },
+    {
+      "name": "Alchemy Sepolia Faucet",
+      "url": "https://sepoliafaucet.com/"
+    }
+  ]
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+```json title="Arguments"
+{ "chain": "sepolia", "address": "0xAbC123...def456" }
+```
+
+```json title="Response"
+{
+  "chain": "sepolia",
+  "faucets": [
+    {
+      "name": "Sepolia PoW Faucet",
+      "url": "https://sepolia-faucet.pk910.de/?address=0xAbC123...def456"
+    }
+  ]
+}
+```
+
+### Notes
+
+- This tool is informational only. It does not request funds from any faucet.
+- Never paste private keys, mnemonics, or Shamir shares into any website.
+- When `address` is provided, faucet URLs that support pre-filling will include it in the link.
+
+---
+
+## configure_rpc
+
+Overrides the RPC URL for an existing configured chain and persists it to `config.toml`. Does not add new chains — only updates chains that already exist in your config.
+
+### Parameters
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description:
+        'Chain name to configure (e.g. "solana", "base", "ethereum").',
+      required: true,
+    },
+    url: {
+      type: "string",
+      description: "Primary RPC URL.",
+      required: true,
+    },
+    fallback_urls: {
+      type: "string[]",
+      description: "Optional fallback RPC URLs to try if the primary fails.",
+    },
+    mode: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "For Solana only: which network mode's RPC to update. If omitted, uses the effective network mode.",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "chain": "base",
+  "url": "https://your-rpc.example",
+  "fallback_urls": ["https://backup-1.example", "https://backup-2.example"],
+  "persisted": true
+}
+```
+
+> Response shape is representative; actual fields may vary.
+
+### Example
+
+EVM chain:
+
+```json title="Arguments"
+{
+  "chain": "base",
+  "url": "https://your-rpc.example",
+  "fallback_urls": ["https://backup-1.example", "https://backup-2.example"]
+}
+```
+
+Solana with mode-specific override:
+
+```json title="Arguments"
+{
+  "chain": "solana",
+  "mode": "testnet",
+  "url": "http://127.0.0.1:8899",
+  "fallback_urls": []
+}
+```
+
+### Notes
+
+- `configure_rpc` does not add new EVM chains. It only updates chains that already exist in your config.
+- Solana can maintain separate RPC and fallback lists per network mode (`mainnet` / `testnet`).
+- Use `get_capabilities` to see which chains are currently configured before overriding.
+
+---
+
+## See Also
+
+- [Network Mode Guide](/docs/guides/network-mode) -- Testnet defaults, Solana RPC switching, and faucet links
+- [Configuration](/docs/getting-started/configuration) -- Config file paths and environment overrides

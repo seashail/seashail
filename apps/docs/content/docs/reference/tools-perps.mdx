@@ -1,0 +1,659 @@
+---
+title: "Tools: Perps"
+description: Market data, positions, and perpetual futures trading on Hyperliquid and Jupiter Perps.
+---
+
+import { TypeTable } from "fumadocs-ui/components/type-table";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+Perps tools support two providers: Hyperliquid (EVM address, mainnet and testnet) and Jupiter Perps (Solana address, mainnet only). Provider defaults to Hyperliquid when omitted. Write tools require [policy approval](/docs/reference/tools-policy).
+
+## get_market_data
+
+Returns market metadata for the selected provider. Can return all markets or a single market.
+
+### Parameters
+
+<TypeTable
+  type={{
+    provider: {
+      type: '"hyperliquid" | "jupiter_perps"',
+      description: "Perps provider.",
+      default: '"hyperliquid"',
+    },
+    market: {
+      type: "string",
+      description:
+        "Market symbol (e.g. 'BTC'). If omitted, returns all markets.",
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "provider": "hyperliquid",
+  "markets": [
+    {
+      "coin": "BTC",
+      "mark_px": "64250.00",
+      "funding_rate": "0.0001",
+      "open_interest": "150000000"
+    }
+  ]
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["All markets", "Single market"]}>
+  <Tab value="All markets">
+    ```json
+    {
+      "provider": "hyperliquid"
+    }
+    ```
+  </Tab>
+  <Tab value="Single market">
+    ```json
+    {
+      "provider": "hyperliquid",
+      "market": "BTC"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- If the Hyperliquid API is temporarily unavailable, Seashail may return a cached snapshot.
+
+---
+
+## get_positions
+
+Returns open position state for the selected provider and wallet.
+
+### Parameters
+
+<TypeTable
+  type={{
+    provider: {
+      type: '"hyperliquid" | "jupiter_perps"',
+      description: "Perps provider.",
+      default: '"hyperliquid"',
+    },
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+  }}
+/>
+
+### Per-Venue Behavior
+
+<Tabs items={["Hyperliquid", "Jupiter Perps"]}>
+  <Tab value="Hyperliquid">
+    - Uses wallet's **EVM address** - If the selected wallet/account has no EVM
+    address, the call fails - Works on mainnet and testnet
+  </Tab>
+  <Tab value="Jupiter Perps">
+    - Uses wallet's **Solana address** - Mainnet only (network mode must be
+    mainnet)
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "provider": "hyperliquid",
+  "positions": [
+    {
+      "market": "BTC",
+      "side": "long",
+      "size": "0.5",
+      "entry_px": "63000.00",
+      "mark_px": "64250.00",
+      "unrealized_pnl": "625.00",
+      "leverage": 3
+    }
+  ]
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Hyperliquid", "Jupiter Perps"]}>
+  <Tab value="Hyperliquid">
+    ```json
+    {
+      "provider": "hyperliquid",
+      "wallet": "my-wallet",
+      "account_index": 0
+    }
+    ```
+  </Tab>
+  <Tab value="Jupiter Perps">
+    ```json
+    {
+      "provider": "jupiter_perps",
+      "wallet": "my-wallet",
+      "account_index": 0
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## open_perp_position
+
+Opens a perpetual futures position. Requires policy approval.
+
+### Parameters
+
+<TypeTable
+  type={{
+    provider: {
+      type: '"hyperliquid" | "jupiter_perps"',
+      description: "Perps provider.",
+      default: '"hyperliquid"',
+    },
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    market: {
+      type: "string",
+      description: "Market symbol (e.g. 'BTC', 'ETH', 'SOL').",
+      required: true,
+    },
+    side: {
+      type: '"long" | "short"',
+      description: "Position side.",
+      required: true,
+    },
+    size: {
+      type: "string",
+      description: "Position size.",
+      required: true,
+    },
+    size_units: {
+      type: '"usd" | "asset"',
+      description: "Jupiter Perps supports 'usd' only.",
+      default: '"usd"',
+    },
+    leverage: {
+      type: "integer",
+      description: "Leverage multiplier.",
+      required: true,
+    },
+    order_type: {
+      type: '"market" | "limit"',
+      description: "Jupiter Perps supports 'market' only.",
+      default: '"market"',
+    },
+    limit_px: {
+      type: "string",
+      description: "Required when order_type='limit'. Limit price.",
+    },
+    slippage_bps: {
+      type: "integer",
+      description: "Slippage tolerance in basis points.",
+      default: "50",
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Optional override. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+  }}
+/>
+
+### Per-Venue Behavior
+
+<Tabs items={["Hyperliquid", "Jupiter Perps"]}>
+  <Tab value="Hyperliquid">
+    - Supports **market** and **limit** orders - Supports size_units: **"usd"**
+    or **"asset"** - Uses wallet's **EVM address** - Works on mainnet and
+    testnet
+  </Tab>
+  <Tab value="Jupiter Perps">
+    - Supports **market orders only** - Supports size_units: **"usd" only** -
+    Uses wallet's **Solana address** - Mainnet only (network mode must be
+    mainnet)
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "side": "long",
+  "size": "100",
+  "size_units": "usd",
+  "leverage": 3,
+  "order_type": "market",
+  "signature": "0x...",
+  "status": "confirmed"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Hyperliquid market", "Hyperliquid limit", "Jupiter Perps market"]}>
+  <Tab value="Hyperliquid market">
+    ```json
+    {
+      "provider": "hyperliquid",
+      "wallet": "my-wallet",
+      "account_index": 0,
+      "market": "BTC",
+      "side": "long",
+      "size": "100",
+      "size_units": "usd",
+      "leverage": 3,
+      "order_type": "market",
+      "slippage_bps": 50
+    }
+    ```
+  </Tab>
+  <Tab value="Hyperliquid limit">
+    ```json
+    {
+      "provider": "hyperliquid",
+      "wallet": "my-wallet",
+      "account_index": 0,
+      "market": "ETH",
+      "side": "short",
+      "size": "50",
+      "size_units": "usd",
+      "leverage": 2,
+      "order_type": "limit",
+      "limit_px": "2500"
+    }
+    ```
+  </Tab>
+  <Tab value="Jupiter Perps market">
+    ```json
+    {
+      "provider": "jupiter_perps",
+      "wallet": "my-wallet",
+      "account_index": 0,
+      "market": "SOL",
+      "side": "long",
+      "size": "50",
+      "size_units": "usd",
+      "leverage": 5,
+      "order_type": "market",
+      "slippage_bps": 50
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy) — transactions may be auto-approved, require confirmation, or be blocked depending on your policy configuration and USD value.
+- Jupiter Perps currently supports **market orders only** and **size_units="usd" only**.
+
+---
+
+## close_perp_position
+
+Closes a perpetual futures position. Requires policy approval.
+
+### Parameters
+
+<TypeTable
+  type={{
+    provider: {
+      type: '"hyperliquid" | "jupiter_perps"',
+      description: "Perps provider.",
+      default: '"hyperliquid"',
+    },
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    market: {
+      type: "string",
+      description: "Market symbol (e.g. 'BTC').",
+      required: true,
+    },
+    side: {
+      type: '"long" | "short"',
+      description:
+        "Optional hint; close direction is derived from current position.",
+    },
+    size: {
+      type: "string",
+      description:
+        "Optional close size (USD or asset units). If omitted, closes full position.",
+    },
+    size_units: {
+      type: '"usd" | "asset"',
+      description: "Size units.",
+      default: '"asset"',
+    },
+    slippage_bps: {
+      type: "integer",
+      description: "Slippage tolerance in basis points.",
+      default: "50",
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "Best-effort USD value for policy enforcement. If omitted, treated as unknown.",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "Optional override. If usd_value is provided, this is treated as true.",
+      default: "false",
+    },
+  }}
+/>
+
+### Per-Venue Behavior
+
+<Tabs items={["Hyperliquid", "Jupiter Perps"]}>
+  <Tab value="Hyperliquid">
+    - Supports **partial close** (provide `size`) or **full close** (omit
+    `size`) - Supports size_units: **"usd"** or **"asset"** - Uses wallet's
+    **EVM address**
+  </Tab>
+  <Tab value="Jupiter Perps">
+    - Supports **full close only** (omit `size`) - If `side` is omitted,
+    Seashail infers from open position - Uses wallet's **Solana address** -
+    Mainnet only
+  </Tab>
+</Tabs>
+
+### Response
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "side": "long",
+  "signature": "0x...",
+  "status": "confirmed"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+<Tabs items={["Hyperliquid full close", "Hyperliquid partial close", "Jupiter Perps full close"]}>
+  <Tab value="Hyperliquid full close">
+    ```json
+    {
+      "provider": "hyperliquid",
+      "wallet": "my-wallet",
+      "account_index": 0,
+      "market": "BTC",
+      "slippage_bps": 50
+    }
+    ```
+  </Tab>
+  <Tab value="Hyperliquid partial close">
+    ```json
+    {
+      "provider": "hyperliquid",
+      "wallet": "my-wallet",
+      "account_index": 0,
+      "market": "ETH",
+      "size": "0.5",
+      "size_units": "asset",
+      "slippage_bps": 50
+    }
+    ```
+  </Tab>
+  <Tab value="Jupiter Perps full close">
+    ```json
+    {
+      "provider": "jupiter_perps",
+      "wallet": "my-wallet",
+      "account_index": 0,
+      "market": "SOL",
+      "slippage_bps": 50
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes
+
+- Requires [policy approval](/docs/reference/tools-policy).
+- Jupiter Perps currently supports closing the **entire** position only (omit `size`).
+- If `side` is omitted for Jupiter Perps, Seashail will infer whether the open position is long or short (or error if ambiguous).
+
+---
+
+## place_limit_order
+
+Places a limit order on a perp venue (Hyperliquid only). Requires policy approval.
+
+### Parameters
+
+<TypeTable
+  type={{
+    provider: {
+      type: '"hyperliquid"',
+      description: "Must be 'hyperliquid'.",
+      required: true,
+      default: '"hyperliquid"',
+    },
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    market: {
+      type: "string",
+      description: "Market symbol (e.g. 'BTC').",
+      required: true,
+    },
+    side: {
+      type: '"long" | "short"',
+      description: "Position side.",
+      required: true,
+    },
+    size: {
+      type: "string",
+      description: "Position size.",
+      required: true,
+    },
+    size_units: {
+      type: '"usd" | "asset"',
+      description: "Size units.",
+      default: '"usd"',
+    },
+    leverage: {
+      type: "integer",
+      description: "Leverage multiplier.",
+      default: "1",
+    },
+    limit_px: {
+      type: "string",
+      description: "Limit price.",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "side": "short",
+  "size": "50",
+  "size_units": "usd",
+  "leverage": 2,
+  "limit_px": "50000",
+  "order_id": 123456,
+  "status": "placed"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+```json
+{
+  "provider": "hyperliquid",
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "market": "BTC",
+  "side": "short",
+  "size": "50",
+  "size_units": "usd",
+  "leverage": 2,
+  "limit_px": "50000"
+}
+```
+
+### Notes
+
+- **This tool is only available on Hyperliquid.**
+- Requires [policy approval](/docs/reference/tools-policy).
+
+---
+
+## modify_perp_order
+
+Modifies an existing order (implemented as cancel + new order). Hyperliquid only. Requires policy approval.
+
+### Parameters
+
+<TypeTable
+  type={{
+    provider: {
+      type: '"hyperliquid"',
+      description: "Must be 'hyperliquid'.",
+      required: true,
+      default: '"hyperliquid"',
+    },
+    wallet: {
+      type: "string",
+      description: "If omitted, uses the active wallet.",
+    },
+    account_index: {
+      type: "integer",
+      description: "If omitted, uses the active account index.",
+    },
+    oid: {
+      type: "integer",
+      description: "Original order ID to modify.",
+      required: true,
+    },
+    market: {
+      type: "string",
+      description: "Market symbol (e.g. 'BTC').",
+      required: true,
+    },
+    side: {
+      type: '"long" | "short"',
+      description: "Position side.",
+      required: true,
+    },
+    size: {
+      type: "string",
+      description: "Position size.",
+      required: true,
+    },
+    size_units: {
+      type: '"usd" | "asset"',
+      description: "Size units.",
+      default: '"usd"',
+    },
+    leverage: {
+      type: "integer",
+      description: "Leverage multiplier.",
+      default: "1",
+    },
+    limit_px: {
+      type: "string",
+      description: "Limit price.",
+      required: true,
+    },
+  }}
+/>
+
+### Response
+
+```json
+{
+  "provider": "hyperliquid",
+  "original_oid": 123456,
+  "new_order_id": 123457,
+  "market": "BTC",
+  "side": "short",
+  "size": "50",
+  "size_units": "usd",
+  "leverage": 2,
+  "limit_px": "51000",
+  "status": "modified"
+}
+```
+
+Response shape is representative; actual fields may vary.
+
+### Examples
+
+```json
+{
+  "provider": "hyperliquid",
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "oid": 123456,
+  "market": "BTC",
+  "side": "short",
+  "size": "50",
+  "size_units": "usd",
+  "leverage": 2,
+  "limit_px": "51000"
+}
+```
+
+### Notes
+
+- **This tool is only available on Hyperliquid.**
+- The modification is implemented as a cancel of the original order followed by placement of a new order.
+- Requires [policy approval](/docs/reference/tools-policy).

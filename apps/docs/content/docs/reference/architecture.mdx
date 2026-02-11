@@ -1,0 +1,221 @@
+---
+title: Architecture
+description: System architecture overview showing the proxy/daemon design and component flow from MCP host to chain layers.
+---
+
+Seashail uses a proxy-daemon architecture to allow multiple agent processes to share a single keystore and policy state. This design ensures consistent security boundaries while enabling concurrent agent access.
+
+## System Overview
+
+Seashail separates the MCP stdio interface (proxy) from the core state management (daemon). This allows multiple agents (Claude Desktop, Cursor, etc.) to connect simultaneously without keystore conflicts or passphrase re-prompts.
+
+```
+┌─────────────────┐
+│   MCP Host      │  (Agent: Claude Desktop, Cursor, etc.)
+│  (stdio client) │
+└────────┬────────┘
+         │ stdio (JSON-RPC over newline-delimited JSON)
+         ▼
+┌─────────────────┐
+│  seashail mcp   │  Lightweight stdio proxy
+│    (proxy)      │  - Injects network override params
+└────────┬────────┘  - Auto-spawns daemon if needed
+         │ Unix socket / named pipe / TCP loopback
+         ▼
+┌─────────────────┐
+│ seashail daemon │  Singleton process
+│                 │  - Holds exclusive keystore lock
+│                 │  - Manages passphrase session
+└────────┬────────┘  - Coordinates all MCP clients
+         │
+         ▼
+┌─────────────────┐
+│  MCP Server     │  Tool dispatch + elicitation
+│  (in daemon)    │  - Policy evaluation
+└────────┬────────┘  - Key decryption + signing
+         │           - Transaction broadcast
+         ▼
+┌─────────────────┐
+│  Policy Engine  │  Gates every write operation
+│                 │  - Tiered approval (auto/confirm/block)
+└────────┬────────┘  - USD caps, slippage, allowlists
+         │
+         ▼
+┌─────────────────┐
+│   Chain Layers  │  Chain-specific adapters
+│  (EVM/Solana/   │  - RPC communication
+│   Bitcoin)      │  - Transaction construction
+└─────────────────┘  - Broadcast
+```
+
+## Architectural Layers
+
+### MCP Host
+
+The MCP host is the agent or editor (Claude Desktop, Cursor, Windsurf, VSCode) that communicates with Seashail over stdio. The agent sends JSON-RPC tool calls and receives tool responses.
+
+**Key characteristics:**
+
+- Communicates via newline-delimited JSON over stdin/stdout
+- Receives tool descriptions and schemas at initialization
+- Never sees raw private keys or passphrases (handled via MCP elicitation)
+- Can run multiple instances connecting to the same daemon
+
+### Proxy (seashail mcp)
+
+The proxy is a lightweight stdio process started by the agent. It translates stdio to the daemon's socket protocol and injects session-specific parameters.
+
+**Responsibilities:**
+
+- Accept stdio JSON-RPC from the MCP host
+- Inject `--network` override into tool calls if specified
+- Auto-spawn the daemon if not already running
+- Forward tool calls to daemon over Unix socket (or named pipe on Windows)
+- Forward daemon responses back to stdio
+
+**Why separate from daemon:**
+
+- Each agent needs its own stdio process (tied to agent lifecycle)
+- Network overrides are session-specific (different agents can use different networks)
+- Lightweight process with no state or locks
+
+### Daemon (seashail daemon)
+
+The daemon is a singleton process that holds all state and coordinates all MCP clients. Only one daemon runs per user.
+
+**Responsibilities:**
+
+- Hold exclusive filesystem lock (`data_dir/seashail-daemon.lock`) to prevent split-brain
+- Manage keystore (encrypted private keys, Shamir shares)
+- Cache passphrase session (TTL-based, shared across clients)
+- Coordinate concurrent tool calls from multiple proxies
+- Idle exit when no clients connected (optional)
+
+**Why singleton:**
+
+- Single keystore lock prevents corruption from concurrent writes
+- Passphrase session shared across agents (unlock once, use everywhere)
+- Policy state consistency (same limits, allowlists, toggles for all agents)
+
+### MCP Server
+
+The MCP server runs inside the daemon process and implements the Model Context Protocol. It dispatches tool calls to handlers and manages elicitation prompts.
+
+**Responsibilities:**
+
+- Tool registration and schema generation
+- Tool call dispatch (parse args, validate, route to handler)
+- Elicitation for passphrases and confirmations
+- Tool response serialization
+
+**Key tools:**
+
+- Wallet tools (create, import, list, deposit info)
+- Network tools (balances, prices, transaction history)
+- Write tools (send, swap, bridge, DeFi, NFTs)
+- Policy tools (get/set policy fields)
+
+### Policy Engine
+
+The policy engine evaluates every write operation (send, swap, bridge, DeFi, NFTs) before signing. It applies tiered approval rules and enforces USD caps, slippage limits, and allowlists.
+
+**Approval tiers:**
+
+- **Auto-approve** — Silent execution (low risk, within limits)
+- **User confirm** — MCP elicitation prompt (exceeds auto-approve threshold)
+- **Hard block** — Rejection (exceeds hard cap or violates policy)
+
+**Policy controls:**
+
+- Per-transaction and daily USD caps
+- Slippage limits (swap, bridge, DeFi)
+- Leverage limits (perps)
+- Allowlists (addresses, contracts, tokens)
+- Operation toggles (enable/disable entire categories)
+- Internal transfer exemptions
+
+See [policy tools reference](/docs/reference/tools-policy) for all policy fields and the [policy and approvals guide](/docs/guides/policy-and-approvals) for usage examples.
+
+### Chain Layers
+
+Chain layers are chain-specific adapters that construct and broadcast transactions. Each chain family (EVM, Solana, Bitcoin) has its own adapter.
+
+**Responsibilities:**
+
+- RPC communication (balance queries, transaction simulation, broadcast)
+- Transaction construction (build unsigned tx from tool params)
+- Gas/fee estimation
+- Chain-specific signing (EIP-1559 for EVM, Versioned Transactions for Solana)
+- Marketplace adapters (Blur, Magic Eden, OpenSea, Tensor for NFTs)
+
+**Supported chains:**
+
+- **EVM:** Ethereum, Base, Optimism, Arbitrum, Polygon (mainnets + testnets)
+- **Solana:** Mainnet + Devnet
+- **Bitcoin:** Mainnet + Testnet (BIP-84 native SegWit)
+
+## Why Proxy + Daemon?
+
+The proxy/daemon split solves three problems:
+
+### 1. Multiple Agents Sharing State
+
+Without the daemon, each agent would need its own keystore copy. This creates synchronization problems:
+
+- Wallet created in Claude Desktop wouldn't appear in Cursor
+- Passphrase entered in Cursor wouldn't unlock Windsurf
+- Policy changes in one agent wouldn't apply to others
+
+The daemon provides a single source of truth.
+
+### 2. Concurrent Access Safety
+
+Multiple processes writing to the same keystore file can corrupt it. The daemon holds an exclusive filesystem lock, ensuring only one process modifies keystore state at a time.
+
+### 3. Passphrase Session Caching
+
+Without session caching, every tool call requiring key access would prompt for a passphrase. The daemon caches the decryption key with a TTL (default 15 minutes), so you unlock once and use everywhere.
+
+## Data Flow
+
+### Request Path
+
+```
+Agent types message
+  → Agent calls tool (stdio JSON-RPC)
+  → Proxy receives tool call
+  → Proxy injects network override (if --network flag set)
+  → Proxy forwards to daemon over socket
+  → Daemon receives tool call
+  → MCP Server validates params
+  → Policy Engine evaluates (for write ops)
+  → If requires passphrase: MCP elicitation prompt
+  → If requires user confirm: MCP elicitation prompt
+  → Chain adapter constructs tx
+  → Keystore signs tx
+  → Chain adapter broadcasts tx
+  → MCP Server returns response
+  → Daemon sends response to proxy
+  → Proxy sends response to agent over stdio
+  → Agent receives tool result
+```
+
+### Response Path
+
+Responses flow back through the same layers in reverse:
+
+```
+Chain broadcast result
+  → Chain adapter packages response
+  → MCP Server serializes
+  → Daemon sends to proxy
+  → Proxy sends to agent
+  → Agent displays to user
+```
+
+## Cross-References
+
+- [CLI Reference](/docs/reference/cli) — All `seashail` commands including `mcp`, `daemon`, `paths`
+- [Security Model](/docs/guides/security-model) — Threat analysis and mitigations
+- [Policy and Approvals](/docs/guides/policy-and-approvals) — Policy engine behavior and configuration
+- [MCP Tools Index](/docs/reference/mcp-tools) — All available tools

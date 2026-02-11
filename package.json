@@ -1,0 +1,31 @@
+{
+  "name": "seashail",
+  "author": "TheHandsomeDev",
+  "workspaces": [
+    "apps/*",
+    "crates/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "test": "turbo test",
+    "check": "turbo lint && turbo format:check && turbo check-types",
+    "lint": "turbo lint",
+    "lint:oxlint": "oxlint",
+    "check-types": "turbo check-types",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check ."
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.4",
+    "oxfmt": "latest",
+    "oxlint": "latest",
+    "oxlint-tsgolint": "latest",
+    "turbo": "^2.8.3",
+    "typescript": "^5.9.3",
+    "ultracite": "^7.1.4"
+  },
+  "packageManager": "bun@1.3.3"
+}

@@ -1,0 +1,114 @@
+---
+title: Configuration
+description: Paths, config.toml, environment overrides, and network mode.
+---
+
+## Paths
+
+Print resolved paths:
+
+```bash
+seashail paths
+```
+
+Environment overrides (useful for tests/CI):
+
+- `SEASHAIL_CONFIG_DIR`
+- `SEASHAIL_DATA_DIR`
+
+For all CLI commands and flags, see the [CLI reference](../reference/cli).
+
+## Config File
+
+`config.toml` lives under `config_dir`. For policy-specific configuration (spending limits, allowlists, approval thresholds), use MCP tools rather than editing TOML directly. See the [Policy Tools Reference](../reference/tools-policy).
+
+Example `config.toml`:
+
+```toml
+network_mode = "mainnet" # or "testnet"
+
+[rpc]
+solana_rpc_url = "https://api.mainnet-beta.solana.com"
+
+[http]
+binance_base_url = "https://api.binance.com"
+jupiter_base_url = "https://api.jup.ag/swap/v1"
+# 1inch requires an API key. If unset, swaps use the Uniswap provider on EVM.
+# oneinch_api_key = "..."
+
+# Hyperliquid (perps)
+hyperliquid_base_url_mainnet = "https://api.hyperliquid.xyz"
+hyperliquid_base_url_testnet = "https://api.hyperliquid-testnet.xyz"
+
+# Scam address blocklist (optional, security-relevant)
+# For threat analysis of scam address blocking, see the security model guide.
+# scam_blocklist_url = "https://example.com/seashail/scam-blocklist.json"
+# scam_blocklist_pubkey_b64 = "..." # 32-byte Ed25519 verifying key (base64)
+# scam_blocklist_refresh_seconds = 21600
+
+# NFT marketplace adapter endpoints (optional)
+# These are *tx-envelope construction* endpoints. Seashail will fetch an envelope and still
+# enforce policy + allowlists, force confirmation, and simulate before broadcast.
+# blur_adapter_base_url = "https://example.com/adapters/blur"
+# magic_eden_adapter_base_url = "https://example.com/adapters/magic-eden"
+# opensea_adapter_base_url = "https://example.com/adapters/opensea"
+# opensea_api_key = "..." # required for OpenSea adapters in most setups
+# tensor_adapter_base_url = "https://example.com/adapters/tensor"
+```
+
+## Network Mode (Mainnet/Testnet)
+
+Mainnet is the default.
+
+Network mode is a convenience setting that affects default chain selection when tools omit `chain`/`chains`.
+It does not hard-block mainnet/testnet usage: if a tool explicitly specifies a chain (for example `chain="ethereum"`),
+Seashail will use that chain regardless of the current mode.
+
+For a deeper explanation (including Solana RPC defaults, airdrops, and faucets), see:
+
+- `/docs/guides/network-mode`
+
+### First Run Defaults (Zero-Config)
+
+If you want zero-config defaults for testnets, set this environment variable before first run (before `config.toml` is created):
+
+```bash
+export SEASHAIL_NETWORK_MODE=testnet
+```
+
+Alias:
+
+```bash
+export SEASHAIL_NETWORK=testnet
+```
+
+Legacy compatibility (not recommended):
+
+```bash
+export SEASHAIL_TESTNET_MODE=1
+```
+
+### Per-Client Override (Non-Persistent)
+
+Per-client override (does not modify `config.toml`):
+
+```bash
+seashail mcp --network testnet
+```
+
+### Persistent Configuration
+
+You can also set the mode in `config.toml`:
+
+```toml
+network_mode = "testnet"
+```
+
+Agents can persist the mode via MCP using `set_network_mode`.
+
+## Related Documentation
+
+- [Security Model](../guides/security-model) — Threat analysis for security-relevant config (scam blocklist, adapter endpoints)
+- [Policy Tools Reference](../reference/tools-policy) — Configure spending limits, allowlists, and approval thresholds
+- [Architecture Overview](../reference/architecture) — How daemon manages config across multiple MCP clients
+- [Troubleshooting](../troubleshooting) — Resolving config-related errors

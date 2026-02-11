@@ -1,0 +1,63 @@
+---
+title: Claude Code
+description: Connect Seashail to Claude Code via MCP stdio.
+---
+
+Claude Code supports MCP servers natively via the `claude` CLI. See the [Claude Code MCP docs](https://code.claude.com/docs/en/mcp) for full details.
+
+> Seashail is **stdio-only**. Claude Code launches `seashail mcp` as a local command over stdio.
+
+## Prerequisites
+
+- [Seashail installed](/docs/getting-started/install) and on your `PATH`
+- A wallet created (`seashail wallet create`)
+- Claude Code installed
+
+## Setup
+
+Add Seashail as an MCP server:
+
+```bash
+claude mcp add seashail -- seashail mcp
+```
+
+This registers an MCP server named `seashail` that launches the Seashail binary over stdio.
+
+## Testnet Mode
+
+To connect to testnet instead of mainnet:
+
+```bash
+claude mcp add seashail-testnet -- seashail mcp --network testnet
+```
+
+You can have both `seashail` (mainnet) and `seashail-testnet` registered simultaneously and switch between them per session.
+
+## Verification
+
+After setup, start a Claude Code session and ask it to check your balance:
+
+```
+What's my SOL balance?
+```
+
+Claude Code should invoke the `get_balance` tool via Seashail and return your wallet balance.
+
+## Troubleshooting
+
+**"seashail: command not found"**
+If your Seashail install isn't on `PATH`, use the absolute path:
+
+```bash
+claude mcp add seashail -- /path/to/seashail mcp
+```
+
+**MCP server doesn't respond**
+Make sure the Seashail daemon isn't blocked by a firewall or permission issue. Run `seashail mcp` manually in a terminal to check for errors.
+
+**Remove and re-add**
+
+```bash
+claude mcp remove seashail
+claude mcp add seashail -- seashail mcp
+```

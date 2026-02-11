@@ -1,0 +1,128 @@
+---
+title: Connect Your Agent
+description: Configure MCP stdio so your agent can use Seashail tools.
+---
+
+Seashail exposes an MCP server over stdio. Any MCP-capable agent can connect and trade.
+
+```bash
+seashail mcp
+```
+
+> Seashail is **stdio-only** (self-hosted). If your agent UI asks for a “server URL” (SSE/HTTP), configure a **local command** instead. See: [Any MCP Client (Stdio)](/docs/guides/agents/any-mcp-client).
+
+Override network mode for a session:
+
+```bash
+seashail mcp --network testnet
+```
+
+## One-Click Templates
+
+Seashail ships config templates for common clients. List supported targets:
+
+```bash
+seashail agent list
+```
+
+Install a template (workspace-local or global, depending on the agent):
+
+```bash
+seashail agent install cursor
+seashail agent install vscode
+seashail agent install windsurf
+seashail agent install claude-desktop
+```
+
+Some clients (for example Continue and JetBrains) require manual configuration; see their pages for copy-paste templates.
+
+Testnet templates:
+
+```bash
+seashail agent install cursor --network testnet
+```
+
+## Choose Your Agent
+
+<Cards>
+  <Card title="OpenClaw" href="/docs/guides/agents/openclaw" />
+  <Card title="Claude Code" href="/docs/guides/agents/claude-code" />
+  <Card title="Claude Desktop" href="/docs/guides/agents/claude-desktop" />
+  <Card title="Codex" href="/docs/guides/agents/codex" />
+  <Card title="Cursor" href="/docs/guides/agents/cursor" />
+  <Card
+    title="VS Code / GitHub Copilot"
+    href="/docs/guides/agents/github-copilot"
+  />
+  <Card title="Windsurf" href="/docs/guides/agents/windsurf" />
+  <Card title="Cline" href="/docs/guides/agents/cline" />
+  <Card title="Continue" href="/docs/guides/agents/continue" />
+  <Card title="JetBrains" href="/docs/guides/agents/jetbrains" />
+  <Card
+    title="Any MCP Client (Stdio)"
+    href="/docs/guides/agents/any-mcp-client"
+  />
+</Cards>
+
+## Multi-Client Behavior
+
+MCP is stdio-based, so each agent launches its own `seashail mcp` process.
+
+Seashail avoids split-brain keys and state by using a **singleton local daemon**:
+
+- `seashail mcp` runs as a thin stdio proxy
+- It forwards all requests to `seashail daemon`, which owns the keystore and passphrase session
+- If no daemon is running, `seashail mcp` autostarts it
+
+Multiple agents can safely share:
+
+- The same wallets and keystore
+- The same in-memory passphrase session
+- The same policy counters (daily caps, etc.)
+
+Local transport is IPC-only:
+
+- macOS/Linux: Unix socket at `data_dir/seashail-mcp.sock`
+- Windows: named pipe (no TCP listener)
+
+> **Debug mode:** `seashail mcp --standalone` runs a direct stdio server without the daemon, useful for debugging but does not share state across clients.
+
+## Other Agents (Generic MCP Stdio)
+
+If your agent isn’t listed above, you can still connect as long as it supports **MCP over stdio** (launching a local command).
+
+1. Install Seashail (recommended): follow [Install Seashail](/docs/getting-started/install) so `seashail` is on your `PATH`.
+2. Configure your agent to run: Command: `seashail` and Args: `mcp`.
+
+Testnet (optional):
+
+- Args: `mcp --network testnet`
+
+If your agent uses a JSON config file (often named `.mcp.json`), these are the two common shapes:
+
+```json
+{
+  "mcpServers": {
+    "seashail": { "command": "seashail", "args": ["mcp"] }
+  }
+}
+```
+
+```json
+{
+  "servers": {
+    "seashail": { "type": "stdio", "command": "seashail", "args": ["mcp"] }
+  }
+}
+```
+
+“No install” option (still stdio):
+
+- Command: `npx`
+- Args: `-y @seashail/mcp --`
+
+Verify by asking your agent:
+
+```
+What's my SOL balance?
+```
