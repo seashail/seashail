@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { Balancer } from "react-wrap-balancer";
 
 import { security } from "@/content/copy";
+import { DOCS_URL } from "@/lib/constants";
 
 /**
  * Security model section.
@@ -46,8 +47,10 @@ export function SiteSecurity(): JSX.Element {
 
       <div className="site-grid-2">
         {security.features.map((feature, index) => (
-          <div
+          <a
             key={feature.title}
+            href={`${DOCS_URL}${feature.docPath}`}
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
             style={{
               padding: "28px 24px",
               background:
@@ -55,6 +58,9 @@ export function SiteSecurity(): JSX.Element {
                   ? "var(--brand-bg, #ffffff)"
                   : "var(--brand-alt-bg, #f0f0f0)",
               border: "2px solid var(--brand-text, #000000)",
+              textDecoration: "none",
+              color: "var(--brand-text, #000000)",
+              display: "block",
             }}
           >
             <div
@@ -98,7 +104,7 @@ export function SiteSecurity(): JSX.Element {
             >
               <Balancer>{feature.description}</Balancer>
             </p>
-          </div>
+          </a>
         ))}
       </div>
     </section>

@@ -25,21 +25,25 @@ export const solution = {
       title: "Shamir's secret sharing",
       description:
         "Keys split into 2-of-3 shares at creation. No single point of compromise. Key bio shares stored separately.",
+      docPath: "/guides/security-model",
     },
     {
       title: "Policy engine",
       description:
         "Every transaction passes through configurable rules before signing. Per-transaction limits, daily caps, allowlists.",
+      docPath: "/guides/policy-and-approvals",
     },
     {
       title: "MCP protocol",
       description:
         "Agents connect through stdio only. Structured, auditable tool calls. No raw key access, ever.",
+      docPath: "/guides/agents",
     },
     {
       title: "Zeroize on use",
       description:
         "Key material decrypted only during signing, then immediately zeroed. No key data persists in memory.",
+      docPath: "/guides/security-model",
     },
   ],
 } as const;
@@ -84,31 +88,37 @@ export const tradingSurface = {
       name: "Spot Trading",
       protocols: "Jupiter, 1inch, Uniswap",
       description: "Swap any token via DEX aggregators.",
+      docPath: "/guides/swapping",
     },
     {
       name: "Perpetuals",
       protocols: "Hyperliquid, Jupiter Perps",
       description: "Leveraged longs and shorts on crypto.",
+      docPath: "/guides/perps",
     },
     {
       name: "NFTs",
       protocols: "Magic Eden, Tensor, Blur, OpenSea",
       description: "Buy, sell, bid, and manage collections.",
+      docPath: "/guides/nfts",
     },
     {
       name: "Predictions",
       protocols: "Polymarket",
       description: "Trade on real-world event outcomes.",
+      docPath: "/guides/predictions",
     },
     {
       name: "Lending",
       protocols: "Aave, Compound, Kamino, Marginfi",
       description: "Supply, borrow, and manage collateral.",
+      docPath: "/guides/defi",
     },
     {
       name: "Staking",
       protocols: "Lido, Jito, EigenLayer, Marinade",
       description: "Stake and manage validator positions.",
+      docPath: "/guides/defi",
     },
   ],
 } as const;
@@ -119,15 +129,15 @@ export const agentCompat = {
   subheading:
     "Seashail exposes an MCP server over stdio. Any agent that speaks MCP can trade.",
   agents: [
-    { name: "OpenClaw", status: "Full support" },
-    { name: "Claude Code", status: "Full support" },
-    { name: "Claude Desktop", status: "Full support" },
-    { name: "Codex", status: "Full support" },
-    { name: "Cursor", status: "Full support" },
-    { name: "GitHub Copilot", status: "Full support" },
-    { name: "Windsurf", status: "Full support" },
-    { name: "Cline", status: "Full support" },
-    { name: "Any MCP Client", status: "Full support" },
+    { name: "OpenClaw", status: "Full support", docPath: "/guides/agents/openclaw" },
+    { name: "Claude Code", status: "Full support", docPath: "/guides/agents/claude-code" },
+    { name: "Claude Desktop", status: "Full support", docPath: "/guides/agents/claude-desktop" },
+    { name: "Codex", status: "Full support", docPath: "/guides/agents/codex" },
+    { name: "Cursor", status: "Full support", docPath: "/guides/agents/cursor" },
+    { name: "GitHub Copilot", status: "Full support", docPath: "/guides/agents/github-copilot" },
+    { name: "Windsurf", status: "Full support", docPath: "/guides/agents/windsurf" },
+    { name: "Cline", status: "Full support", docPath: "/guides/agents/cline" },
+    { name: "Any MCP Client", status: "Full support", docPath: "/guides/agents/any-mcp-client" },
   ],
 } as const;
 
@@ -141,41 +151,49 @@ export const security = {
       title: "Encrypted at rest",
       description:
         "AES-256-GCM via libsodium. Keys/shares encrypted before touching disk.",
+      docPath: "/guides/security-model",
     },
     {
       title: "Shamir 2-of-3",
       description:
         "No single storage location holds a complete key. Machine, backup, and recovery shares.",
+      docPath: "/guides/security-model",
     },
     {
       title: "Zeroize",
       description:
         "Key material erased from memory immediately after signing. Uses the zeroize crate.",
+      docPath: "/guides/security-model",
     },
     {
       title: "Policy engine",
       description:
         "Per-transaction limits, daily caps, address allowlists. Configurable per wallet.",
+      docPath: "/guides/policy-and-approvals",
     },
     {
       title: "Tiered approval",
       description:
         "Auto-approve low-risk transactions. Human confirmation above thresholds.",
+      docPath: "/guides/policy-and-approvals",
     },
     {
       title: "Session expiry",
       description:
         "Passphrase sessions expire automatically. Configurable timeout.",
+      docPath: "/guides/security-model",
     },
     {
       title: "No secrets in logs",
       description:
         "Private keys, shares, and passphrases never appear in logs. Verified by E2E tests.",
+      docPath: "/guides/security-model",
     },
     {
       title: "Single binary, pure Rust",
       description:
         "Built entirely in Rust for memory safety without garbage collection. No dependencies, no sidecars, no runtime extensions. One auditable binary.",
+      docPath: "/guides/security-model",
     },
   ],
 } as const;

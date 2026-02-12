@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+
+import { fontMono, fontSans } from "@seashail/web-theme/fonts";
 
 import "./global.css";
-import { fontMono, fontSans } from "@seashail/web-theme/fonts";
+import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import {
@@ -107,11 +109,9 @@ export default function RootLayout({
       >
         <ThemeProvider>
           {children}
+          <Analytics />
         </ThemeProvider>
-        <Script
-          id="seashail-jsonld"
-          type="application/ld+json"
-        >
+        <Script id="seashail-jsonld" type="application/ld+json">
           {JSON.stringify(jsonLd)}
         </Script>
       </body>

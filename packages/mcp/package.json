@@ -1,6 +1,6 @@
 {
   "name": "@seashail/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Run the Seashail MCP server in one line (npx).",
   "license": "Apache-2.0",

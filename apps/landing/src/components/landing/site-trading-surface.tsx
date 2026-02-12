@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { Balancer } from "react-wrap-balancer";
 
 import { tradingSurface } from "@/content/copy";
+import { DOCS_URL } from "@/lib/constants";
 
 /**
  * Trading surface section.
@@ -46,8 +47,10 @@ export function SiteTradingSurface(): JSX.Element {
 
       <div className="site-grid-3">
         {tradingSurface.categories.map((category, index) => (
-          <div
+          <a
             key={category.name}
+            href={`${DOCS_URL}${category.docPath}`}
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
             style={{
               borderTop: "4px solid var(--brand-text, #000000)",
               border: "2px solid var(--brand-text, #000000)",
@@ -56,6 +59,9 @@ export function SiteTradingSurface(): JSX.Element {
                 index % 2 === 1
                   ? "var(--brand-alt-bg, #f0f0f0)"
                   : "var(--brand-bg, #ffffff)",
+              textDecoration: "none",
+              color: "var(--brand-text, #000000)",
+              display: "block",
             }}
           >
             <h3
@@ -94,7 +100,7 @@ export function SiteTradingSurface(): JSX.Element {
             >
               <Balancer>{category.description}</Balancer>
             </p>
-          </div>
+          </a>
         ))}
       </div>
     </section>

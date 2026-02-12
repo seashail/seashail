@@ -1,11 +1,17 @@
 {
-  "name": "@seashail/seashail",
+  "name": "@seashail/openclaw-plugin",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "OpenClaw plugin that exposes Seashail tools as native OpenClaw agent tools (local-only).",
   "keywords": ["openclaw", "openclaw-plugin", "seashail", "crypto", "wallet", "mcp"],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seashail/seashail.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "openclaw": {
     "extensions": ["./index.ts"]
   },

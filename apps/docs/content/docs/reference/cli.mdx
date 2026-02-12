@@ -380,7 +380,7 @@ seashail openclaw install --link --plugin ./packages/openclaw-seashail-plugin
 
 ## seashail upgrade
 
-Upgrade Seashail to the latest version. If installed via Homebrew on macOS, runs `brew upgrade seashail`. Otherwise, re-runs the hosted installer.
+Upgrade Seashail to the latest version by re-running the hosted installer.
 
 ### Flags
 
@@ -422,5 +422,5 @@ seashail upgrade --yes --quiet
 
 ### Notes
 
-- Override auto-detection with `SEASHAIL_UPGRADE_METHOD=brew|installer`.
+- Override auto-detection with `SEASHAIL_UPGRADE_METHOD=installer`.
 - The upgrade command checks your current version and only upgrades if a newer version is available.

@@ -19,6 +19,7 @@
     "@seashail/web-theme": "workspace:*",
     "@sinclair/typebox": "0.34.48",
     "@t3-oss/env-nextjs": "^0.13.10",
+    "@vercel/analytics": "^1.6.1",
     "fumadocs-core": "^16.5.0",
     "fumadocs-mdx": "14.2.7",
     "fumadocs-ui": "^16.5.1",

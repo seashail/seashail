@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { Balancer } from "react-wrap-balancer";
 
 import { solution } from "@/content/copy";
+import { DOCS_URL } from "@/lib/constants";
 
 /**
  * Solution section.
@@ -53,11 +54,16 @@ export function SiteSolution(): JSX.Element {
         }}
       >
         {solution.features.map((feature, index) => (
-          <div
+          <a
             key={feature.title}
+            href={`${DOCS_URL}${feature.docPath}`}
+            className="transition-all duration-200 hover:translate-x-1"
             style={{
               borderLeft: "4px solid var(--brand-accent, #ff0000)",
               paddingLeft: "24px",
+              textDecoration: "none",
+              color: "var(--brand-text, #000000)",
+              display: "block",
             }}
           >
             <div
@@ -94,7 +100,7 @@ export function SiteSolution(): JSX.Element {
             >
               <Balancer>{feature.description}</Balancer>
             </p>
-          </div>
+          </a>
         ))}
       </div>
     </section>

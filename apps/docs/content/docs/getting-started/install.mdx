@@ -7,12 +7,7 @@ description: Install Seashail and configure your agent to use it as an MCP serve
 
 Seashail is a local binary. Your agent runs it as an MCP stdio server (via `seashail mcp`).
 
-Choose one:
-
-1. Native installer (macOS/Linux/Windows, **builds from source**)
-2. Homebrew (macOS, prebuilt binaries from GitHub Releases)
-
-For the native installer, you need:
+You need:
 
 - `git`
 - `cargo` (Rust toolchain)
@@ -43,15 +38,6 @@ If `seashail` is not found after install, add the default install dir to your `P
 
 ```powershell
 $env:Path = "$HOME\.local\bin;$env:Path"
-```
-
-### macOS (Homebrew)
-
-```bash
-brew install seashail/seashail/seashail
-# or:
-# brew tap seashail/seashail
-# brew install seashail
 ```
 
 ## No-Install Options

@@ -81,8 +81,8 @@ function resolveExecutablePath(seashailPathRaw: string | undefined) {
         ? []
         : [
             home ? path.join(home, ".cargo", "bin", "seashail") : "",
+            home ? path.join(home, ".local", "bin", "seashail") : "",
             "/usr/local/bin/seashail",
-            "/opt/homebrew/bin/seashail",
           ].filter(Boolean);
 
     for (const c of candidates) {

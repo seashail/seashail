@@ -54,7 +54,7 @@ Testnet:
 
 ## Alternatives
 
-- **Direct install (recommended):** `brew install seashail/seashail/seashail` or `curl -fsSL https://seashail.com/install | sh` — see [Install docs](https://seashail.com/docs/getting-started/install)
+- **Direct install (recommended):** `curl -fsSL https://seashail.com/install | sh` — see [Install docs](https://seashail.com/docs/getting-started/install)
 - **Python wrapper:** `uvx seashail-mcp` — see [`python/`](../../python/)
 - **One-click agent templates:** `seashail agent install <target>` — see [Agent Integration](../../README.md#agent-integration)
 

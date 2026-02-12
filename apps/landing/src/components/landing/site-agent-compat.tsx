@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { Balancer } from "react-wrap-balancer";
 
 import { agentCompat } from "@/content/copy";
+import { DOCS_URL } from "@/lib/constants";
 
 /**
  * Agent compatibility section.
@@ -52,8 +53,10 @@ export function SiteAgentCompat(): JSX.Element {
         }}
       >
         {agentCompat.agents.map((agent) => (
-          <div
+          <a
             key={agent.name}
+            href={`${DOCS_URL}${agent.docPath}`}
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
             style={{
               border: "4px solid var(--brand-text, #000000)",
               padding: "16px 24px",
@@ -62,10 +65,13 @@ export function SiteAgentCompat(): JSX.Element {
               fontWeight: 700,
               textTransform: "uppercase",
               background: "var(--brand-bg, #ffffff)",
+              textDecoration: "none",
+              color: "var(--brand-text, #000000)",
+              display: "inline-block",
             }}
           >
             {agent.name}
-          </div>
+          </a>
         ))}
       </div>
     </section>

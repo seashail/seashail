@@ -53,6 +53,7 @@ export function SiteCta(): JSX.Element {
       <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
         <a
           href={DOCS_URL}
+          className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -75,6 +76,7 @@ export function SiteCta(): JSX.Element {
           href={GITHUB_URL}
           target="_blank"
           rel="noopener noreferrer"
+          className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
           style={{
             display: "inline-flex",
             alignItems: "center",
