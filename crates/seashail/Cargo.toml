@@ -71,7 +71,7 @@ reqwest = { version = "0.12.12", default-features = false, features = [
 ] }
 solana-client = "3.1.8"
 solana-sdk = "3.0.0"
-solana-address = "2.1.0"
+solana-address = "2.2.0"
 solana-keypair = "3.1.0"
 solana-seed-phrase = "3.0.0"
 solana-derivation-path = "3.0.0"
