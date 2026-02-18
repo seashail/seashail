@@ -18,7 +18,7 @@ categories = [
 eyre = "0.6"
 color-eyre = "0.6"
 thiserror = "2.0.12"
-clap = { version = "4.5.30", features = ["derive"] }
+clap = { version = "4.5.59", features = ["derive"] }
 directories = "6.0.0"
 fs2 = "0.4.3"
 base64 = "0.22.1"
