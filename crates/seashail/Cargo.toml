@@ -80,7 +80,7 @@ solana-commitment-config = "3.1.0"
 solana-system-interface = { version = "3.0.0", features = ["bincode"] }
 spl-associated-token-account = "8.0.0"
 spl-token = "9.0.0"
-alloy = { version = "1.6", features = ["full", "signer-mnemonic"] }
+alloy = { version = "1.7", features = ["full", "signer-mnemonic"] }
 turso = "0.4.4"
 bitcoin = { version = "0.32.7", default-features = false, features = ["std"] }
 rust_decimal = "1.36.0"
