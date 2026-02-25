@@ -2,19 +2,20 @@ import type { JSX } from "react";
 
 import { Balancer } from "react-wrap-balancer";
 
-import { InstallCommand } from "@/components/shared/install-command";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+
+import { InstallCommand } from "@/components/shared/install-command";
 import { GITHUB_URL, getDocsUrl } from "@/lib/constants";
 
 /**
  * Call-to-action section.
  *
- * @param props - Component props.
- * @param props.copy - CTA section copy from the locale dictionary.
- * @param props.ui - Shared UI strings from the locale dictionary.
- * @param props.locale - Current locale for locale-aware docs links.
- * @returns CTA section.
+ * @param {object} props - Component props.
+ * @param {object} props.copy - CTA section copy from the locale dictionary.
+ * @param {object} props.ui - Shared UI strings from the locale dictionary.
+ * @param {string} props.locale - Current locale for locale-aware docs links.
+ * @returns {React.ReactNode} CTA section.
  */
 export function SiteCta({
   copy,

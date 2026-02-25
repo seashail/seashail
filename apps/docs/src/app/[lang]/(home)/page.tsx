@@ -16,9 +16,9 @@ const DOCS_DEST = "/docs";
  * Note: the Next.js `redirect()` helper is not compatible with static export,
  * so we use a client-side redirect with an accessible fallback link.
  *
- * @param props - Component props.
- * @param props.params - Route params containing lang.
- * @returns Redirect page with fallback links.
+ * @param {object} props - Component props.
+ * @param {Promise<{lang: string}>} props.params - Route params containing lang.
+ * @returns {React.ReactNode} Redirect page with fallback links.
  */
 export default function HomePage({
   params,

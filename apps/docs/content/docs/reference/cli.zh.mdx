@@ -256,8 +256,7 @@ seashail agent print cursor --network testnet
     },
     network: {
       type: '"mainnet" | "testnet"',
-      description:
-        "安装测试网模板（seashail mcp --network testnet）。",
+      description: "安装测试网模板（seashail mcp --network testnet）。",
       default: '"mainnet"',
     },
     path: {
@@ -304,8 +303,7 @@ seashail agent install cursor --path ~/my-config.json
   type={{
     network: {
       type: '"mainnet" | "testnet"',
-      description:
-        "通过 OpenClaw 调用 Seashail 时的仅会话网络模式。",
+      description: "通过 OpenClaw 调用 Seashail 时的仅会话网络模式。",
       default: '"mainnet"',
     },
     plugin: {
@@ -315,8 +313,7 @@ seashail agent install cursor --path ~/my-config.json
     },
     link: {
       type: "boolean",
-      description:
-        "链接本地插件路径而不是复制（对开发友好）。",
+      description: "链接本地插件路径而不是复制（对开发友好）。",
       default: "false",
     },
     openclaw_config_path: {
@@ -331,8 +328,7 @@ seashail agent install cursor --path ~/my-config.json
     },
     restart_gateway: {
       type: "boolean",
-      description:
-        "安装/配置更新后重启 OpenClaw 网关服务。",
+      description: "安装/配置更新后重启 OpenClaw 网关服务。",
       default: "true",
     },
     enable_in_sandbox: {
@@ -388,8 +384,7 @@ seashail openclaw install --link --plugin ./packages/openclaw-seashail-plugin
   type={{
     yes: {
       type: "boolean",
-      description:
-        "跳过确认提示（在非交互式 shell 中必需）。",
+      description: "跳过确认提示（在非交互式 shell 中必需）。",
       default: "false",
     },
     quiet: {

@@ -4,15 +4,16 @@ import { Balancer } from "react-wrap-balancer";
 
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+
 import { getDocsUrl } from "@/lib/constants";
 
 /**
  * Trading surface section.
  *
- * @param props - Component props.
- * @param props.copy - Trading surface section copy from the locale dictionary.
- * @param props.locale - Current locale for locale-aware docs links.
- * @returns Trading surface section.
+ * @param {object} props - Component props.
+ * @param {object} props.copy - Trading surface section copy from the locale dictionary.
+ * @param {string} props.locale - Current locale for locale-aware docs links.
+ * @returns {React.ReactNode} Trading surface section.
  */
 export function SiteTradingSurface({
   copy,

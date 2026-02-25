@@ -7,10 +7,10 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 /**
  * Problem section highlighting the key security risk of giving agents private keys.
  *
- * @param props - Component props.
- * @param props.copy - Problem section copy from the locale dictionary.
- * @param props.ui - Shared UI strings from the locale dictionary.
- * @returns Problem section.
+ * @param {object} props - Component props.
+ * @param {object} props.copy - Problem section copy from the locale dictionary.
+ * @param {object} props.ui - Shared UI strings from the locale dictionary.
+ * @returns {React.ReactNode} Problem section.
  */
 export function SiteProblem({
   copy,

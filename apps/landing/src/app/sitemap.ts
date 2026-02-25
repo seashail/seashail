@@ -8,10 +8,9 @@ export const dynamic = "force-static";
 /**
  * Generate sitemap entries for search engine indexing.
  *
- * @remarks
  * Includes both English and Chinese locale paths with hreflang alternates.
  *
- * @returns Sitemap entries for all locales.
+ * @returns {MetadataRoute.Sitemap} Sitemap entries for all locales.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

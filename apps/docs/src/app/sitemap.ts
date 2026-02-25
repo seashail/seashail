@@ -22,10 +22,8 @@ export const dynamic = "force-static";
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const languages = source.getLanguages();
-  const enPages =
-    languages.find((lang) => lang.language === "en")?.pages ?? [];
-  const zhPages =
-    languages.find((lang) => lang.language === "zh")?.pages ?? [];
+  const enPages = languages.find((lang) => lang.language === "en")?.pages ?? [];
+  const zhPages = languages.find((lang) => lang.language === "zh")?.pages ?? [];
   const zhUrlSet = new Set(zhPages.map((page) => page.url));
   const now = new Date();
 

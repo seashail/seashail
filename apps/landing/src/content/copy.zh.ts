@@ -172,8 +172,7 @@ export const agentCompat = {
 /** 安全模型区域文案。 */
 export const security = {
   heading: "安全模型",
-  subheading:
-    "Seashail 让规则决定保护什么、共享什么。阅读源码，自行验证。",
+  subheading: "Seashail 让规则决定保护什么、共享什么。阅读源码，自行验证。",
   features: [
     {
       title: "静态加密",
@@ -195,20 +194,17 @@ export const security = {
     },
     {
       title: "策略引擎",
-      description:
-        "单笔交易限额、每日上限、地址白名单。可按钱包配置。",
+      description: "单笔交易限额、每日上限、地址白名单。可按钱包配置。",
       docPath: "/guides/policy-and-approvals",
     },
     {
       title: "分级审批",
-      description:
-        "低风险交易自动批准。超过阈值的交易需要人工确认。",
+      description: "低风险交易自动批准。超过阈值的交易需要人工确认。",
       docPath: "/guides/policy-and-approvals",
     },
     {
       title: "会话过期",
-      description:
-        "密码短语会话自动过期。超时时间可配置。",
+      description: "密码短语会话自动过期。超时时间可配置。",
       docPath: "/guides/security-model",
     },
     {
@@ -243,8 +239,7 @@ export const openSource = {
 /** 行动号召区域文案。 */
 export const cta = {
   heading: "5 分钟开始交易",
-  subheading:
-    "安装二进制程序，为钱包充值，连接你的智能体。就这么简单。",
+  subheading: "安装二进制程序，为钱包充值，连接你的智能体。就这么简单。",
 } as const;
 
 /** 共享 UI 字符串 — 简体中文。 */

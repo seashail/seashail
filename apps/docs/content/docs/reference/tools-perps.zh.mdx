@@ -23,8 +23,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
     },
     market: {
       type: "string",
-      description:
-        "市场符号（例如 'BTC'）。若省略，返回所有市场。",
+      description: "市场符号（例如 'BTC'）。若省略，返回所有市场。",
     },
   }}
 />
@@ -101,7 +100,8 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 <Tabs items={["Hyperliquid", "Jupiter Perps"]}>
   <Tab value="Hyperliquid">
-    - 使用钱包的 **EVM 地址** - 如果选定的钱包/账户没有 EVM 地址，调用失败 - 主网和测试网均可使用
+    - 使用钱包的 **EVM 地址** - 如果选定的钱包/账户没有 EVM 地址，调用失败 -
+    主网和测试网均可使用
   </Tab>
   <Tab value="Jupiter Perps">
     - 使用钱包的 **Solana 地址** - 仅主网（网络模式必须为主网）
@@ -216,13 +216,11 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
     },
     usd_value: {
       type: "number",
-      description:
-        "用于策略执行的尽力美元价值。若省略，视为未知。",
+      description: "用于策略执行的尽力美元价值。若省略，视为未知。",
     },
     usd_value_known: {
       type: "boolean",
-      description:
-        "可选覆盖。若提供了 usd_value，则视为 true。",
+      description: "可选覆盖。若提供了 usd_value，则视为 true。",
       default: "false",
     },
   }}
@@ -232,10 +230,12 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 <Tabs items={["Hyperliquid", "Jupiter Perps"]}>
   <Tab value="Hyperliquid">
-    - 支持**市价**和**限价**单 - 支持 size_units：**"usd"** 或 **"asset"** - 使用钱包的 **EVM 地址** - 主网和测试网均可使用
+    - 支持**市价**和**限价**单 - 支持 size_units：**"usd"** 或 **"asset"** -
+    使用钱包的 **EVM 地址** - 主网和测试网均可使用
   </Tab>
   <Tab value="Jupiter Perps">
-    - 仅支持**市价单** - 仅支持 size_units：**"usd"** - 使用钱包的 **Solana 地址** - 仅主网（网络模式必须为主网）
+    - 仅支持**市价单** - 仅支持 size_units：**"usd"** - 使用钱包的 **Solana
+    地址** - 仅主网（网络模式必须为主网）
   </Tab>
 </Tabs>
 
@@ -345,13 +345,11 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
     },
     side: {
       type: '"long" | "short"',
-      description:
-        "可选方向提示；平仓方向从当前仓位推导。",
+      description: "可选方向提示；平仓方向从当前仓位推导。",
     },
     size: {
       type: "string",
-      description:
-        "可选平仓大小（美元或资产单位）。若省略，全部平仓。",
+      description: "可选平仓大小（美元或资产单位）。若省略，全部平仓。",
     },
     size_units: {
       type: '"usd" | "asset"',
@@ -365,13 +363,11 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
     },
     usd_value: {
       type: "number",
-      description:
-        "用于策略执行的尽力美元价值。若省略，视为未知。",
+      description: "用于策略执行的尽力美元价值。若省略，视为未知。",
     },
     usd_value_known: {
       type: "boolean",
-      description:
-        "可选覆盖。若提供了 usd_value，则视为 true。",
+      description: "可选覆盖。若提供了 usd_value，则视为 true。",
       default: "false",
     },
   }}
@@ -381,10 +377,12 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 <Tabs items={["Hyperliquid", "Jupiter Perps"]}>
   <Tab value="Hyperliquid">
-    - 支持**部分平仓**（提供 `size`）或**全部平仓**（省略 `size`）- 支持 size_units：**"usd"** 或 **"asset"** - 使用钱包的 **EVM 地址**
+    - 支持**部分平仓**（提供 `size`）或**全部平仓**（省略 `size`）- 支持
+    size_units：**"usd"** 或 **"asset"** - 使用钱包的 **EVM 地址**
   </Tab>
   <Tab value="Jupiter Perps">
-    - 仅支持**全部平仓**（省略 `size`）- 若省略 `side`，Seashail 从持仓中推断 - 使用钱包的 **Solana 地址** - 仅主网
+    - 仅支持**全部平仓**（省略 `size`）- 若省略 `side`，Seashail 从持仓中推断 -
+    使用钱包的 **Solana 地址** - 仅主网
   </Tab>
 </Tabs>
 

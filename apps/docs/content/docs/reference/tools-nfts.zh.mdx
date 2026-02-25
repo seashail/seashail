@@ -23,8 +23,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     account_index: {
       type: "integer",
-      description:
-        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      description: "钱包内的账户索引。若省略，使用活跃账户索引。",
       default: "active index",
     },
     chain: {
@@ -91,8 +90,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     account_index: {
       type: "integer",
-      description:
-        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      description: "钱包内的账户索引。若省略，使用活跃账户索引。",
       default: "active index",
     },
     chain: {
@@ -107,8 +105,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     mint: {
       type: "string",
-      description:
-        "代币 mint 地址（Solana）。Solana 转账必填。",
+      description: "代币 mint 地址（Solana）。Solana 转账必填。",
     },
     contract: {
       type: "string",
@@ -116,8 +113,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     token_id: {
       type: "string",
-      description:
-        "合约内的代币 ID（EVM）。EVM 转账必填。十进制字符串。",
+      description: "合约内的代币 ID（EVM）。EVM 转账必填。十进制字符串。",
     },
   }}
 />
@@ -126,10 +122,14 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
 
 <Tabs items={["Solana", "EVM"]}>
   <Tab value="Solana">
-    - 使用 SPL 代币转账（精确转移 1 个代币）- 提供 `mint` 参数：Solana mint 公钥 - 如有需要，Seashail 会为接收方创建关联代币账户（ATA）- 诈骗黑名单同时适用于接收方和 mint 地址
+    - 使用 SPL 代币转账（精确转移 1 个代币）- 提供 `mint` 参数：Solana mint 公钥
+    - 如有需要，Seashail 会为接收方创建关联代币账户（ATA）-
+    诈骗黑名单同时适用于接收方和 mint 地址
   </Tab>
   <Tab value="EVM">
-    - 使用 ERC-721 `safeTransferFrom` - 提供 `contract` 和 `token_id` 参数 - 代币 ID 必须为十进制字符串（例如 "1234"）- 广播前模拟交易 - 诈骗黑名单同时适用于接收方和合约地址
+    - 使用 ERC-721 `safeTransferFrom` - 提供 `contract` 和 `token_id` 参数 -
+    代币 ID 必须为十进制字符串（例如 "1234"）- 广播前模拟交易 -
+    诈骗黑名单同时适用于接收方和合约地址
   </Tab>
 </Tabs>
 
@@ -203,8 +203,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     account_index: {
       type: "integer",
-      description:
-        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      description: "钱包内的账户索引。若省略，使用活跃账户索引。",
       default: "active index",
     },
     chain: {
@@ -219,13 +218,11 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     usd_value: {
       type: "number",
-      description:
-        "用于策略执行的尽力美元价值。若省略，视为未知。",
+      description: "用于策略执行的尽力美元价值。若省略，视为未知。",
     },
     usd_value_known: {
       type: "boolean",
-      description:
-        "可选覆盖。若提供了 usd_value，则视为 true。",
+      description: "可选覆盖。若提供了 usd_value，则视为 true。",
       default: "false",
     },
     tx_b64: {
@@ -235,8 +232,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     allowed_program_ids: {
       type: "array",
-      description:
-        "Solana：程序 ID 白名单；每条指令的程序 ID 必须在此列表中。",
+      description: "Solana：程序 ID 白名单；每条指令的程序 ID 必须在此列表中。",
     },
     to: {
       type: "string",
@@ -263,10 +259,18 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
 
 <Tabs items={["Solana", "EVM"]}>
   <Tab value="Solana">
-    - 提供 `tx_b64`：base64 编码的 `VersionedTransaction` 字节（未签名；Seashail 将签名）- 提供 `allowed_program_ids`：程序 ID 白名单（每条指令必须在此集合中）- 或者，提供 `asset` 对象让交易市场适配器获取封装 - Solana 交易市场封装**始终强制确认**（无论策略如何都需要用户确认）- 策略审批后，交易被签名并广播到 Solana
+    - 提供 `tx_b64`：base64 编码的 `VersionedTransaction` 字节（未签名；Seashail
+    将签名）- 提供 `allowed_program_ids`：程序 ID
+    白名单（每条指令必须在此集合中）- 或者，提供 `asset`
+    对象让交易市场适配器获取封装 - Solana
+    交易市场封装**始终强制确认**（无论策略如何都需要用户确认）-
+    策略审批后，交易被签名并广播到 Solana
   </Tab>
   <Tab value="EVM">
-    - 提供 `to`：合约/接收方地址 - 提供 `data`：0x 前缀调用数据（空时使用 `0x`）- 提供 `value_wei`：可选 ETH 价值，十进制字符串（默认："0"）- 或者，提供 `asset` 对象让交易市场适配器获取封装 - 广播前模拟交易 - 诈骗黑名单适用于 `to` 地址
+    - 提供 `to`：合约/接收方地址 - 提供 `data`：0x 前缀调用数据（空时使用
+    `0x`）- 提供 `value_wei`：可选 ETH 价值，十进制字符串（默认："0"）-
+    或者，提供 `asset` 对象让交易市场适配器获取封装 - 广播前模拟交易 -
+    诈骗黑名单适用于 `to` 地址
   </Tab>
 </Tabs>
 

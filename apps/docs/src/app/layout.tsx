@@ -14,9 +14,9 @@ export const metadata: Metadata = {
  * Root layout for the documentation site.
  * Returns bare children — the [lang]/layout.tsx owns the full HTML structure.
  *
- * @param props - Component props.
- * @param props.children - Page content.
- * @returns Children without HTML wrapper.
+ * @param {object} props - Component props.
+ * @param {React.ReactNode} props.children - Page content.
+ * @returns {React.ReactNode} Children without HTML wrapper.
  */
 export default function RootLayout({
   children,

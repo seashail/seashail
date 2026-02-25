@@ -65,7 +65,7 @@ fn div(a: u8, b: u8) -> eyre::Result<u8> {
     let diff_usize = usize::try_from(diff_i16).map_err(|e| eyre::eyre!("{e}"))?;
     let result = table_usize(&EXP_TABLE, diff_usize);
     // Branchless: yield 0 when a == 0 without data-dependent early return.
-    let mask = (a != 0) as u8;
+    let mask = u8::from(a != 0);
     Ok(result & mask.wrapping_neg())
 }
 
@@ -75,7 +75,7 @@ fn mult(a: u8, b: u8) -> u8 {
     let sum = (log_a + log_b) % 255;
     let result = table_usize(&EXP_TABLE, usize::from(sum));
     // Branchless: yield 0 when either operand is 0 without data-dependent early return.
-    let mask = ((a != 0) & (b != 0)) as u8;
+    let mask = u8::from((a != 0) & (b != 0));
     result & mask.wrapping_neg()
 }
 

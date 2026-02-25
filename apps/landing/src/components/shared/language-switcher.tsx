@@ -1,24 +1,36 @@
 "use client";
 
 import type { JSX } from "react";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n/config";
-import { localeLabels, locales } from "@/i18n/config";
+
+import { isLocale, localeLabels, locales } from "@/i18n/config";
 
 /**
  * Set the locale preference cookie.
  *
- * @param locale - The locale to persist.
+ * @param {Locale} locale - The locale to persist.
  */
-function setLocaleCookie(locale: Locale): void {
-  document.cookie = `locale=${locale};path=/;max-age=31536000;SameSite=Lax`;
+async function setLocaleCookie(locale: Locale): Promise<void> {
+  try {
+    await cookieStore.set({
+      name: "locale",
+      value: locale,
+      path: "/",
+      sameSite: "lax",
+      expires: Date.now() + 31_536_000_000,
+    });
+  } catch {
+    /* cookie store unavailable */
+  }
 }
 
 /**
  * Globe icon SVG for the language switcher button.
  *
- * @returns SVG element.
+ * @returns {JSX.Element} SVG element.
  */
 function GlobeIcon(): JSX.Element {
   return (
@@ -43,9 +55,9 @@ function GlobeIcon(): JSX.Element {
 /**
  * Language switcher dropdown with globe icon.
  *
- * @param props - Component props.
- * @param props.currentLocale - The active locale.
- * @returns Language switcher dropdown.
+ * @param {object} props - Component props.
+ * @param {Locale} props.currentLocale - The active locale.
+ * @returns {JSX.Element} Language switcher dropdown.
  */
 export function LanguageSwitcher({
   currentLocale,
@@ -59,13 +71,28 @@ export function LanguageSwitcher({
     setIsOpen((prev) => !prev);
   }, []);
 
+  const handleLocaleClick = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      const value = event.currentTarget.dataset["locale"] ?? "";
+      if (isLocale(value)) {
+        setLocaleCookie(value);
+      }
+    },
+    []
+  );
+
   /** Close dropdown when clicking outside. */
   useEffect(() => {
-    /** Handle click outside dropdown. */
+    /**
+     * Handle click outside dropdown.
+     *
+     * @param {MouseEvent} event - The mousedown event.
+     */
     function handleClickOutside(event: MouseEvent): void {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        event.target instanceof Node &&
+        !dropdownRef.current.contains(event.target)
       ) {
         setIsOpen(false);
       }
@@ -121,9 +148,8 @@ export function LanguageSwitcher({
             <a
               key={locale}
               href={`/${locale}/`}
-              onClick={() => {
-                setLocaleCookie(locale);
-              }}
+              data-locale={locale}
+              onClick={handleLocaleClick}
               style={{
                 display: "block",
                 padding: "10px 16px",
@@ -137,9 +163,9 @@ export function LanguageSwitcher({
                     ? "var(--brand-alt-bg, #f0f0f0)"
                     : "transparent",
                 borderBottom:
-                  locale !== locales[locales.length - 1]
-                    ? "1px solid var(--brand-text, #000000)"
-                    : "none",
+                  locale === locales.at(-1)
+                    ? "none"
+                    : "1px solid var(--brand-text, #000000)",
               }}
             >
               {localeLabels[locale]}

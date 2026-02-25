@@ -18,7 +18,7 @@ categories = [
 eyre = "0.6"
 color-eyre = "0.6"
 thiserror = "2.0.12"
-clap = { version = "4.5.30", features = ["derive"] }
+clap = { version = "4.5.60", features = ["derive"] }
 directories = "6.0.0"
 fs2 = "0.4.3"
 base64 = "0.22.1"
@@ -30,13 +30,15 @@ hkdf = "0.12.4"
 rand = "0.10.0"
 secrecy = "0.10.3"
 rpassword = "7.4.0"
-uuid = { version = "1.15.1", features = ["v4"] }
+uuid = { version = "1.21.0", features = ["v4"] }
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.139"
-toml = "0.9.11"
+toml = "1.0.3"
 bincode = "1.3.3"
 rmp-serde = "1.3.0"
-ed25519-dalek = { version = "2.1.1", default-features = false, features = ["std"] }
+ed25519-dalek = { version = "2.1.1", default-features = false, features = [
+  "std",
+] }
 tokio = { version = "1.44.0", features = [
   "macros",
   "rt-multi-thread",
@@ -71,21 +73,23 @@ reqwest = { version = "0.12.12", default-features = false, features = [
 ] }
 solana-client = "3.1.8"
 solana-sdk = "3.0.0"
-solana-address = "2.1.0"
+solana-address = "2.2.0"
 solana-keypair = "3.1.0"
 solana-seed-phrase = "3.0.0"
 solana-derivation-path = "3.0.0"
 solana-signer = "3.0.0"
-solana-commitment-config = "3.1.0"
+solana-commitment-config = "3.1.1"
 solana-system-interface = { version = "3.0.0", features = ["bincode"] }
 spl-associated-token-account = "8.0.0"
 spl-token = "9.0.0"
-alloy = { version = "1.6", features = ["full", "signer-mnemonic"] }
+alloy = { version = "1.7", features = ["full", "signer-mnemonic"] }
 turso = "0.4.4"
 bitcoin = { version = "0.32.7", default-features = false, features = ["std"] }
 rust_decimal = "1.36.0"
 k256 = { version = "0.13.4", default-features = false, features = ["ecdsa"] }
-polymarket-client-sdk = { version = "0.4.1", default-features = false, features = ["clob"] }
+polymarket-client-sdk = { version = "0.4.1", default-features = false, features = [
+  "clob",
+] }
 carbon-marginfi-v2-decoder = "0.12.0"
 carbon-core = "0.12.0"
 
@@ -94,5 +98,5 @@ workspace = true
 
 [dev-dependencies]
 assert_cmd = "2.0.16"
-predicates = "3.1.3"
+predicates = "3.1.4"
 tempfile = "3.17.1"

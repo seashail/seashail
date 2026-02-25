@@ -4,15 +4,16 @@ import { Balancer } from "react-wrap-balancer";
 
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+
 import { getDocsUrl } from "@/lib/constants";
 
 /**
  * Security model section.
  *
- * @param props - Component props.
- * @param props.copy - Security section copy from the locale dictionary.
- * @param props.locale - Current locale for locale-aware docs links.
- * @returns Security section.
+ * @param {object} props - Component props.
+ * @param {object} props.copy - Security section copy from the locale dictionary.
+ * @param {string} props.locale - Current locale for locale-aware docs links.
+ * @returns {React.ReactNode} Security section.
  */
 export function SiteSecurity({
   copy,

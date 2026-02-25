@@ -40,9 +40,9 @@ export const SITE_DESCRIPTION =
  * English returns the base DOCS_URL unchanged. Non-default locales prepend
  * the locale segment before `/docs` (e.g. `/zh/docs`).
  *
- * @param locale - The current locale.
- * @param path - Optional sub-path within docs (e.g. "/guides/security-model").
- * @returns Full absolute docs URL for the given locale and path.
+ * @param {Locale} locale - The current locale.
+ * @param {string} path - Optional sub-path within docs (e.g. "/guides/security-model").
+ * @returns {string} Full absolute docs URL for the given locale and path.
  */
 export function getDocsUrl(locale: Locale, path = ""): string {
   if (locale === "en") {

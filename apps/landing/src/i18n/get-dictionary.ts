@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/config";
+
 import * as en from "@/content/copy";
 import * as zh from "@/content/copy.zh";
 
@@ -8,8 +9,8 @@ import * as zh from "@/content/copy.zh";
  */
 type Widen<T> = T extends string
   ? string
-  : T extends ReadonlyArray<infer U>
-    ? ReadonlyArray<Widen<U>>
+  : T extends readonly (infer U)[]
+    ? readonly Widen<U>[]
     : T extends Record<string, unknown>
       ? { readonly [K in keyof T]: Widen<T[K]> }
       : T;
@@ -22,8 +23,8 @@ const dictionaries: Record<Locale, Dictionary> = { en, zh };
 /**
  * Resolve the copy dictionary for a given locale.
  *
- * @param locale - The target locale.
- * @returns The copy dictionary for that locale.
+ * @param {Locale} locale - The target locale.
+ * @returns {Dictionary} The copy dictionary for that locale.
  */
 export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale];

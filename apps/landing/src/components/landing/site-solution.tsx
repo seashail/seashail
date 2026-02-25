@@ -4,15 +4,16 @@ import { Balancer } from "react-wrap-balancer";
 
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+
 import { getDocsUrl } from "@/lib/constants";
 
 /**
  * Solution section.
  *
- * @param props - Component props.
- * @param props.copy - Solution section copy from the locale dictionary.
- * @param props.locale - Current locale for locale-aware docs links.
- * @returns Solution section.
+ * @param {object} props - Component props.
+ * @param {object} props.copy - Solution section copy from the locale dictionary.
+ * @param {string} props.locale - Current locale for locale-aware docs links.
+ * @returns {React.ReactNode} Solution section.
  */
 export function SiteSolution({
   copy,

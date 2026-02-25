@@ -7,9 +7,9 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 /**
  * Architecture section.
  *
- * @param props - Component props.
- * @param props.copy - Architecture section copy from the locale dictionary.
- * @returns Architecture section.
+ * @param {object} props - Component props.
+ * @param {object} props.copy - Architecture section copy from the locale dictionary.
+ * @returns {React.ReactNode} Architecture section.
  */
 export function SiteArchitecture({
   copy,

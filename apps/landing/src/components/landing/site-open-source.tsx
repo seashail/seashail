@@ -7,9 +7,9 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 /**
  * Open source section.
  *
- * @param props - Component props.
- * @param props.copy - Open source section copy from the locale dictionary.
- * @returns Open source section.
+ * @param {object} props - Component props.
+ * @param {object} props.copy - Open source section copy from the locale dictionary.
+ * @returns {React.ReactNode} Open source section.
  */
 export function SiteOpenSource({
   copy,

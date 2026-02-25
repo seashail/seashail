@@ -18,8 +18,8 @@ interface PageParams {
 /**
  * Docs page renderer with locale-aware content and English fallback.
  *
- * @param props - Page props with lang and slug params.
- * @returns Rendered docs page.
+ * @param {PageParams} props - Page props with lang and slug params.
+ * @returns {Promise<React.ReactNode>} Rendered docs page.
  */
 const Page = async (props: PageParams) => {
   const params = await props.params;
@@ -54,7 +54,7 @@ export default Page;
 /**
  * Generate static params for all docs pages across all locales.
  *
- * @returns Static params for all docs pages.
+ * @returns {object[]} Static params for all docs pages.
  */
 export function generateStaticParams() {
   return source.generateParams();
@@ -67,8 +67,8 @@ export function generateStaticParams() {
  * locales, plus x-default pointing to the English version for unmatched
  * locales. URLs are relative — metadataBase from root layout resolves them.
  *
- * @param props - Page params.
- * @returns Page metadata with hreflang alternates.
+ * @param {PageParams} props - Page params.
+ * @returns {Promise<Metadata>} Page metadata with hreflang alternates.
  */
 export const generateMetadata = async (
   props: PageParams

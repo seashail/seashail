@@ -4,9 +4,16 @@ import { fontMono, fontSans } from "@seashail/web-theme/fonts";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 
-import { ThemeProvider } from "@/components/shared/theme-provider";
 import type { Locale } from "@/i18n/config";
-import { htmlLangMap, locales, ogLocaleMap } from "@/i18n/config";
+
+import { ThemeProvider } from "@/components/shared/theme-provider";
+import {
+  defaultLocale,
+  htmlLangMap,
+  isLocale,
+  locales,
+  ogLocaleMap,
+} from "@/i18n/config";
 import {
   GITHUB_URL,
   SITE_DESCRIPTION,
@@ -17,17 +24,18 @@ import {
 /**
  * Generate static params for all supported locales.
  *
- * @returns Array of locale params for static generation.
+ * @returns {{ lang: Locale }[]} Array of locale params for static generation.
  */
-export function generateStaticParams(): Array<{ lang: Locale }> {
+export function generateStaticParams(): { lang: Locale }[] {
   return locales.map((lang) => ({ lang }));
 }
 
 /**
  * Generate locale-aware metadata for SEO and OpenGraph.
  *
- * @param props - Route props with locale param.
- * @returns Metadata object for the current locale.
+ * @param {object} props - Route props with locale param.
+ * @param {Promise<{lang: string}>} props.params - Route params containing lang.
+ * @returns {Promise<Metadata>} Metadata object for the current locale.
  */
 export async function generateMetadata({
   params,
@@ -35,7 +43,7 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
-  const locale = lang as Locale;
+  const locale = isLocale(lang) ? lang : defaultLocale;
   const ogLocale = ogLocaleMap[locale];
   const alternateOg = locale === "zh" ? "en_US" : "zh_CN";
 
@@ -118,10 +126,10 @@ const jsonLd = {
 /**
  * Locale-aware layout for the Seashail landing site.
  *
- * @param props - Component props.
- * @param props.children - Page content.
- * @param props.params - Route params containing lang.
- * @returns Root HTML layout with locale-specific attributes.
+ * @param {object} props - Component props.
+ * @param {React.ReactNode} props.children - Page content.
+ * @param {Promise<{lang: string}>} props.params - Route params containing lang.
+ * @returns {Promise<React.ReactNode>} Root HTML layout with locale-specific attributes.
  */
 export default async function LocaleLayout({
   children,
@@ -131,7 +139,8 @@ export default async function LocaleLayout({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const htmlLang = htmlLangMap[lang as Locale] ?? "en";
+  const locale = isLocale(lang) ? lang : defaultLocale;
+  const htmlLang = htmlLangMap[locale];
 
   return (
     <html

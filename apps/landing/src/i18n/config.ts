@@ -8,9 +8,19 @@ export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "en";
 
 /**
+ * Check whether a string is a supported locale.
+ *
+ * @param {string} value - The value to check.
+ * @returns {boolean} `true` when `value` is a member of {@link locales}.
+ */
+export function isLocale(value: string): value is Locale {
+  const supported: readonly string[] = locales;
+  return supported.includes(value);
+}
+
+/**
  * Map from locale to HTML lang attribute value.
  *
- * @remarks
  * Chinese uses "zh-CN" (Simplified Chinese) per BCP 47.
  */
 export const htmlLangMap: Record<Locale, string> = {
@@ -21,7 +31,6 @@ export const htmlLangMap: Record<Locale, string> = {
 /**
  * Map from locale to OpenGraph locale value.
  *
- * @remarks
  * OpenGraph uses underscore-separated territory codes.
  */
 export const ogLocaleMap: Record<Locale, string> = {
@@ -32,7 +41,6 @@ export const ogLocaleMap: Record<Locale, string> = {
 /**
  * Display labels for each locale in its native language.
  *
- * @remarks
  * Used by the language switcher component.
  */
 export const localeLabels: Record<Locale, string> = {

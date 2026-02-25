@@ -9,15 +9,15 @@ import { SiteSolution } from "@/components/landing/site-solution";
 import { SiteTradingSurface } from "@/components/landing/site-trading-surface";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
-import type { Locale } from "@/i18n/config";
+import { defaultLocale, isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 
 /**
  * Landing page with locale-aware content.
  *
- * @param props - Page props.
- * @param props.params - Route params containing lang.
- * @returns Landing page content in the specified locale.
+ * @param {object} props - Page props.
+ * @param {Promise<{lang: string}>} props.params - Route params containing lang.
+ * @returns {Promise<React.ReactNode>} Landing page content in the specified locale.
  */
 export default async function Page({
   params,
@@ -25,7 +25,7 @@ export default async function Page({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const locale = lang as Locale;
+  const locale = isLocale(lang) ? lang : defaultLocale;
   const dict = getDictionary(locale);
 
   return (
