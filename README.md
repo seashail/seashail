@@ -1,5 +1,7 @@
 # Seashail
 
+> English | **[简体中文](README.zh-CN.md)**
+
 Agent-native, self-hosted trading infrastructure for crypto.
 
 Seashail is a local binary that exposes an [MCP](https://modelcontextprotocol.io/) server over stdio. Agents can query balances, execute trades, and manage DeFi positions while Seashail enforces a policy engine and keeps key material encrypted at rest. The agent never sees private keys.
@@ -20,12 +22,6 @@ Seashail is a local binary that exposes an [MCP](https://modelcontextprotocol.io
 ## Install
 
 Seashail is distributed via GitHub Releases and can also be built from source. Your agent runs it as an MCP stdio server via `seashail mcp`.
-
-### macOS (Homebrew)
-
-```bash
-brew install seashail/seashail/seashail
-```
 
 ### macOS / Linux (installer)
 
@@ -218,26 +214,26 @@ See the [Architecture docs](https://seashail.com/docs/reference/architecture) fo
 
 ## Supported Chains
 
-| Chain | Identifier | Type |
-|-------|-----------|------|
-| Solana | `solana` | Mainnet + Devnet |
-| Ethereum | `ethereum` | Mainnet |
-| Base | `base` | Mainnet |
-| Arbitrum | `arbitrum` | Mainnet |
-| Optimism | `optimism` | Mainnet |
-| Polygon | `polygon` | Mainnet |
-| BNB Chain | `bnb` | Mainnet |
-| Avalanche | `avalanche` | Mainnet |
-| Monad | `monad` | Mainnet |
-| Bitcoin | `bitcoin` | Mainnet + Testnet (BIP-84 native SegWit) |
-| Sepolia | `sepolia` | Testnet |
-| Base Sepolia | `base-sepolia` | Testnet |
-| Arbitrum Sepolia | `arbitrum-sepolia` | Testnet |
-| Optimism Sepolia | `optimism-sepolia` | Testnet |
-| Polygon Amoy | `polygon-amoy` | Testnet |
-| BNB Testnet | `bnb-testnet` | Testnet |
-| Avalanche Fuji | `avalanche-fuji` | Testnet |
-| Monad Testnet | `monad-testnet` | Testnet |
+| Chain            | Identifier         | Type                                     |
+| ---------------- | ------------------ | ---------------------------------------- |
+| Solana           | `solana`           | Mainnet + Devnet                         |
+| Ethereum         | `ethereum`         | Mainnet                                  |
+| Base             | `base`             | Mainnet                                  |
+| Arbitrum         | `arbitrum`         | Mainnet                                  |
+| Optimism         | `optimism`         | Mainnet                                  |
+| Polygon          | `polygon`          | Mainnet                                  |
+| BNB Chain        | `bnb`              | Mainnet                                  |
+| Avalanche        | `avalanche`        | Mainnet                                  |
+| Monad            | `monad`            | Mainnet                                  |
+| Bitcoin          | `bitcoin`          | Mainnet + Testnet (BIP-84 native SegWit) |
+| Sepolia          | `sepolia`          | Testnet                                  |
+| Base Sepolia     | `base-sepolia`     | Testnet                                  |
+| Arbitrum Sepolia | `arbitrum-sepolia` | Testnet                                  |
+| Optimism Sepolia | `optimism-sepolia` | Testnet                                  |
+| Polygon Amoy     | `polygon-amoy`     | Testnet                                  |
+| BNB Testnet      | `bnb-testnet`      | Testnet                                  |
+| Avalanche Fuji   | `avalanche-fuji`   | Testnet                                  |
+| Monad Testnet    | `monad-testnet`    | Testnet                                  |
 
 Custom EVM chains can be added via `config.toml`. Use `get_capabilities` to see what's configured on your instance.
 
@@ -249,114 +245,114 @@ All tools are served over MCP stdio via `seashail mcp`. For chain-by-chain suppo
 
 ### Network and RPC
 
-| Tool | Description |
-|------|-------------|
-| `get_network_mode` | Check current mainnet/testnet mode |
-| `set_network_mode` | Switch network mode (persistent) |
-| `configure_rpc` | Override RPC endpoints |
-| `get_testnet_faucet_links` | Get faucet URLs for testnets |
-| `get_capabilities` | Discover chains, integrations, and surfaces |
+| Tool                       | Description                                 |
+| -------------------------- | ------------------------------------------- |
+| `get_network_mode`         | Check current mainnet/testnet mode          |
+| `set_network_mode`         | Switch network mode (persistent)            |
+| `configure_rpc`            | Override RPC endpoints                      |
+| `get_testnet_faucet_links` | Get faucet URLs for testnets                |
+| `get_capabilities`         | Discover chains, integrations, and surfaces |
 
 ### Read Tools
 
-| Tool | Description |
-|------|-------------|
-| `inspect_token` | Look up token details (symbol, decimals, address) |
-| `get_defi_yield_pools` | Discover yield opportunities across protocols |
-| `get_balance` | Check token balance on a chain |
-| `get_portfolio` | Multi-chain portfolio overview |
-| `get_token_price` | Get USD price for a token |
-| `estimate_gas` | Estimate gas cost for an operation |
-| `get_transaction_history` | Recent transactions for a wallet |
-| `get_portfolio_analytics` | Portfolio analytics and tracking |
-| `get_bridge_status` | Track a bridge transfer |
+| Tool                      | Description                                       |
+| ------------------------- | ------------------------------------------------- |
+| `inspect_token`           | Look up token details (symbol, decimals, address) |
+| `get_defi_yield_pools`    | Discover yield opportunities across protocols     |
+| `get_balance`             | Check token balance on a chain                    |
+| `get_portfolio`           | Multi-chain portfolio overview                    |
+| `get_token_price`         | Get USD price for a token                         |
+| `estimate_gas`            | Estimate gas cost for an operation                |
+| `get_transaction_history` | Recent transactions for a wallet                  |
+| `get_portfolio_analytics` | Portfolio analytics and tracking                  |
+| `get_bridge_status`       | Track a bridge transfer                           |
 
 ### Wallet Tools
 
-| Tool | Description |
-|------|-------------|
-| `list_wallets` | List all wallets |
-| `get_wallet_info` | Get wallet addresses and details |
-| `get_deposit_info` | Get deposit address for a chain/token |
-| `set_active_wallet` | Set the default wallet for tool calls |
-| `add_account` | Add a BIP-44 account index |
-| `create_wallet` | Create a new wallet (Shamir 2-of-3) |
-| `import_wallet` | Import an existing key/mnemonic |
-| `export_shares` | Export Shamir backup share |
-| `rotate_shares` | Rotate Shamir shares |
-| `create_wallet_pool` | Create a pool of managed wallets |
-| `transfer_between_wallets` | Internal transfer between wallets |
-| `fund_wallets` | Distribute funds across wallet pool |
+| Tool                       | Description                           |
+| -------------------------- | ------------------------------------- |
+| `list_wallets`             | List all wallets                      |
+| `get_wallet_info`          | Get wallet addresses and details      |
+| `get_deposit_info`         | Get deposit address for a chain/token |
+| `set_active_wallet`        | Set the default wallet for tool calls |
+| `add_account`              | Add a BIP-44 account index            |
+| `create_wallet`            | Create a new wallet (Shamir 2-of-3)   |
+| `import_wallet`            | Import an existing key/mnemonic       |
+| `export_shares`            | Export Shamir backup share            |
+| `rotate_shares`            | Rotate Shamir shares                  |
+| `create_wallet_pool`       | Create a pool of managed wallets      |
+| `transfer_between_wallets` | Internal transfer between wallets     |
+| `fund_wallets`             | Distribute funds across wallet pool   |
 
 ### Write Tools (Send, Swap, Bridge)
 
-| Tool | Description |
-|------|-------------|
-| `request_airdrop` | Request SOL airdrop (devnet/testnet only) |
-| `send_transaction` | Send native or fungible tokens |
-| `swap_tokens` | Swap tokens (Jupiter on Solana, Uniswap/1inch on EVM) |
-| `bridge_tokens` | Bridge tokens cross-chain (Wormhole, LayerZero) |
+| Tool               | Description                                           |
+| ------------------ | ----------------------------------------------------- |
+| `request_airdrop`  | Request SOL airdrop (devnet/testnet only)             |
+| `send_transaction` | Send native or fungible tokens                        |
+| `swap_tokens`      | Swap tokens (Jupiter on Solana, Uniswap/1inch on EVM) |
+| `bridge_tokens`    | Bridge tokens cross-chain (Wormhole, LayerZero)       |
 
 ### DeFi Tools
 
-| Tool | Description |
-|------|-------------|
-| `lend_tokens` | Supply tokens to lending protocols (Aave, Kamino, Compound, Marginfi) |
-| `withdraw_lending` | Withdraw supplied tokens + interest |
-| `borrow_tokens` | Borrow against collateral |
-| `repay_borrow` | Repay borrowed amounts |
-| `get_lending_positions` | View lending/borrowing positions |
-| `stake_tokens` | Stake for liquid staking derivatives (Lido, Jito) |
-| `unstake_tokens` | Unstake derivatives back to native tokens |
-| `provide_liquidity` | Add tokens to AMM pools (Uniswap LP, Orca LP) |
-| `remove_liquidity` | Withdraw from AMM pools |
+| Tool                    | Description                                                           |
+| ----------------------- | --------------------------------------------------------------------- |
+| `lend_tokens`           | Supply tokens to lending protocols (Aave, Kamino, Compound, Marginfi) |
+| `withdraw_lending`      | Withdraw supplied tokens + interest                                   |
+| `borrow_tokens`         | Borrow against collateral                                             |
+| `repay_borrow`          | Repay borrowed amounts                                                |
+| `get_lending_positions` | View lending/borrowing positions                                      |
+| `stake_tokens`          | Stake for liquid staking derivatives (Lido, Jito)                     |
+| `unstake_tokens`        | Unstake derivatives back to native tokens                             |
+| `provide_liquidity`     | Add tokens to AMM pools (Uniswap LP, Orca LP)                         |
+| `remove_liquidity`      | Withdraw from AMM pools                                               |
 
 ### Perps Tools
 
-| Tool | Description |
-|------|-------------|
-| `get_market_data` | Get market prices, funding rates |
-| `get_positions` | View open perpetual positions |
-| `open_perp_position` | Open a leveraged position (Hyperliquid, Jupiter Perps) |
-| `close_perp_position` | Close a position (full or partial) |
-| `place_limit_order` | Place a limit order (Hyperliquid) |
-| `modify_perp_order` | Modify an existing limit order (Hyperliquid) |
+| Tool                  | Description                                            |
+| --------------------- | ------------------------------------------------------ |
+| `get_market_data`     | Get market prices, funding rates                       |
+| `get_positions`       | View open perpetual positions                          |
+| `open_perp_position`  | Open a leveraged position (Hyperliquid, Jupiter Perps) |
+| `close_perp_position` | Close a position (full or partial)                     |
+| `place_limit_order`   | Place a limit order (Hyperliquid)                      |
+| `modify_perp_order`   | Modify an existing limit order (Hyperliquid)           |
 
 ### NFT Tools
 
-| Tool | Description |
-|------|-------------|
-| `get_nft_inventory` | List NFTs in wallet (Solana) |
-| `transfer_nft` | Transfer an NFT (Solana + EVM) |
-| `buy_nft` | Buy NFT via marketplace envelope (Blur, Magic Eden, OpenSea, Tensor) |
-| `sell_nft` | Sell/list NFT via marketplace envelope |
-| `bid_nft` | Place bid/offer via marketplace envelope |
+| Tool                | Description                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| `get_nft_inventory` | List NFTs in wallet (Solana)                                         |
+| `transfer_nft`      | Transfer an NFT (Solana + EVM)                                       |
+| `buy_nft`           | Buy NFT via marketplace envelope (Blur, Magic Eden, OpenSea, Tensor) |
+| `sell_nft`          | Sell/list NFT via marketplace envelope                               |
+| `bid_nft`           | Place bid/offer via marketplace envelope                             |
 
 ### Prediction Market Tools
 
-| Tool | Description |
-|------|-------------|
-| `search_prediction_markets` | Search Polymarket events |
-| `get_prediction_orderbook` | View CLOB orderbook depth |
-| `get_prediction_positions` | View open prediction positions |
-| `place_prediction` | Place a CLOB order on Polymarket |
-| `close_prediction` | Cancel an existing order |
+| Tool                        | Description                      |
+| --------------------------- | -------------------------------- |
+| `search_prediction_markets` | Search Polymarket events         |
+| `get_prediction_orderbook`  | View CLOB orderbook depth        |
+| `get_prediction_positions`  | View open prediction positions   |
+| `place_prediction`          | Place a CLOB order on Polymarket |
+| `close_prediction`          | Cancel an existing order         |
 
 ### Pump.fun Tools
 
-| Tool | Description |
-|------|-------------|
+| Tool                     | Description                           |
+| ------------------------ | ------------------------------------- |
 | `pumpfun_list_new_coins` | Discover recently launched meme coins |
-| `pumpfun_get_coin_info` | Get detailed coin info |
-| `pumpfun_buy` | Buy a pump.fun token with SOL |
-| `pumpfun_sell` | Sell pump.fun tokens back to SOL |
+| `pumpfun_get_coin_info`  | Get detailed coin info                |
+| `pumpfun_buy`            | Buy a pump.fun token with SOL         |
+| `pumpfun_sell`           | Sell pump.fun tokens back to SOL      |
 
 ### Policy Tools
 
-| Tool | Description |
-|------|-------------|
-| `get_policy` | View current policy (global or per-wallet) |
-| `update_policy` | Update policy rules |
+| Tool            | Description                                |
+| --------------- | ------------------------------------------ |
+| `get_policy`    | View current policy (global or per-wallet) |
+| `update_policy` | Update policy rules                        |
 
 See the [MCP Tools Reference](https://seashail.com/docs/reference/mcp-tools) for full parameter details and the individual tool reference pages.
 
@@ -386,25 +382,25 @@ Every write operation is gated by:
 
 ### Threat Mitigations
 
-| Threat | Mitigation |
-|--------|-----------|
-| Malicious agent | Policy engine + tiered approvals + allowlists + operation toggles |
-| Key theft from logs | MCP elicitation (keys never in agent conversation); tool schema rejects secret params |
-| Split-brain state | Exclusive filesystem lock; singleton daemon |
-| Passphrase theft | TTL-based sessions; zeroize on expiry; mlock on sensitive buffers |
-| Phishing/scam addresses | Signed scam blocklist; OFAC SDN checking; recipient allowlists |
-| Excessive spending | Per-tx and daily USD caps; operation toggles |
-| Unknown USD value exploit | `deny_unknown_usd_value` (fail-closed by default) |
-| Leverage explosion | `max_leverage` and `max_usd_per_position` caps |
+| Threat                    | Mitigation                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| Malicious agent           | Policy engine + tiered approvals + allowlists + operation toggles                     |
+| Key theft from logs       | MCP elicitation (keys never in agent conversation); tool schema rejects secret params |
+| Split-brain state         | Exclusive filesystem lock; singleton daemon                                           |
+| Passphrase theft          | TTL-based sessions; zeroize on expiry; mlock on sensitive buffers                     |
+| Phishing/scam addresses   | Signed scam blocklist; OFAC SDN checking; recipient allowlists                        |
+| Excessive spending        | Per-tx and daily USD caps; operation toggles                                          |
+| Unknown USD value exploit | `deny_unknown_usd_value` (fail-closed by default)                                     |
+| Leverage explosion        | `max_leverage` and `max_usd_per_position` caps                                        |
 
 ### Key Custody Comparison
 
-| Aspect | Seashail | Browser Wallet | Cloud Custody |
-|--------|----------|---------------|---------------|
-| Key location | Local encrypted keystore | Browser extension | Remote server |
-| Agent access | Policy-gated MCP tools | Direct signing | API with provider keys |
-| Recovery | Shamir 2-of-3 + passphrase | Seed phrase | Provider flow |
-| Risk model | Agent constrained by policy | User verifies every tx | Trusted third party |
+| Aspect       | Seashail                    | Browser Wallet         | Cloud Custody          |
+| ------------ | --------------------------- | ---------------------- | ---------------------- |
+| Key location | Local encrypted keystore    | Browser extension      | Remote server          |
+| Agent access | Policy-gated MCP tools      | Direct signing         | API with provider keys |
+| Recovery     | Shamir 2-of-3 + passphrase  | Seed phrase            | Provider flow          |
+| Risk model   | Agent constrained by policy | User verifies every tx | Trusted third party    |
 
 See the [Security Model docs](https://seashail.com/docs/guides/security-model) for the full threat analysis.
 
@@ -608,19 +604,19 @@ Or:
 
 ### Supported Agents
 
-| Agent | Setup | Docs |
-|-------|-------|------|
-| OpenClaw | `seashail openclaw install` | [Guide](https://seashail.com/docs/guides/agents/openclaw) |
-| Claude Code | `claude mcp add seashail -- seashail mcp` | [Guide](https://seashail.com/docs/guides/agents/claude-code) |
-| Claude Desktop | `seashail agent install claude-desktop` | [Guide](https://seashail.com/docs/guides/agents/claude-desktop) |
-| Codex | Edit `~/.codex/config.toml` | [Guide](https://seashail.com/docs/guides/agents/codex) |
-| Cursor | `seashail agent install cursor` | [Guide](https://seashail.com/docs/guides/agents/cursor) |
-| VS Code / GitHub Copilot | `seashail agent install vscode` | [Guide](https://seashail.com/docs/guides/agents/github-copilot) |
-| Windsurf | `seashail agent install windsurf` | [Guide](https://seashail.com/docs/guides/agents/windsurf) |
-| Cline | Manual JSON config | [Guide](https://seashail.com/docs/guides/agents/cline) |
-| Continue | Manual JSON config | [Guide](https://seashail.com/docs/guides/agents/continue) |
-| JetBrains | Manual JSON config | [Guide](https://seashail.com/docs/guides/agents/jetbrains) |
-| Any MCP Client | Generic stdio config | [Guide](https://seashail.com/docs/guides/agents/any-mcp-client) |
+| Agent                    | Setup                                     | Docs                                                            |
+| ------------------------ | ----------------------------------------- | --------------------------------------------------------------- |
+| OpenClaw                 | `seashail openclaw install`               | [Guide](https://seashail.com/docs/guides/agents/openclaw)       |
+| Claude Code              | `claude mcp add seashail -- seashail mcp` | [Guide](https://seashail.com/docs/guides/agents/claude-code)    |
+| Claude Desktop           | `seashail agent install claude-desktop`   | [Guide](https://seashail.com/docs/guides/agents/claude-desktop) |
+| Codex                    | Edit `~/.codex/config.toml`               | [Guide](https://seashail.com/docs/guides/agents/codex)          |
+| Cursor                   | `seashail agent install cursor`           | [Guide](https://seashail.com/docs/guides/agents/cursor)         |
+| VS Code / GitHub Copilot | `seashail agent install vscode`           | [Guide](https://seashail.com/docs/guides/agents/github-copilot) |
+| Windsurf                 | `seashail agent install windsurf`         | [Guide](https://seashail.com/docs/guides/agents/windsurf)       |
+| Cline                    | Manual JSON config                        | [Guide](https://seashail.com/docs/guides/agents/cline)          |
+| Continue                 | Manual JSON config                        | [Guide](https://seashail.com/docs/guides/agents/continue)       |
+| JetBrains                | Manual JSON config                        | [Guide](https://seashail.com/docs/guides/agents/jetbrains)      |
+| Any MCP Client           | Generic stdio config                      | [Guide](https://seashail.com/docs/guides/agents/any-mcp-client) |
 
 Static config templates are also available in [`packages/agent-configs/`](packages/agent-configs/).
 
@@ -666,12 +662,12 @@ These are summarized below. See the [full documentation](https://seashail.com/do
 
 Four DeFi primitives with protocol auto-selection:
 
-| Operation | EVM Default | Solana Default |
-|-----------|------------|----------------|
-| Lending | Aave v3 | Kamino |
-| Borrowing | Aave v3, Compound v3 | Kamino, Marginfi |
-| Staking | Lido (ETH -> stETH) | Jito (SOL -> JitoSOL) |
-| Liquidity | Uniswap LP | Orca LP |
+| Operation | EVM Default          | Solana Default        |
+| --------- | -------------------- | --------------------- |
+| Lending   | Aave v3              | Kamino                |
+| Borrowing | Aave v3, Compound v3 | Kamino, Marginfi      |
+| Staking   | Lido (ETH -> stETH)  | Jito (SOL -> JitoSOL) |
+| Liquidity | Uniswap LP           | Orca LP               |
 
 [DeFi Guide](https://seashail.com/docs/guides/defi)
 
@@ -679,10 +675,10 @@ Four DeFi primitives with protocol auto-selection:
 
 Leveraged perpetual futures on two venues:
 
-| Venue | Address | Testnet | Orders | Partial Close |
-|-------|---------|---------|--------|---------------|
-| Hyperliquid | EVM | Yes | Market + Limit | Yes |
-| Jupiter Perps | Solana | No | Market only | No |
+| Venue         | Address | Testnet | Orders         | Partial Close |
+| ------------- | ------- | ------- | -------------- | ------------- |
+| Hyperliquid   | EVM     | Yes     | Market + Limit | Yes           |
+| Jupiter Perps | Solana  | No      | Market only    | No            |
 
 Policy controls: `enable_perps`, `max_leverage`, `max_usd_per_position`.
 
@@ -737,18 +733,18 @@ See the [Verification docs](https://seashail.com/docs/reference/verification) fo
 
 Common issues and solutions:
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `wallet_not_found` | Wallet name doesn't exist | Run `list_wallets`, check spelling |
-| `passphrase_required` | Session expired | Re-enter passphrase on next tool call |
-| `keystore_busy` | Lock contention | Wait and retry; check for stuck daemon |
-| Policy hard-block | Exceeds USD caps | Check `get_policy`, adjust limits |
-| Slippage exceeded | Price moved too far | Increase `max_slippage_bps` or retry |
-| Operation disabled | Toggle off in policy | Enable via `update_policy` |
-| Allowlist rejection | Address not permitted | Add to allowlist or disable |
-| Unknown USD value | No pricing data | Set `deny_unknown_usd_value: false` or retry |
-| RPC connection error | Network/endpoint issue | Check connectivity, switch RPC |
-| Wrong network | Mainnet/testnet confusion | Check `get_network_mode`, switch |
+| Error                 | Cause                     | Fix                                          |
+| --------------------- | ------------------------- | -------------------------------------------- |
+| `wallet_not_found`    | Wallet name doesn't exist | Run `list_wallets`, check spelling           |
+| `passphrase_required` | Session expired           | Re-enter passphrase on next tool call        |
+| `keystore_busy`       | Lock contention           | Wait and retry; check for stuck daemon       |
+| Policy hard-block     | Exceeds USD caps          | Check `get_policy`, adjust limits            |
+| Slippage exceeded     | Price moved too far       | Increase `max_slippage_bps` or retry         |
+| Operation disabled    | Toggle off in policy      | Enable via `update_policy`                   |
+| Allowlist rejection   | Address not permitted     | Add to allowlist or disable                  |
+| Unknown USD value     | No pricing data           | Set `deny_unknown_usd_value: false` or retry |
+| RPC connection error  | Network/endpoint issue    | Check connectivity, switch RPC               |
+| Wrong network         | Mainnet/testnet confusion | Check `get_network_mode`, switch             |
 
 Run `seashail doctor` for a diagnostic report. See the [Troubleshooting docs](https://seashail.com/docs/troubleshooting) for full details.
 
@@ -818,6 +814,12 @@ bun run check                # Type-check and lint
 cargo build -p seashail      # Build Rust binary
 cargo test -p seashail       # Run Rust tests
 ```
+
+## Contributing
+
+### Adding a Language
+
+Seashail supports multiple locales. To add a new language, see the [Adding a Language](https://seashail-docs.vercel.app/docs/guides/adding-a-language) guide for step-by-step instructions covering both the docs site and landing page.
 
 ## License
 
