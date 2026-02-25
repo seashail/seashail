@@ -36,7 +36,8 @@ function mustObject(v, msg) {
  * @returns {string[]}
  */
 function mustStringArray(v, msg) {
-  if (!Array.isArray(v) || v.some((x) => typeof x !== "string")) throw new Error(msg);
+  if (!Array.isArray(v) || v.some((x) => typeof x !== "string"))
+    throw new Error(msg);
   return /** @type {string[]} */ (v);
 }
 
@@ -52,18 +53,28 @@ for (const file of files) {
     obj["mcpServers"] ??
     obj["servers"] ??
     (() => {
-      throw new Error(`template missing servers key (mcpServers/servers): ${file}`);
+      throw new Error(
+        `template missing servers key (mcpServers/servers): ${file}`
+      );
     })();
 
   const serversObj = mustObject(servers, `servers must be an object: ${file}`);
   const seashail = serversObj["seashail"];
-  const seashailObj = mustObject(seashail, `missing servers.seashail object: ${file}`);
+  const seashailObj = mustObject(
+    seashail,
+    `missing servers.seashail object: ${file}`
+  );
 
   const command = seashailObj["command"];
-  if (command !== "seashail") throw new Error(`servers.seashail.command must be "seashail": ${file}`);
+  if (command !== "seashail")
+    throw new Error(`servers.seashail.command must be "seashail": ${file}`);
 
-  const args = mustStringArray(seashailObj["args"], `servers.seashail.args must be string[]: ${file}`);
-  if (!args.includes("mcp")) throw new Error(`servers.seashail.args must include "mcp": ${file}`);
+  const args = mustStringArray(
+    seashailObj["args"],
+    `servers.seashail.args must be string[]: ${file}`
+  );
+  if (!args.includes("mcp"))
+    throw new Error(`servers.seashail.args must include "mcp": ${file}`);
 }
 
 process.stdout.write(`ok: validated ${files.length} templates\n`);

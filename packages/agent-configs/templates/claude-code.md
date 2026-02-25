@@ -18,4 +18,3 @@ Notes:
 
 - This creates an MCP server named `seashail` (or `seashail-testnet`) that launches the Seashail binary over stdio.
 - If your Seashail install isn't on `PATH`, use the absolute path to the binary.
-

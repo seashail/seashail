@@ -6,12 +6,12 @@ Detailed workflow runbooks for agents using the Seashail MCP tool surface. These
 
 ## Workflows
 
-| File | Description | Key Tools |
-|------|-------------|-----------|
-| [`swap.md`](swap.md) | Spot swaps (Solana Jupiter, EVM Uniswap/1inch) | `swap_tokens`, `inspect_token`, `get_balance` |
-| [`send.md`](send.md) | External sends (Solana/EVM/Bitcoin) | `send_transaction`, `get_policy`, `get_transaction_history` |
+| File                               | Description                                                             | Key Tools                                                           |
+| ---------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [`swap.md`](swap.md)               | Spot swaps (Solana Jupiter, EVM Uniswap/1inch)                          | `swap_tokens`, `inspect_token`, `get_balance`                       |
+| [`send.md`](send.md)               | External sends (Solana/EVM/Bitcoin)                                     | `send_transaction`, `get_policy`, `get_transaction_history`         |
 | [`tx-envelope.md`](tx-envelope.md) | DeFi writes that execute via tx envelopes (bridge/lend/stake/liquidity) | `bridge_tokens`, `lend_tokens`, `stake_tokens`, `provide_liquidity` |
-| [`pumpfun.md`](pumpfun.md) | pump.fun discovery + buy/sell (high-risk) | `pumpfun_list_new_coins`, `pumpfun_buy`, `pumpfun_sell` |
+| [`pumpfun.md`](pumpfun.md)         | pump.fun discovery + buy/sell (high-risk)                               | `pumpfun_list_new_coins`, `pumpfun_buy`, `pumpfun_sell`             |
 
 ## When to Use These
 

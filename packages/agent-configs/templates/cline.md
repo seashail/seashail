@@ -20,4 +20,3 @@ If your environment supports file-based MCP config, you can also use the VS Code
 
 - `packages/agent-configs/templates/vscode/mcp.json`
 - `packages/agent-configs/templates/vscode/mcp.testnet.json`
-

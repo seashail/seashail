@@ -51,14 +51,14 @@ Some Seashail actions require interactive confirmation and/or passphrase unlock:
 
 The `seashail openclaw install` command supports:
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--network` | `mainnet` | Session-only network mode |
-| `--plugin` | Auto-detected | Plugin path or npm spec |
-| `--link` | `false` | Link local plugin path instead of copying |
-| `--restart-gateway` | `true` | Restart OpenClaw gateway after install |
-| `--enable-in-sandbox` | `true` | Allow plugin in sandboxed agent mode |
-| `--onboard-wallet` | `true` | Create default wallet if none exists |
+| Flag                  | Default       | Description                               |
+| --------------------- | ------------- | ----------------------------------------- |
+| `--network`           | `mainnet`     | Session-only network mode                 |
+| `--plugin`            | Auto-detected | Plugin path or npm spec                   |
+| `--link`              | `false`       | Link local plugin path instead of copying |
+| `--restart-gateway`   | `true`        | Restart OpenClaw gateway after install    |
+| `--enable-in-sandbox` | `true`        | Allow plugin in sandboxed agent mode      |
+| `--onboard-wallet`    | `true`        | Create default wallet if none exists      |
 
 See the [CLI Reference](https://seashail.com/docs/reference/cli#seashail-openclaw-install) for full details.
 

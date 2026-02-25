@@ -53,14 +53,19 @@ function installFromSource() {
     const url =
       process.env.SEASHAIL_INSTALL_URL ?? "https://seashail.com/install.ps1";
     const cmd = `irm ${url} | iex`;
-    const r = run(ps, ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd], {
-      env: process.env,
-    });
+    const r = run(
+      ps,
+      ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd],
+      {
+        env: process.env,
+      }
+    );
     if (r.status !== 0) process.exit(r.status ?? 1);
     return;
   }
 
-  const url = process.env.SEASHAIL_INSTALL_URL ?? "https://seashail.com/install";
+  const url =
+    process.env.SEASHAIL_INSTALL_URL ?? "https://seashail.com/install";
   const cmd = `curl -fsSL ${url} | sh`;
   const r = run("sh", ["-c", cmd], { env: process.env });
   if (r.status !== 0) process.exit(r.status ?? 1);
@@ -75,7 +80,9 @@ if (!seashail) {
 }
 
 if (!seashail) {
-  console.error("seashail-mcp: failed to find the `seashail` binary after install.");
+  console.error(
+    "seashail-mcp: failed to find the `seashail` binary after install."
+  );
   process.exit(1);
 }
 

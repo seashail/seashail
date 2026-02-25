@@ -16,14 +16,14 @@ seashail mcp
 
 ## Included Templates
 
-| Agent | Template Path | Testnet Template |
-|-------|---------------|-----------------|
-| Cursor | `templates/cursor/mcp.json` | `templates/cursor/mcp.testnet.json` |
-| VS Code / GitHub Copilot | `templates/vscode/mcp.json` | `templates/vscode/mcp.testnet.json` |
-| Windsurf | `templates/windsurf/mcp_config.json` | `templates/windsurf/mcp_config.testnet.json` |
-| Claude Desktop | `templates/claude-desktop/claude_desktop_config.json` | `templates/claude-desktop/claude_desktop_config.testnet.json` |
-| Continue | `templates/continue/mcp.json` | `templates/continue/mcp.testnet.json` |
-| JetBrains | `templates/jetbrains/mcp.json` | `templates/jetbrains/mcp.testnet.json` |
+| Agent                    | Template Path                                         | Testnet Template                                              |
+| ------------------------ | ----------------------------------------------------- | ------------------------------------------------------------- |
+| Cursor                   | `templates/cursor/mcp.json`                           | `templates/cursor/mcp.testnet.json`                           |
+| VS Code / GitHub Copilot | `templates/vscode/mcp.json`                           | `templates/vscode/mcp.testnet.json`                           |
+| Windsurf                 | `templates/windsurf/mcp_config.json`                  | `templates/windsurf/mcp_config.testnet.json`                  |
+| Claude Desktop           | `templates/claude-desktop/claude_desktop_config.json` | `templates/claude-desktop/claude_desktop_config.testnet.json` |
+| Continue                 | `templates/continue/mcp.json`                         | `templates/continue/mcp.testnet.json`                         |
+| JetBrains                | `templates/jetbrains/mcp.json`                        | `templates/jetbrains/mcp.testnet.json`                        |
 
 ## One-Click Install (Recommended)
 

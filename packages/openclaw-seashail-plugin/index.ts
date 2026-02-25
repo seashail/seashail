@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
-import { randomBytes } from "node:crypto";
 
 type JsonRpcId = string | number;
 
@@ -104,7 +104,9 @@ function resolveExecutablePath(seashailPathRaw: string | undefined) {
   // the path, it must still be the seashail binary (by name) and be absolute.
   if (seashailPath !== "seashail") {
     if (!path.isAbsolute(seashailPath)) {
-      throw new Error("seashailPath must be an absolute path (or omit to use PATH)");
+      throw new Error(
+        "seashailPath must be an absolute path (or omit to use PATH)"
+      );
     }
     const base = path.basename(seashailPath).toLowerCase();
     const allowed =
@@ -143,15 +145,23 @@ class SeashailMcpClient {
   private child: ReturnType<typeof spawn> | null = null;
   private rl: readline.Interface | null = null;
   private nextId = 1;
-  private pending = new Map<JsonRpcId, { resolve: (r: JsonRpcResponse) => void; reject: (e: Error) => void }>();
+  private pending = new Map<
+    JsonRpcId,
+    { resolve: (r: JsonRpcResponse) => void; reject: (e: Error) => void }
+  >();
   private stderrBuf = "";
   private starting: Promise<void> | null = null;
   private ready = false;
 
-  private onElicitationCreate: ((req: { id: JsonRpcId; params: Record<string, unknown> }) => void) | null =
-    null;
+  private onElicitationCreate:
+    | ((req: { id: JsonRpcId; params: Record<string, unknown> }) => void)
+    | null = null;
 
-  setElicitationHandler(fn: ((req: { id: JsonRpcId; params: Record<string, unknown> }) => void) | null) {
+  setElicitationHandler(
+    fn:
+      | ((req: { id: JsonRpcId; params: Record<string, unknown> }) => void)
+      | null
+  ) {
     this.onElicitationCreate = fn;
   }
 
@@ -184,7 +194,8 @@ class SeashailMcpClient {
       this.stderrBuf = "";
       child.stderr?.on("data", (d) => {
         const next = this.stderrBuf + String(d);
-        this.stderrBuf = next.length > 20_000 ? next.slice(next.length - 20_000) : next;
+        this.stderrBuf =
+          next.length > 20_000 ? next.slice(next.length - 20_000) : next;
       });
 
       const rl = readline.createInterface({ input: child.stdout! });
@@ -199,7 +210,8 @@ class SeashailMcpClient {
         const rec = asRecord(msg);
         if (!rec) return;
 
-        const method = typeof rec["method"] === "string" ? (rec["method"] as string) : "";
+        const method =
+          typeof rec["method"] === "string" ? (rec["method"] as string) : "";
         const id = rec["id"] as JsonRpcId | undefined;
 
         // Server->client request (elicitation/create)
@@ -230,9 +242,13 @@ class SeashailMcpClient {
       const onDead = (why: string) => {
         this.ready = false;
         const meta = `code=${child.exitCode ?? "?"} signal=${(child as any).signalCode ?? "?"}`;
-        const tail = this.stderrBuf.trim() ? `\n\nstderr (tail):\n${this.stderrBuf.trim()}` : "";
+        const tail = this.stderrBuf.trim()
+          ? `\n\nstderr (tail):\n${this.stderrBuf.trim()}`
+          : "";
         for (const [_id, p] of this.pending) {
-          p.reject(new Error(`Seashail MCP subprocess died (${why}) (${meta})${tail}`));
+          p.reject(
+            new Error(`Seashail MCP subprocess died (${why}) (${meta})${tail}`)
+          );
         }
         this.pending.clear();
         this.child = null;
@@ -303,7 +319,12 @@ class SeashailMcpClient {
 
   async listTools(): Promise<McpTool[]> {
     const id = this.nextId++;
-    const resp = await this.request({ jsonrpc: "2.0", id, method: "tools/list", params: {} });
+    const resp = await this.request({
+      jsonrpc: "2.0",
+      id,
+      method: "tools/list",
+      params: {},
+    });
     if (resp.error) throw new Error(resp.error.message);
     const rec = asRecord(resp.result);
     const tools = rec ? rec["tools"] : undefined;
@@ -313,13 +334,22 @@ class SeashailMcpClient {
       .filter((t): t is Record<string, unknown> => !!t)
       .map((t) => ({
         name: typeof t["name"] === "string" ? (t["name"] as string) : "",
-        description: typeof t["description"] === "string" ? (t["description"] as string) : undefined,
-        inputSchema: asRecord(t["inputSchema"]) ?? { type: "object", properties: {} },
+        description:
+          typeof t["description"] === "string"
+            ? (t["description"] as string)
+            : undefined,
+        inputSchema: asRecord(t["inputSchema"]) ?? {
+          type: "object",
+          properties: {},
+        },
       }))
       .filter((t) => !!t.name);
   }
 
-  async callTool(toolName: string, args: unknown): Promise<{ toolCallId: JsonRpcId; pending: Promise<JsonRpcResponse> }> {
+  async callTool(
+    toolName: string,
+    args: unknown
+  ): Promise<{ toolCallId: JsonRpcId; pending: Promise<JsonRpcResponse> }> {
     const id = this.nextId++;
     const pending = this.request({
       jsonrpc: "2.0",
@@ -335,7 +365,11 @@ class SeashailMcpClient {
   }
 }
 
-type ToolSpec = { name: string; description?: string; inputSchema?: Record<string, unknown> };
+type ToolSpec = {
+  name: string;
+  description?: string;
+  inputSchema?: Record<string, unknown>;
+};
 
 function extractJsonBangObjects(raw: string): string[] {
   // Parse `json!({ ... })` blocks from the Rust tool schema registry.
@@ -406,7 +440,7 @@ function loadToolSpecsFromRepoSchema(): ToolSpec[] {
   try {
     const schemaPath = new URL(
       "../../crates/seashail/src/rpc/mcp_server/tools/schema.rs",
-      import.meta.url,
+      import.meta.url
     ).pathname;
     const raw = fs.readFileSync(schemaPath, "utf8");
     const out: ToolSpec[] = [];
@@ -418,12 +452,20 @@ function loadToolSpecsFromRepoSchema(): ToolSpec[] {
       const v = safeJsonParse(normalized);
       const rec = asRecord(v);
       if (!rec) continue;
-      const name = typeof rec["name"] === "string" ? (rec["name"] as string).trim() : "";
+      const name =
+        typeof rec["name"] === "string" ? (rec["name"] as string).trim() : "";
       if (!name || seen.has(name)) continue;
-      const description = typeof rec["description"] === "string" ? (rec["description"] as string) : undefined;
+      const description =
+        typeof rec["description"] === "string"
+          ? (rec["description"] as string)
+          : undefined;
       const inputSchema = asRecord(rec["inputSchema"]) ?? undefined;
       seen.add(name);
-      out.push({ name, ...(description ? { description } : {}), ...(inputSchema ? { inputSchema } : {}) });
+      out.push({
+        name,
+        ...(description ? { description } : {}),
+        ...(inputSchema ? { inputSchema } : {}),
+      });
     }
     if (out.length > 0) return out;
   } catch {
@@ -432,7 +474,14 @@ function loadToolSpecsFromRepoSchema(): ToolSpec[] {
 
   // Minimal fallback (should not drift too much).
   return [
-    { name: "get_capabilities", inputSchema: { type: "object", properties: {}, additionalProperties: false } },
+    {
+      name: "get_capabilities",
+      inputSchema: {
+        type: "object",
+        properties: {},
+        additionalProperties: false,
+      },
+    },
     {
       name: "get_testnet_faucet_links",
       inputSchema: {
@@ -442,14 +491,38 @@ function loadToolSpecsFromRepoSchema(): ToolSpec[] {
         additionalProperties: false,
       },
     },
-    { name: "create_wallet", inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] } },
-    { name: "list_wallets", inputSchema: { type: "object", properties: {}, additionalProperties: false } },
-    { name: "get_wallet_info", inputSchema: { type: "object", properties: { wallet: { type: "string" } }, additionalProperties: false } },
+    {
+      name: "create_wallet",
+      inputSchema: {
+        type: "object",
+        properties: { name: { type: "string" } },
+        required: ["name"],
+      },
+    },
+    {
+      name: "list_wallets",
+      inputSchema: {
+        type: "object",
+        properties: {},
+        additionalProperties: false,
+      },
+    },
+    {
+      name: "get_wallet_info",
+      inputSchema: {
+        type: "object",
+        properties: { wallet: { type: "string" } },
+        additionalProperties: false,
+      },
+    },
     {
       name: "set_active_wallet",
       inputSchema: {
         type: "object",
-        properties: { wallet: { type: "string" }, account_index: { type: "integer", minimum: 0 } },
+        properties: {
+          wallet: { type: "string" },
+          account_index: { type: "integer", minimum: 0 },
+        },
         required: ["wallet", "account_index"],
         additionalProperties: false,
       },
@@ -459,13 +532,22 @@ function loadToolSpecsFromRepoSchema(): ToolSpec[] {
 
 export default function register(api: any) {
   const rawCfg = (api.pluginConfig ?? {}) as PluginConfig;
-  const seashailPath = resolveExecutablePath(typeof rawCfg.seashailPath === "string" ? rawCfg.seashailPath : undefined);
-  const network = typeof rawCfg.network === "string" && rawCfg.network === "testnet" ? "testnet" : "mainnet";
+  const seashailPath = resolveExecutablePath(
+    typeof rawCfg.seashailPath === "string" ? rawCfg.seashailPath : undefined
+  );
+  const network =
+    typeof rawCfg.network === "string" && rawCfg.network === "testnet"
+      ? "testnet"
+      : "mainnet";
   const standalone = rawCfg.standalone === true;
   const toolPrefix = rawCfg.toolPrefix === true;
-  const prefix = typeof rawCfg.prefix === "string" && rawCfg.prefix.trim() ? rawCfg.prefix.trim() : "seashail_";
+  const prefix =
+    typeof rawCfg.prefix === "string" && rawCfg.prefix.trim()
+      ? rawCfg.prefix.trim()
+      : "seashail_";
   const passphraseEnvVar =
-    typeof rawCfg.passphraseEnvVar === "string" && rawCfg.passphraseEnvVar.trim()
+    typeof rawCfg.passphraseEnvVar === "string" &&
+    rawCfg.passphraseEnvVar.trim()
       ? rawCfg.passphraseEnvVar.trim()
       : "SEASHAIL_PASSPHRASE";
   const extraEnv = asRecord(rawCfg.env) ?? {};
@@ -488,8 +570,13 @@ export default function register(api: any) {
   // Server->client elicitation requests arrive out-of-band relative to the
   // `tools/call` response. We serialize tool calls, so a simple FIFO is enough,
   // but we must avoid polling (timer leaks) and support cancelation.
-  let elicitationQueue: Array<{ id: JsonRpcId; params: Record<string, unknown> }> = [];
-  const elicitationWaiters: Array<(req: { id: JsonRpcId; params: Record<string, unknown> }) => void> = [];
+  let elicitationQueue: Array<{
+    id: JsonRpcId;
+    params: Record<string, unknown>;
+  }> = [];
+  const elicitationWaiters: Array<
+    (req: { id: JsonRpcId; params: Record<string, unknown> }) => void
+  > = [];
   client.setElicitationHandler((req) => {
     const next = elicitationWaiters.shift();
     if (next) {
@@ -499,15 +586,23 @@ export default function register(api: any) {
     elicitationQueue.push(req);
   });
 
-  function waitForElicitation(): { promise: Promise<{ id: JsonRpcId; params: Record<string, unknown> }>; cancel: () => void } {
+  function waitForElicitation(): {
+    promise: Promise<{ id: JsonRpcId; params: Record<string, unknown> }>;
+    cancel: () => void;
+  } {
     const queued = elicitationQueue.shift();
     if (queued) {
       return { promise: Promise.resolve(queued), cancel: () => {} };
     }
 
     let active = true;
-    let resolve: ((v: { id: JsonRpcId; params: Record<string, unknown> }) => void) | null = null;
-    const promise = new Promise<{ id: JsonRpcId; params: Record<string, unknown> }>((res) => {
+    let resolve:
+      | ((v: { id: JsonRpcId; params: Record<string, unknown> }) => void)
+      | null = null;
+    const promise = new Promise<{
+      id: JsonRpcId;
+      params: Record<string, unknown>;
+    }>((res) => {
       resolve = res;
     });
     const waiter = (v: { id: JsonRpcId; params: Record<string, unknown> }) => {
@@ -533,9 +628,9 @@ export default function register(api: any) {
     const next = queue.then(fn, fn);
     queue = next.then(
       () => undefined,
-      () => undefined,
+      () => undefined
     );
-      return await next;
+    return await next;
   };
 
   async function ensureClient() {
@@ -552,7 +647,11 @@ export default function register(api: any) {
     return !!(props && typeof props["passphrase"] === "object");
   }
 
-  async function runToolUntilYield(toolName: string, params: unknown, pendingCall?: { toolCallId: JsonRpcId; pending: Promise<JsonRpcResponse> }) {
+  async function runToolUntilYield(
+    toolName: string,
+    params: unknown,
+    pendingCall?: { toolCallId: JsonRpcId; pending: Promise<JsonRpcResponse> }
+  ) {
     await ensureClient();
 
     // Drop any stray queued elicitations from prior calls.
@@ -572,15 +671,24 @@ export default function register(api: any) {
         const resp = winner.resp;
         if (resp.error) {
           return {
-            content: [{ type: "text", text: `Seashail JSON-RPC error: ${resp.error.message}` }],
+            content: [
+              {
+                type: "text",
+                text: `Seashail JSON-RPC error: ${resp.error.message}`,
+              },
+            ],
             details: { ok: false, error: resp.error },
           };
         }
         const rec = asRecord(resp.result) ?? {};
-        const contentArr = Array.isArray(rec["content"]) ? (rec["content"] as unknown[]) : [];
+        const contentArr = Array.isArray(rec["content"])
+          ? (rec["content"] as unknown[])
+          : [];
         const text = contentArr
           .map((c) => asRecord(c))
-          .map((c) => (c && c["type"] === "text" ? String(c["text"] ?? "") : ""))
+          .map((c) =>
+            c && c["type"] === "text" ? String(c["text"] ?? "") : ""
+          )
           .filter(Boolean)
           .join("\n");
         const isError = rec["isError"] === true;
@@ -593,14 +701,20 @@ export default function register(api: any) {
 
       // Elicitation prompt
       const { id: elicitationId, params: p } = winner.req;
-      const message = typeof p["message"] === "string" ? (p["message"] as string) : "Seashail requires input.";
+      const message =
+        typeof p["message"] === "string"
+          ? (p["message"] as string)
+          : "Seashail requires input.";
       const requestedSchema = p["requestedSchema"] ?? {};
 
       // Auto-answer passphrase prompts if configured via env var (recommended).
       if (isPassphraseSchema(requestedSchema)) {
         const pw = env[passphraseEnvVar];
         if (typeof pw === "string" && pw.trim()) {
-          await client.respondElicitation(elicitationId, { action: "accept", content: { passphrase: pw } });
+          await client.respondElicitation(elicitationId, {
+            action: "accept",
+            content: { passphrase: pw },
+          });
           continue;
         }
       }
@@ -615,10 +729,9 @@ export default function register(api: any) {
         requestedSchema,
       });
 
-      const guidance =
-        isPassphraseSchema(requestedSchema)
-          ? `Seashail needs a passphrase. Prefer setting ${passphraseEnvVar} in the OpenClaw gateway env (or ~/.openclaw/.env) instead of pasting secrets into chat.`
-          : `Seashail needs confirmation/input. Provide the requested fields via seashail_resume.`;
+      const guidance = isPassphraseSchema(requestedSchema)
+        ? `Seashail needs a passphrase. Prefer setting ${passphraseEnvVar} in the OpenClaw gateway env (or ~/.openclaw/.env) instead of pasting secrets into chat.`
+        : `Seashail needs confirmation/input. Provide the requested fields via seashail_resume.`;
 
       return {
         content: [
@@ -636,8 +749,9 @@ export default function register(api: any) {
                   guidance,
                 },
                 null,
-                2,
-              ) + `\n\nNext: call seashail_resume with token="${token}", action="accept" (or "decline"), and content matching requestedSchema.`,
+                2
+              ) +
+              `\n\nNext: call seashail_resume with token="${token}", action="accept" (or "decline"), and content matching requestedSchema.`,
           },
         ],
         details: {
@@ -693,23 +807,39 @@ export default function register(api: any) {
         execute: async (_id: string, params: Record<string, unknown>) => {
           return await enqueue(async () => {
             const token = typeof params.token === "string" ? params.token : "";
-            const action = typeof params.action === "string" ? params.action : "";
+            const action =
+              typeof params.action === "string" ? params.action : "";
             const content = asRecord(params.content) ?? {};
 
             const st = resumeTokens.get(token);
             if (!st) {
               return {
-                content: [{ type: "text", text: `Unknown/expired token: ${token}` }],
-                details: { ok: false, error: { type: "unknown_token", message: "Unknown/expired token" } },
+                content: [
+                  { type: "text", text: `Unknown/expired token: ${token}` },
+                ],
+                details: {
+                  ok: false,
+                  error: {
+                    type: "unknown_token",
+                    message: "Unknown/expired token",
+                  },
+                },
               };
             }
             resumeTokens.delete(token);
 
             await ensureClient();
-            await client.respondElicitation(st.elicitationId, { action, content });
+            await client.respondElicitation(st.elicitationId, {
+              action,
+              content,
+            });
 
             // Continue the original call until it yields again or completes.
-            return await runToolUntilYield(st.toolName, {}, { toolCallId: st.toolCallId, pending: st.pendingToolCall });
+            return await runToolUntilYield(
+              st.toolName,
+              {},
+              { toolCallId: st.toolCallId, pending: st.pendingToolCall }
+            );
           });
         },
       });
@@ -723,9 +853,14 @@ export default function register(api: any) {
           name,
           label: name,
           description: spec.description ?? `Seashail tool: ${toolName}`,
-          parameters: spec.inputSchema ?? { type: "object", additionalProperties: true },
+          parameters: spec.inputSchema ?? {
+            type: "object",
+            additionalProperties: true,
+          },
           execute: async (_id: string, params: unknown) => {
-            return await enqueue(async () => await runToolUntilYield(toolName, params));
+            return await enqueue(
+              async () => await runToolUntilYield(toolName, params)
+            );
           },
         });
       }
@@ -735,7 +870,7 @@ export default function register(api: any) {
     // IMPORTANT:
     // When returning an array of tools from a single factory, OpenClaw requires
     // an explicit tool name list for indexing/visibility.
-    { optional: true, names: registeredToolNames },
+    { optional: true, names: registeredToolNames }
   );
 
   api.registerService({

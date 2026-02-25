@@ -393,18 +393,18 @@ The strategies below are agent-executable runbooks. Each includes inputs to coll
 
 **Envelope safety:** Some strategies involve transaction envelopes constructed by external integrations. Treat any externally sourced transaction bytes or call data as high risk and always obtain explicit user confirmation before signing. Affected strategies are marked with "(envelope)".
 
-| Strategy | Surface | Key Tools |
-|----------|---------|-----------|
-| DeFi USDC Yield | Swap-only DeFi | `get_defi_yield_pools`, `swap_tokens` |
-| DeFi USDT Yield | Swap-only DeFi | `get_defi_yield_pools`, `swap_tokens` |
-| Pendle Fixed-Yield | Swap-only DeFi | `swap_tokens`, `inspect_token` |
+| Strategy           | Surface                       | Key Tools                                          |
+| ------------------ | ----------------------------- | -------------------------------------------------- |
+| DeFi USDC Yield    | Swap-only DeFi                | `get_defi_yield_pools`, `swap_tokens`              |
+| DeFi USDT Yield    | Swap-only DeFi                | `get_defi_yield_pools`, `swap_tokens`              |
+| Pendle Fixed-Yield | Swap-only DeFi                | `swap_tokens`, `inspect_token`                     |
 | Yield Optimization | Lending/Staking/LP (envelope) | `lend_tokens`, `stake_tokens`, `provide_liquidity` |
-| Grid Trading | Perps | `place_limit_order`, `modify_perp_order` |
-| Momentum Trading | Perps | `open_perp_position`, `close_perp_position` |
-| Prediction Market | Polymarket (envelope) | `place_prediction`, `close_prediction` |
-| Cross-Chain Arb | Bridge + Swap (envelope) | `bridge_tokens`, `swap_tokens` |
-| NFT Floor Sweep | NFT Marketplace (envelope) | `buy_nft`, `get_nft_inventory` |
-| Pump.fun Scout | pump.fun (envelope) | `pumpfun_buy`, `pumpfun_sell` |
+| Grid Trading       | Perps                         | `place_limit_order`, `modify_perp_order`           |
+| Momentum Trading   | Perps                         | `open_perp_position`, `close_perp_position`        |
+| Prediction Market  | Polymarket (envelope)         | `place_prediction`, `close_prediction`             |
+| Cross-Chain Arb    | Bridge + Swap (envelope)      | `bridge_tokens`, `swap_tokens`                     |
+| NFT Floor Sweep    | NFT Marketplace (envelope)    | `buy_nft`, `get_nft_inventory`                     |
+| Pump.fun Scout     | pump.fun (envelope)           | `pumpfun_buy`, `pumpfun_sell`                      |
 
 ### Strategy: DeFi USDC Yield (Swap-Only)
 
@@ -434,7 +434,7 @@ Constraint: This strategy uses swaps/sends only. Prefer yield exposures that are
 2. Pull a candidate list:
    - Call `get_defi_yield_pools` with filters targeting stablecoin pools and the selected `chain`.
    - Optionally run web research to validate: protocol reputation, audits, recent incidents, upgrade keys, and how the yield is generated.
-3. Convert pool ideas into *tradeable tokens*:
+3. Convert pool ideas into _tradeable tokens_:
    - Identify the actual token(s) the user will hold after entering (the "position token").
    - Collect canonical token addresses/mints from official sources.
 4. Sanity check tokens:
@@ -502,7 +502,7 @@ Constraint: This strategy uses swaps/sends only. Prefer yield exposures that are
 2. Pull a candidate list:
    - Call `get_defi_yield_pools` with filters targeting stablecoin pools and the selected `chain`.
    - Prefer opportunities with robust USDT exit liquidity (directly or via a highly liquid USDC hop).
-3. Convert pool ideas into *tradeable tokens* and obtain canonical token addresses/mints from official sources.
+3. Convert pool ideas into _tradeable tokens_ and obtain canonical token addresses/mints from official sources.
 4. Sanity check tokens using `inspect_token`. If identity is ambiguous, do not proceed.
 5. Liquidity / execution sanity:
    - Use `get_token_price` to verify pricing is available for the candidate token.
