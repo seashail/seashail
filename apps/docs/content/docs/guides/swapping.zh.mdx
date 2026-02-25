@@ -1,0 +1,85 @@
+---
+title: 兑换代币
+description: 使用 Jupiter（Solana）以及 Uniswap 或 1inch（EVM）跨链兑换代币。
+---
+
+## 兑换的工作原理
+
+Seashail 的 `swap_tokens` 工具会自动处理路由：
+
+- 在 Solana 上：通过 Jupiter 聚合器路由
+- 在 EVM 链上：默认通过 Uniswap 路由；1inch 在配置后可用
+- 策略评估发生在签名之前——兑换与任何写操作一样受分级审批约束
+
+有关分级审批的工作方式，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## 选择链
+
+兑换是链特定的：你必须指定在哪条链上执行兑换。
+
+- Solana 兑换使用 Jupiter（跨 Raydium、Orca 等的最佳路由聚合）
+- EVM 兑换默认使用 Uniswap；1inch 在已配置的链上可用（查看 `get_capabilities`）
+- `swap_tokens` 不支持跨链兑换——先使用 `bridge_tokens`，然后在目标链上兑换
+
+有关支持的链，请参阅[链与资金](/zh/docs/guides/chains-and-funding)。
+
+## 代币标识符
+
+代币标识符格式因链而异：
+
+- **Solana：** 使用 SPL mint 公钥（例如，`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` 代表 USDC）
+- **EVM：** 使用 ERC-20 合约地址（例如，`0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` 代表 Ethereum 上的 USDC）
+- **原生代币：** 对 SOL、ETH、MATIC 等使用 `"native"`
+
+使用 `inspect_token` 查询代币详情，或使用 `get_balance` / `get_portfolio` 查看你的持仓。
+
+## 滑点
+
+滑点容差控制你在兑换过程中能接受多大的价格波动：
+
+- 默认滑点容差在你的策略中设置（`max_slippage_bps`）
+- 可以用 `slippage_bps` 参数按次覆盖（基点：100 基点 = 1%）
+- 如果实际滑点超过限制，兑换在签名前被拒绝
+- 对于波动性代币或低流动性交易对，你可能需要更高的滑点
+
+有关默认滑点配置，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## 数量格式
+
+`amount` 和 `amount_units` 参数控制数量的解读方式：
+
+- `amount` 是一个十进制字符串（例如，`"10"`、`"0.5"`）
+- `amount_units`：`"ui"`（默认）用于人类可读的数量，`"base"` 用于原始单位（lamports、wei）
+
+除非有特定原因使用基础单位，否则使用 `"ui"`。
+
+## 典型工作流程
+
+1. 查看余额：`get_balance` 或 `get_portfolio`
+2. （可选）查询代币：`inspect_token`
+3. 兑换：`swap_tokens`，使用 `chain`、`token_in`、`token_out`、`amount_in`
+4. 如果提示则确认策略审批（通过 MCP 交互确认）
+5. 验证兑换成功：`get_balance` 或 `get_portfolio`
+
+兑换示例（Solana，SOL → USDC）：
+
+```json
+{
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "1",
+  "amount_units": "ui"
+}
+```
+
+## 注意事项
+
+- 路由自动完成——Seashail 通过 Jupiter（Solana）或 Uniswap（EVM）选择最佳路由
+- 完整参数详情：[swap_tokens 参考](/zh/docs/reference/tools-write#swap_tokens)
+- 相关内容：[跨链桥指南](/zh/docs/guides/bridging)，了解兑换前的跨链转账
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)，了解滑点超限和价格影响错误的解决方案
+- [术语表](/zh/docs/glossary)，了解滑点和基点（bps）的定义

@@ -1,0 +1,21 @@
+{
+  "title": "指南",
+  "pages": [
+    "agents",
+    "network-mode",
+    "chains-and-funding",
+    "wallets",
+    "sending",
+    "swapping",
+    "bridging",
+    "defi",
+    "perps",
+    "nfts",
+    "pumpfun",
+    "predictions",
+    "policy-and-approvals",
+    "scam-blocklist",
+    "security-model",
+    "adding-a-language"
+  ]
+}

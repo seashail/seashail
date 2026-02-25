@@ -1,0 +1,168 @@
+---
+title: Adding a Language
+description: Step-by-step guide to adding a new locale to the Seashail docs and landing page.
+---
+
+Seashail supports multiple locales. Adding a new language is a mechanical process
+that requires changes to configuration files and translation files in two apps:
+the **docs site** (Fumadocs + MDX) and the **landing page** (TypeScript dictionaries).
+
+This guide uses **Japanese (ja)** as a worked example throughout.
+
+## Prerequisites
+
+- Repository cloned and dependencies installed (`bun install`)
+- Familiarity with MDX (Markdown + JSX) and TypeScript
+
+## Docs Site (Fumadocs)
+
+The docs site uses [Fumadocs](https://fumadocs.vercel.app/) with a dot-parser
+convention for co-located translations. Four changes are needed.
+
+### Step 1: Update i18n Config
+
+Edit `apps/docs/src/lib/i18n.ts` and add the new locale to the `languages` array:
+
+```ts title="apps/docs/src/lib/i18n.ts"
+export const i18n = defineI18n({
+  defaultLanguage: "en",
+  // highlight-next-line
+  languages: ["en", "zh", "ja"], // add "ja"
+  hideLocale: "default-locale",
+  fallbackLanguage: "en",
+  parser: "dot",
+});
+```
+
+### Step 2: Create Translated MDX Pages
+
+For each page you want to translate, create a co-located file using the
+`.{locale}.mdx` naming convention:
+
+```
+content/docs/
+├── index.mdx          # English (default)
+├── index.zh.mdx       # Chinese
+└── index.ja.mdx       # Japanese (new)
+```
+
+The new file should contain the same frontmatter structure (`title`, `description`)
+with translated values, and translated body content.
+
+Pages without a `.ja.mdx` file automatically fall back to the English version —
+you do not need to translate every page at once.
+
+### Step 3: Create Translated Navigation Labels
+
+For each directory that has a `meta.json`, create a `meta.ja.json` with the
+translated `title`. The `pages` array stays the same (slugs are language-independent):
+
+```json title="content/docs/meta.ja.json"
+{
+  "title": "ドキュメント",
+  "pages": [
+    "index",
+    "getting-started",
+    "guides",
+    "reference",
+    "strategies",
+    "troubleshooting",
+    "glossary"
+  ]
+}
+```
+
+Repeat for every subdirectory that has its own `meta.json` (e.g., `guides/meta.ja.json`,
+`reference/meta.ja.json`).
+
+### Step 4: Add UI Chrome Translations (Optional)
+
+If the new locale needs custom strings for Fumadocs UI elements (search placeholder,
+table-of-contents heading, pagination labels, etc.), add translations via the
+Fumadocs i18n configuration. See the
+[Fumadocs i18n documentation](https://fumadocs.vercel.app/docs/ui/internationalization)
+for details.
+
+## Landing Page (TypeScript Dictionaries)
+
+The landing page uses static TypeScript dictionary modules for translations.
+Four changes are needed.
+
+### Step 1: Update Locale Config
+
+Edit `apps/landing/src/i18n/config.ts` and add entries for the new locale:
+
+```ts title="apps/landing/src/i18n/config.ts"
+// Add "ja" to the locales tuple
+export const locales = ["en", "zh", "ja"] as const;
+
+// Add to each mapping
+export const htmlLangMap: Record<Locale, string> = {
+  en: "en",
+  zh: "zh-CN",
+  ja: "ja", // new
+} as const;
+
+export const ogLocaleMap: Record<Locale, string> = {
+  en: "en_US",
+  zh: "zh_CN",
+  ja: "ja_JP", // new
+} as const;
+
+export const localeLabels: Record<Locale, string> = {
+  en: "English",
+  zh: "中文",
+  ja: "日本語", // new
+} as const;
+```
+
+### Step 2: Create Copy Dictionary
+
+Create `apps/landing/src/content/copy.ja.ts` by copying the English
+`copy.ts` and translating all string values. Structure and export names
+must match the English module exactly:
+
+```ts title="apps/landing/src/content/copy.ja.ts"
+export const hero = {
+  headline: "暗号資産のためのエージェントネイティブ取引インフラ",
+  // ... translate all remaining strings
+} as const;
+
+// Repeat for all exported sections: features, security, cta, etc.
+```
+
+### Step 3: Register Dictionary
+
+Edit `apps/landing/src/i18n/get-dictionary.ts` to import and register the
+new dictionary:
+
+```ts title="apps/landing/src/i18n/get-dictionary.ts"
+import * as en from "@/content/copy";
+import * as zh from "@/content/copy.zh";
+import * as ja from "@/content/copy.ja"; // new
+
+const dictionaries: Record<Locale, Dictionary> = { en, zh, ja };
+```
+
+### Step 4: Verify
+
+The `[lang]` routing and `generateStaticParams` automatically pick up the
+new locale from the config — no routing changes are needed. Run `bun run build`
+in both apps to verify.
+
+## Sitemap and SEO
+
+The docs sitemap dynamically generates hreflang entries from the Fumadocs
+locale config. Once you add the new locale to `i18n.ts` and create translated
+pages, the sitemap will automatically include hreflang alternates for the
+new language — no manual sitemap updates are needed.
+
+## Verification Checklist
+
+After completing the steps above:
+
+1. `bun run build` succeeds in both `apps/docs` and `apps/landing`
+2. New locale appears in the language switcher on both sites
+3. Translated pages render correctly in the new locale
+4. Untranslated docs pages fall back to English content
+5. The sitemap includes hreflang entries for the new locale (for translated pages)

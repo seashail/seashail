@@ -1,0 +1,17 @@
+{
+  "title": "策略与方案",
+  "description": "多工具工作流方案、能力发现和对比指南",
+  "pages": [
+    "index",
+    "what-can-i-ask",
+    "new-wallet-setup",
+    "portfolio-rebalancing",
+    "dca",
+    "yield-farming",
+    "multi-chain-management",
+    "risk-monitoring",
+    "compare-perps",
+    "compare-swaps",
+    "compare-wallets"
+  ]
+}

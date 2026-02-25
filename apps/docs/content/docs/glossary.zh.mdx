@@ -1,0 +1,172 @@
+---
+title: 术语表
+description: Seashail 文档中使用的术语说明。
+---
+
+本术语表收录了 Seashail 文档中使用的术语，按字母顺序排列。
+
+## A
+
+### allowlist（白名单）
+
+允许的目标地址或合约的明确列表。发往不在白名单中的地址的交易将被策略引擎拦截。这提供了对资金发送目标的精细控制。
+
+**使用于：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+### ATA（关联代币账户）
+
+从钱包地址和代币铸造地址派生出的 Solana 账户。每种 SPL 代币需要独立的 ATA 来持有余额。ATA 使用钱包公钥和代币铸造地址确定性地生成。
+
+**使用于：** [发送指南](/zh/docs/guides/sending)、[读取工具参考](/zh/docs/reference/tools-read)
+
+## B
+
+### bps（基点）
+
+等于百分之一的百分之一（0.01%）的计量单位。100 bps = 1%。Seashail 在整个系统中使用基点来表示滑点容忍度和手续费百分比。例如，50 bps = 0.5% 滑点。
+
+**使用于：** [兑换指南](/zh/docs/guides/swapping)、[策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+## D
+
+### daemon（守护进程）
+
+单例后台进程（`seashail daemon`），持有独占密钥存储锁并协调所有 MCP 客户端。守护进程管理密码短语会话、策略评估和交易签名。多个 MCP 代理可以连接到同一个守护进程。
+
+**使用于：** [架构参考](/zh/docs/reference/architecture)、[快速入门指南](/zh/docs/getting-started/quickstart)
+
+## E
+
+### elicitation（交互确认）
+
+在工具执行过程中提示用户输入的 MCP 机制。Seashail 使用交互确认来请求密码短语、交易确认和备份密钥分片验证，而不会在智能体对话历史中暴露敏感数据。
+
+**使用于：** [安全模型指南](/zh/docs/guides/security-model)、[策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+### ERC-20
+
+以太坊同质化代币标准。适用于所有 EVM 兼容链，包括 Ethereum、Base、Arbitrum、Optimism 和 Polygon。Seashail 在所有受支持的 EVM 链上支持 ERC-20 代币。
+
+**使用于：** [兑换指南](/zh/docs/guides/swapping)、[DeFi 指南](/zh/docs/guides/defi)
+
+## I
+
+### internal transfer（内部转账）
+
+在同一 Seashail 实例管理的钱包或账户之间进行的转账。内部转账可能受到与外部发送不同的策略限制，因为资金不会离开用户的控制范围。
+
+**使用于：** [发送指南](/zh/docs/guides/sending)、[策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+## M
+
+### MCP（模型上下文协议）
+
+Anthropic 开发的用于智能体与工具通过 stdio 通信的协议。Seashail 通过 MCP 工具暴露其全部功能，支持与 Claude Desktop、Cursor 以及其他兼容 MCP 的智能体集成。
+
+**使用于：** [快速入门指南](/zh/docs/getting-started/quickstart)、[架构参考](/zh/docs/reference/architecture)
+
+## N
+
+### network mode（网络模式）
+
+决定 Seashail 默认为所有链使用主网还是测试网的全局设置。网络模式影响默认 RPC 端点和链 ID。可以在每次工具调用时进行覆盖。
+
+**使用于：** [网络模式指南](/zh/docs/guides/network-mode)、[配置指南](/zh/docs/getting-started/configuration)
+
+## O
+
+### OFAC SDN（特别指定国民名单）
+
+美国外国资产控制办公室的受制裁个人和实体名单。Seashail 可以选择性地根据 SDN 名单检查交易目标地址，用于合规目的。
+
+**使用于：** [安全模型指南](/zh/docs/guides/security-model)、[故障排除](/zh/docs/troubleshooting)
+
+## P
+
+### passphrase session（密码短语会话）
+
+具有可配置存活时间（TTL）的缓存解密密钥。Seashail 将密码短语在内存中保留一段有限时间，以避免每次操作都提示用户输入。过期后，用户必须通过交互确认重新输入密码短语。
+
+**使用于：** [安全模型指南](/zh/docs/guides/security-model)、[故障排除](/zh/docs/troubleshooting)
+
+### policy context（策略上下文）
+
+由策略引擎在签名前评估的交易元数据（金额、目标地址、代币、美元价值、滑点等）。策略引擎使用此上下文来决定是自动批准、要求确认还是拒绝交易。
+
+**使用于：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+### proxy（代理）
+
+轻量级 stdio 进程（`seashail mcp`），将 MCP 消息转发给守护进程。多个代理可以同时运行，它们通过 Unix 套接字、命名管道或 TCP 回环与同一个守护进程通信。
+
+**使用于：** [架构参考](/zh/docs/reference/architecture)、[快速入门指南](/zh/docs/getting-started/quickstart)
+
+## R
+
+### remote tx（远程交易）
+
+由外部聚合器（DEX 路由器、跨链桥等）构建的交易字节，而非由 Seashail 在本地构建。远程交易需要额外的策略审查，因为 Seashail 在签名前无法完全验证其内容。策略选项 `require_user_confirm_for_remote_tx` 强制对所有远程交易进行确认。
+
+**使用于：** [兑换指南](/zh/docs/guides/swapping)、[跨链桥接指南](/zh/docs/guides/bridging)
+
+## S
+
+### scam blocklist（诈骗地址黑名单）
+
+经过签名、定期更新的已知恶意地址列表（诈骗、卷款跑路、被攻击的合约）。Seashail 可以选择性地根据此列表检查交易目标地址，防止向已知恶意地址发送资金。
+
+**使用于：** [诈骗地址黑名单指南](/zh/docs/guides/scam-blocklist)、[安全模型指南](/zh/docs/guides/security-model)
+
+### Shamir（沙米尔秘密分享）
+
+一种将秘密拆分为 N 个密钥分片的密码学技术，其中任意 M-of-N 个分片都可以重构秘密。Seashail 对生成的钱包使用 2-of-3 沙米尔秘密分享：一个分片保留在密钥存储中，一个展示给用户用于备份，一个从密码短语派生。
+
+**使用于：** [钱包指南](/zh/docs/guides/wallets)、[安全模型指南](/zh/docs/guides/security-model)
+
+### slippage（滑点）
+
+交易的报价价格与实际执行价格之间的差异。更高的滑点容忍度允许报价与执行之间有更多的价格波动，这对于波动剧烈的市场或低流动性代币来说是必要的。
+
+**使用于：** [兑换指南](/zh/docs/guides/swapping)、[DeFi 指南](/zh/docs/guides/defi)
+
+### SPL（Solana Program Library）
+
+Solana 的同质化代币标准。SPL 代币需要关联代币账户（ATA）来持有余额。每种 SPL 代币都有唯一的铸造地址。
+
+**使用于：** [发送指南](/zh/docs/guides/sending)、[读取工具参考](/zh/docs/reference/tools-read)
+
+## T
+
+### tiered approval（分级审批）
+
+具有三个评估级别的策略系统：
+
+- **自动批准**：交易无需确认即可进行（在低风险限额内）
+- **确认**：用户必须在签名前通过交互确认批准
+- **硬性拦截**：交易被拒绝，无法继续
+
+策略引擎根据配置的阈值评估每笔交易，以确定适用哪个级别。
+
+**使用于：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+### tool envelope（工具封装）
+
+包含工具名称及其参数的 MCP 工具调用封装。Seashail 的 MCP 服务器接收工具封装，验证参数，评估策略，并返回结果或错误。
+
+**使用于：** [架构参考](/zh/docs/reference/architecture)
+
+## U
+
+### USD value（美元价值）
+
+交易的预估美元价值，由策略引擎用于评估消费限额。Seashail 从价格源获取美元价格。如果无法确定美元价值，交易默认被拦截（故障关闭），除非 `deny_unknown_usd_value` 设置为 false。
+
+**使用于：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)、[故障排除](/zh/docs/troubleshooting)
+
+## W
+
+### write op（写操作）
+
+任何修改链上状态的交易：发送、兑换、跨链桥接、DeFi 操作、NFT 交易等。所有写操作都经过策略引擎评估。读取操作（余额查询、仓位查询）不需要策略评估。
+
+**使用于：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)、[架构参考](/zh/docs/reference/architecture)

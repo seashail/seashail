@@ -1,0 +1,95 @@
+---
+title: 钱包与密钥存储
+description: 创建/导入钱包、管理账户，以及安全充值地址。
+---
+
+Seashail 的设计确保 agent 进程永远不会收到密钥材料。
+
+## 钱包类型
+
+### 生成钱包
+
+生成钱包在 Seashail 内部创建，使用沙米尔秘密分享（2-of-3）进行保护：
+
+- 密钥分片 1：使用存储在 `config_dir` 中的机器密钥加密
+- 密钥分片 2：默认使用机器密钥加密（方便上手），或在 passphrase 下重新加密以实现可移植性（可选启用）
+- 密钥分片 3：在明确的恢复/导出操作期间一次性显示作为离线备份，Seashail 不存储
+
+正常操作从密钥分片 1 + 2 重建，完成签名后立即从内存中清零密钥材料。
+
+### 导入钱包
+
+导入的私钥/助记词使用 AES-256-GCM 静态加密，加密密钥由你的 passphrase 派生（Argon2id + HKDF 子密钥）。
+
+## 密码短语会话
+
+为了使自动化可行，Seashail 将 passphrase 派生的密钥缓存在内存中，持续时间可配置（`passphrase_session_seconds`）。
+
+无人值守环境可以选择通过环境变量提供 passphrase：
+
+- `SEASHAIL_PASSPHRASE`
+
+这在设计上安全性较低（明文在 Seashail 控制范围之外）。只有在了解权衡的情况下才使用。
+
+## 创建与导入钱包
+
+创建生成钱包（沙米尔秘密分享 2-of-3）：
+
+- `create_wallet`（通过 MCP 交互确认提示输入 passphrase）
+
+导入现有钱包：
+
+- `import_wallet`（通过 MCP 交互确认提示输入密钥）
+
+注意事项：
+
+- 不要将 `secret` 作为工具参数传递。Seashail 在设计上会拒绝它，因为工具参数经常出现在 agent 日志中。
+- 导入的私钥需要 `private_key_chain`（`evm` 或 `solana`）。
+
+## 管理钱包与账户
+
+常用工作流：
+
+1. `list_wallets` 查看已有内容
+2. `set_active_wallet` 选择后续工具调用的默认钱包/账户
+3. `add_account` 添加另一个 BIP-44 账户索引（生成钱包和助记词钱包）
+4. `get_wallet_info` 查看钱包的地址
+
+## 充值（存款地址）
+
+使用：
+
+- `get_deposit_info`
+
+返回指定 `wallet` / `account_index` 在所选 `chain` 上的存款地址。
+
+示例：
+
+```json
+{ "chain": "solana", "token": "usdc" }
+```
+
+```json
+{ "chain": "base", "token": "native" }
+```
+
+## 备份与轮换（仅限生成钱包）
+
+生成钱包可以选择启用可移植性/恢复功能，并获得一个一次性显示的离线备份密钥分片：
+
+- `export_shares`（轮换密钥分片并显示一次性密钥分片 3；需要密码短语会话）
+- `rotate_shares`（轮换密钥分片并显示一次性密钥分片 3；需要密码短语会话）
+
+## 相关工具
+
+- `list_wallets`、`get_wallet_info`、`set_active_wallet`、`add_account`
+- `create_wallet`、`import_wallet`
+- `get_deposit_info`
+- `export_shares`、`rotate_shares`
+
+## 另见
+
+- [CLI 参考](/zh/docs/reference/cli)了解命令行钱包管理
+- [故障排除](/zh/docs/troubleshooting)了解钱包错误的解决方案
+- [术语表](/zh/docs/glossary)了解沙米尔秘密分享、密码短语会话和密钥存储术语的定义
+- [安全模型](/zh/docs/guides/security-model)了解威胁分析和密钥托管对比

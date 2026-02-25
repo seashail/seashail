@@ -1,0 +1,245 @@
+---
+title: NFT 操作
+description: 查看库存、转移 NFT，以及在 Blur、Magic Eden、OpenSea 和 Tensor 上交易。
+---
+
+## 概述
+
+Seashail 的 NFT 工具涵盖三个类别：
+
+- **库存查看：** 查看你拥有的 NFT
+- **直接转移：** 将 NFT 发送到另一个地址
+- **交易市场交易：** 通过交易封装在 NFT 市场上买入、卖出或出价
+
+交易市场交易使用**交易封装**——代理（或已配置的适配器）构建特定交易市场的交易，Seashail 在策略评估后签名。
+
+支持的交易市场：**Blur**（Ethereum）、**Magic Eden**（Solana + 跨链）、**OpenSea**（Ethereum）、**Tensor**（Solana）。
+
+## 查看你的 NFT
+
+使用 `get_nft_inventory` 列出钱包中类似 NFT 的铸造代币（非同质化代币）：
+
+- **目前仅限 Solana**（EVM 库存支持可能会后续添加）
+- 返回 mint 地址、元数据 URI 和合集信息
+- 指定 `chain: "solana"` 并可选指定 `limit` 来限制结果数量
+
+示例：
+
+```json
+{
+  "chain": "solana",
+  "limit": 100
+}
+```
+
+这将返回你活跃 Solana 地址拥有的所有类似 NFT 的铸造代币（数量 = 1 且小数位数 = 0 的代币）。
+
+## 转移 NFT
+
+使用 `transfer_nft` 将 NFT 发送到另一个地址：
+
+- **Solana：** 提供 `chain: "solana"`、`to`（收款地址）和 `mint`（SPL 代币 mint）
+- **EVM：** 提供 `chain`（例如，"ethereum"、"base"）、`to`、`contract`（ERC-721 合约地址）和 `token_id`
+- 策略评估适用——受 `enable_nft` 和 `max_usd_per_nft_tx` 策略控制约束
+- 诈骗地址黑名单适用于收款方和合约/mint 地址
+
+### Solana 转移：
+
+- 使用 SPL 代币转移（转移恰好 1 个代币）
+- 如果收款方的关联代币账户（ATA）不存在，Seashail 会自动创建
+
+### EVM 转移：
+
+- 使用 ERC-721 的 `safeTransferFrom`
+- 代币 ID 必须是十进制字符串（例如，"1234"）
+- 交易在广播前进行模拟
+
+示例（Solana）：
+
+```json
+{
+  "chain": "solana",
+  "to": "11111111111111111111111111111111",
+  "mint": "So11111111111111111111111111111111111111112"
+}
+```
+
+示例（EVM）：
+
+```json
+{
+  "chain": "base",
+  "to": "0xRecipientAddress",
+  "contract": "0xContractAddress",
+  "token_id": "1234"
+}
+```
+
+有关分级审批的工作方式，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## 交易市场交易
+
+### 工作原理
+
+交易市场操作（`buy_nft`、`sell_nft`、`bid_nft`）需要**交易封装**：
+
+1. 代理（或适配器）获取交易市场的挂单/报价数据
+2. 代理构建交易（或提供 `asset` 对象供已配置的适配器获取）
+3. Seashail 对照策略验证、签名并广播
+
+这种设计将交易市场特定的逻辑保持在 Seashail 安全边界之外，同时仍强制执行策略控制。
+
+### 购买 NFT
+
+使用 `buy_nft` 购买已挂单的 NFT：
+
+- **Solana：** 提供 `tx_b64`（base64 编码的未签名 VersionedTransaction）和 `allowed_program_ids`（程序 ID 白名单）
+- **EVM：** 提供 `to`（合约地址）、`data`（calldata）以及可选的 `value_wei`（ETH 价值）
+- 或者提供 `asset` 对象让交易市场适配器获取封装
+- 策略评估适用（`enable_nft`、`max_usd_per_nft_tx`）
+- Solana 交易市场封装**始终强制确认**（无论策略层级如何都需要用户确认）
+
+示例（Solana，Magic Eden）：
+
+```json
+{
+  "chain": "solana",
+  "marketplace": "magic_eden",
+  "usd_value": 50,
+  "tx_b64": "BASE64...",
+  "allowed_program_ids": [
+    "ComputeBudget111111111111111111111111111111",
+    "11111111111111111111111111111111"
+  ]
+}
+```
+
+示例（EVM，OpenSea）：
+
+```json
+{
+  "chain": "base",
+  "marketplace": "opensea",
+  "usd_value": 50,
+  "to": "0x...",
+  "data": "0x...",
+  "value_wei": "0"
+}
+```
+
+### 出售 NFT
+
+使用 `sell_nft` 挂单出售 NFT 或接受报价：
+
+- 与 `buy_nft` 相同的封装格式（见上文）
+- 代理为所选交易市场构建出售/挂单交易
+- 出售前使用 `get_nft_inventory` 发现你拥有哪些 NFT
+
+示例（Solana，Tensor）：
+
+```json
+{
+  "chain": "solana",
+  "marketplace": "tensor",
+  "usd_value": 100,
+  "tx_b64": "BASE64...",
+  "allowed_program_ids": ["TCMPhJdwDryooaGGZjYoHRlM2vvDXcAP2BW2hhBKRmb"]
+}
+```
+
+### 出价 NFT
+
+使用 `bid_nft` 出价或提出报价：
+
+- 与 `buy_nft` 相同的封装格式（见上文）
+- 代理为所选交易市场构建出价/报价交易
+- 策略评估适用（与买入/卖出相同）
+
+示例（EVM，Blur）：
+
+```json
+{
+  "chain": "ethereum",
+  "marketplace": "blur",
+  "usd_value": 25,
+  "to": "0x...",
+  "data": "0x...",
+  "value_wei": "0"
+}
+```
+
+## 交易市场差异
+
+### Blur（Ethereum）
+
+- 高交易量的 Ethereum 交易市场
+- 封装：带有 `to`、`data`、`value_wei` 的 EVM 交易
+- 交易在广播前进行模拟
+- 诈骗地址黑名单适用于合约地址
+
+### Magic Eden（Solana + EVM）
+
+- 跨链交易市场（Solana、Ethereum、Polygon 等）
+- Solana 封装：带 `allowed_program_ids` 的 `tx_b64`
+- EVM 封装：`to`、`data`、`value_wei`
+- Solana 封装强制确认（需要用户确认）
+
+### OpenSea（Ethereum）
+
+- 广泛使用的 Ethereum 交易市场
+- 封装：带有 `to`、`data`、`value_wei` 的 EVM 交易
+- 支持 Seaport 协议
+- 交易在广播前进行模拟
+
+### Tensor（Solana）
+
+- 专注于 Solana 的 NFT 交易市场
+- 封装：带 `allowed_program_ids` 的 `tx_b64`
+- Solana 封装强制确认（需要用户确认）
+- 以支持压缩 NFT 著称
+
+## 典型工作流程
+
+### 浏览并购买：
+
+1. 代理在交易市场上发现挂单（链外）
+2. 代理构建封装或提供 `asset` 对象
+3. `buy_nft`，使用交易市场封装
+4. 通过 MCP 交互确认
+5. `get_nft_inventory` 验证购买
+
+### 转移给朋友：
+
+1. `get_nft_inventory` 找到 NFT 的 mint（Solana）或合约 + token_id（EVM）
+2. `transfer_nft`，使用 mint/合约+token_id 和收款地址
+3. 如果提示则确认
+
+### 挂单出售：
+
+1. `get_nft_inventory` 查看你拥有什么
+2. 代理构建出售/挂单封装
+3. `sell_nft`，使用交易市场封装
+4. 通过 MCP 交互确认
+
+## 策略控制
+
+NFT 交易受策略控制：
+
+- `enable_nft`：主开关（默认：`true`）
+- `max_usd_per_nft_tx`：限制每笔交易的美元价值上限（默认：`1000`）
+- 超过上限的交易会被拦截
+- 低于上限的交易可能自动审批或需要确认，具体取决于分级审批设置
+
+有关策略配置，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## 注意事项
+
+- 完整参数详情：[NFT 工具参考](/zh/docs/reference/tools-nfts)
+- **封装二元性：** 代理可以直接提供封装，或已配置的适配器通过 `asset` 字段获取
+- **Solana 交易市场封装始终强制确认**——无论策略层级如何都需要用户确认
+- 相关内容：[钱包指南](/zh/docs/guides/wallets)，了解钱包地址管理
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)，了解策略错误和交易市场封装问题的解决方案
+- [术语表](/zh/docs/glossary)，了解交互确认、强制确认和交易市场术语的定义

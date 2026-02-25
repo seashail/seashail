@@ -1,0 +1,770 @@
+---
+title: "工具：借贷"
+description: 通过 Aave、Compound、Kamino 和 Marginfi 进行供给、提款、借款、还款和读取借贷仓位。
+---
+
+借贷工具管理跨多个 DeFi 协议的仓位。所有写入工具需要[策略审批](/zh/docs/reference/tools-policy)。省略 protocol 时按链自动选择（EVM 默认 Aave，Solana 默认 Kamino）。
+
+## lend_tokens
+
+向借贷协议供给代币。支持 Aave v3（EVM）、Compound v3（EVM）、Kamino（Solana）和 Marginfi（Solana）的原生执行。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "执行的链：solana 或 EVM 链名称。",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "协议选择。若省略，按链默认（EVM：aave；Solana：kamino）。",
+    },
+    token: {
+      type: "string",
+      description:
+        "要供给的代币。EVM：ERC-20 合约地址或原生代币。Solana：SPL mint 公钥或原生代币。",
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        "供给金额。注意：Aave/Compound 原生路径不支持 amount=max。",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = 人类可读代币单位，base = 原始基础单位。",
+      default: '"ui"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "用于策略执行的尽力美元价值。若省略，视为未知。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "美元价值追踪的覆盖标志。",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3：可选 Pool 地址覆盖（适用于本地测试/模拟）。",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3：可选 Comet 市场地址覆盖。若省略，使用 USDC 市场的每链默认值。",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino：可选市场公钥覆盖（默认为 http.kamino_default_lend_market）。",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi：可选 group 公钥覆盖（默认为 http.marginfi_default_group）。",
+    },
+  }}
+/>
+
+### 交易封装（回退）
+
+当原生参数不足时，可以提供交易封装。
+
+**EVM 封装：**
+
+<TypeTable
+  type={{
+    to: {
+      type: "string",
+      description: "交易接收方/合约地址。",
+    },
+    data: {
+      type: "string",
+      description: "0x 前缀的调用数据。空时使用 0x。",
+    },
+    value_wei: {
+      type: "string",
+      description: "以十进制字符串表示的 wei 价值。",
+      default: '"0"',
+    },
+  }}
+/>
+
+**Solana 封装：**
+
+<TypeTable
+  type={{
+    tx_b64: {
+      type: "string",
+      description:
+        "Base64 编码的 VersionedTransaction 字节（未签名；Seashail 将签名）。",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "程序 ID 白名单。每条指令的程序 ID 必须在此列表中。",
+    },
+  }}
+/>
+
+**适配器：**
+
+<TypeTable
+  type={{
+    asset: {
+      type: "object",
+      description:
+        "协议特定请求对象，供可选适配器用于构建交易封装。",
+    },
+  }}
+/>
+
+### 各协议行为
+
+<Tabs
+  items={[
+    "Aave (EVM)",
+    "Compound (EVM)",
+    "Kamino (Solana)",
+    "Marginfi (Solana)",
+  ]}
+>
+  <Tab value="Aave (EVM)">
+    - EVM 链的默认协议 - 原生执行：Seashail 直接调用 Aave v3 Pool - 支持供给、提款、借款、还款 - 可用 `pool_address` 覆盖进行测试 - 供给操作不支持 `amount=max`
+  </Tab>
+  <Tab value="Compound (EVM)">
+    - 显式设置 `protocol: "compound"` - 通过 Compound v3 Comet 原生执行 - 非默认市场可使用 `comet_address` 覆盖 - 使用 `token: "base"` 供给基础代币（baseToken()）- 原生路径不支持 `amount=max`
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    - Solana 链的默认协议 - 通过 Kamino 借贷原生执行 - 非默认市场可使用 `market` 覆盖 - 支持供给、提款、借款、还款
+  </Tab>
+  <Tab value="Marginfi (Solana)">
+    - 显式设置 `protocol: "marginfi"` - 通过 Marginfi 原生执行 - 可用 `group` 覆盖 - 若省略 `marginfi_account`，使用最近创建的账户
+  </Tab>
+</Tabs>
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "1000",
+  "status": "confirmed"
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+<Tabs items={["Aave (EVM)", "Kamino (Solana)"]}>
+  <Tab value="Aave (EVM)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "1000",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "kamino",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "500",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 需要[策略审批](/zh/docs/reference/tools-policy)——借贷操作可能被自动批准、需要确认或被阻止，取决于策略配置和美元价值。
+- 协议按链自动选择：EVM 链默认 Aave，Solana 默认 Kamino。
+- Aave/Compound 供给路径不支持 `amount=max`。
+- 若未提供原生参数，回退到交易封装模式（EVM 需要 `to`/`data`，Solana 需要 `tx_b64`）。
+- 另见：[DeFi 指南](/zh/docs/guides/defi)
+
+---
+
+## withdraw_lending
+
+从借贷协议提取已供给的代币。支持 Aave v3（EVM）、Compound v3（EVM）、Kamino（Solana）和 Marginfi（Solana）的原生执行。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "执行的链：solana 或 EVM 链名称。",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "协议选择。若省略，按链默认（EVM：aave；Solana：kamino）。",
+    },
+    token: {
+      type: "string",
+      description:
+        "要提款的代币。EVM：ERC-20 合约地址或原生代币。Solana：SPL mint 公钥或原生代币。",
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        '提款金额。Aave 支持 amount="max"（需要 usd_value 用于策略）。Compound 原生路径不支持 amount=max。',
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = 人类可读代币单位，base = 原始基础单位。",
+      default: '"ui"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "用于策略执行的尽力美元价值。使用 Aave 的 amount=max 时必填。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "美元价值追踪的覆盖标志。",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3：可选 Pool 地址覆盖（适用于本地测试/模拟）。",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3：可选 Comet 市场地址覆盖。若省略，使用 USDC 市场的每链默认值。",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino：可选市场公钥覆盖（默认为 http.kamino_default_lend_market）。",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi：可选 group 公钥覆盖（默认为 http.marginfi_default_group）。",
+    },
+  }}
+/>
+
+### 交易封装（回退）
+
+交易封装参数参见 [lend_tokens](#lend_tokens)（EVM：`to`、`data`、`value_wei`；Solana：`tx_b64`、`allowed_program_ids`；适配器：`asset`）。
+
+### 各协议行为
+
+各协议特定详情参见上方的[各协议行为](#lend_tokens)。提款的主要区别：
+
+- **Aave**：支持 `amount="max"`，但需要 `usd_value` 用于策略执行
+- **Compound**：原生路径不支持 `amount="max"`
+- **Kamino/Marginfi**：遵循标准 Solana 提款模式
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "500",
+  "status": "confirmed"
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+<Tabs items={["Aave with max", "Compound (EVM)"]}>
+  <Tab value="Aave with max">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "max",
+      "amount_units": "ui",
+      "usd_value": 500.0
+    }
+    ```
+  </Tab>
+  <Tab value="Compound (EVM)">
+    ```json
+    {
+      "chain": "base",
+      "protocol": "compound",
+      "token": "base",
+      "amount": "100",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 需要[策略审批](/zh/docs/reference/tools-policy)。
+- 协议按链自动选择：EVM 链默认 Aave，Solana 默认 Kamino。
+- `amount="max"` 行为因协议而异：Aave 支持（需要 `usd_value`），Compound 不支持。
+- 另见：[DeFi 指南](/zh/docs/guides/defi)
+
+---
+
+## borrow_tokens
+
+从借贷协议的抵押品中借出代币。支持 Aave v3（EVM）、Compound v3（EVM）、Kamino（Solana）和 Marginfi（Solana）的原生执行。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "执行的链：solana 或 EVM 链名称。",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "协议选择。若省略，按链默认（EVM：aave；Solana：kamino）。",
+    },
+    token: {
+      type: "string",
+      description:
+        '要借款的代币。EVM：ERC-20 合约地址。对于 Compound v3，必须为基础代币（使用 token="base" 表示 baseToken()）。',
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        "借款金额。注意：Aave/Compound 原生路径不支持 amount=max。",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = 人类可读代币单位，base = 原始基础单位。",
+      default: '"ui"',
+    },
+    interest_rate_mode: {
+      type: '"variable" | "stable"',
+      description: "Aave 借款操作的利率模式。",
+      default: '"variable"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "用于策略执行的尽力美元价值。若省略，视为未知。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "美元价值追踪的覆盖标志。",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3：可选 Pool 地址覆盖（适用于本地测试/模拟）。",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3：可选 Comet 市场地址覆盖。若省略，使用 USDC 市场的每链默认值。",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino：可选市场公钥覆盖（默认为 http.kamino_default_lend_market）。",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi：可选 group 公钥覆盖（默认为 http.marginfi_default_group）。",
+    },
+  }}
+/>
+
+### 交易封装（回退）
+
+交易封装参数参见 [lend_tokens](#lend_tokens)（EVM：`to`、`data`、`value_wei`；Solana：`tx_b64`、`allowed_program_ids`；适配器：`asset`）。
+
+### 各协议行为
+
+各协议特定详情参见上方的[各协议行为](#lend_tokens)。借款的主要区别：
+
+- **Aave**：支持 `interest_rate_mode`（浮动或固定）
+- **Compound**：使用 `token="base"` 借出市场的基础代币
+- **所有协议**：原生路径均不支持 `amount=max`
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "200",
+  "interest_rate_mode": "variable",
+  "status": "confirmed"
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+<Tabs items={["Aave (EVM)", "Compound (EVM)"]}>
+  <Tab value="Aave (EVM)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "200",
+      "amount_units": "ui",
+      "interest_rate_mode": "variable"
+    }
+    ```
+  </Tab>
+  <Tab value="Compound (EVM)">
+    ```json
+    {
+      "chain": "base",
+      "protocol": "compound",
+      "token": "base",
+      "amount": "50",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 需要[策略审批](/zh/docs/reference/tools-policy)。
+- 协议按链自动选择：EVM 链默认 Aave，Solana 默认 Kamino。
+- 原生路径不支持 `amount=max`。
+- Aave 通过 `interest_rate_mode` 支持浮动和固定利率模式。
+- 对于 Compound v3，`token` 必须为市场的基础代币。使用 `token="base"` 作为 baseToken() 的简写。
+- 另见：[DeFi 指南](/zh/docs/guides/defi)
+
+---
+
+## repay_borrow
+
+偿还借贷协议上的借款。支持 Aave v3（EVM）、Compound v3（EVM）、Kamino（Solana）和 Marginfi（Solana）的原生执行。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "执行的链：solana 或 EVM 链名称。",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "协议选择。若省略，按链默认（EVM：aave；Solana：kamino）。",
+    },
+    token: {
+      type: "string",
+      description:
+        '要还款的代币。EVM：ERC-20 合约地址。对于 Compound v3，必须为基础代币（使用 token="base" 表示 baseToken()）。',
+      required: true,
+    },
+    amount: {
+      type: "string",
+      description:
+        '还款金额。Aave 支持 amount="max"（需要 usd_value 用于策略）。Compound 原生路径不支持 amount=max。',
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = 人类可读代币单位，base = 原始基础单位。",
+      default: '"ui"',
+    },
+    interest_rate_mode: {
+      type: '"variable" | "stable"',
+      description: "Aave 还款操作的利率模式。",
+      default: '"variable"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "用于策略执行的尽力美元价值。使用 Aave 的 amount=max 时必填。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "美元价值追踪的覆盖标志。",
+      default: "false",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3：可选 Pool 地址覆盖（适用于本地测试/模拟）。",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3：可选 Comet 市场地址覆盖。若省略，使用 USDC 市场的每链默认值。",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino：可选市场公钥覆盖（默认为 http.kamino_default_lend_market）。",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi：可选 group 公钥覆盖（默认为 http.marginfi_default_group）。",
+    },
+  }}
+/>
+
+### 交易封装（回退）
+
+交易封装参数参见 [lend_tokens](#lend_tokens)（EVM：`to`、`data`、`value_wei`；Solana：`tx_b64`、`allowed_program_ids`；适配器：`asset`）。
+
+### 各协议行为
+
+各协议特定详情参见上方的[各协议行为](#lend_tokens)。还款的主要区别：
+
+- **Aave**：支持 `amount="max"`，但需要 `usd_value` 用于策略执行；支持 `interest_rate_mode`
+- **Compound**：原生路径不支持 `amount="max"`；使用 `token="base"` 表示基础代币
+- **Kamino/Marginfi**：遵循标准 Solana 还款模式
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "ethereum",
+  "protocol": "aave",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "200",
+  "interest_rate_mode": "variable",
+  "status": "confirmed"
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+<Tabs items={["Aave with max", "Kamino (Solana)"]}>
+  <Tab value="Aave with max">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "amount": "max",
+      "amount_units": "ui",
+      "usd_value": 200.0,
+      "interest_rate_mode": "variable"
+    }
+    ```
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "kamino",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "100",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 需要[策略审批](/zh/docs/reference/tools-policy)。
+- 协议按链自动选择：EVM 链默认 Aave，Solana 默认 Kamino。
+- `amount="max"` 行为因协议而异：Aave 支持（需要 `usd_value`），Compound 不支持。
+- Aave 通过 `interest_rate_mode` 支持浮动和固定利率模式。
+- 对于 Compound v3，`token` 必须为市场的基础代币。使用 `token="base"` 作为 baseToken() 的简写。
+- 另见：[DeFi 指南](/zh/docs/guides/defi)
+
+---
+
+## get_lending_positions
+
+只读借贷/借款仓位。支持 Aave v3（EVM）、Compound v3/Comet（EVM）、Kamino（Solana）和 Marginfi（Solana）的原生读取。其他协议回退到已配置的 DeFi 适配器。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: "执行的链：solana 或 EVM 链名称。",
+      required: true,
+    },
+    protocol: {
+      type: '"aave" | "compound" | "kamino" | "marginfi"',
+      description:
+        "协议提示。若省略，按链默认（EVM：aave；Solana：kamino）。",
+    },
+    pool_address: {
+      type: "string",
+      description:
+        "Aave v3：可选 Pool 地址覆盖（适用于本地测试/模拟）。",
+    },
+    comet_address: {
+      type: "string",
+      description:
+        "Compound v3：可选 Comet 市场地址覆盖。若省略，使用 USDC 市场的每链默认值。",
+    },
+    market: {
+      type: "string",
+      description:
+        "Kamino：可选市场公钥覆盖（默认为 http.kamino_default_lend_market）。",
+    },
+    group: {
+      type: "string",
+      description:
+        "Marginfi：可选 group 公钥覆盖（默认为 http.marginfi_default_group）。",
+    },
+    marginfi_account: {
+      type: "string",
+      description:
+        "Marginfi：可选 marginfi_account 公钥。若省略，Seashail 使用此钱包/账户最近创建的 Marginfi 账户（尽力而为）。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "protocol": "aave",
+  "chain": "ethereum",
+  "positions": [
+    {
+      "token": "0xA0b8...",
+      "symbol": "USDC",
+      "supplied": "1000.0",
+      "supplied_usd": 1000.0,
+      "borrowed": "0",
+      "borrowed_usd": 0,
+      "apy_supply": 3.2,
+      "apy_borrow": null
+    }
+  ],
+  "health_factor": 2.5
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+<Tabs items={["Aave (EVM)", "Kamino (Solana)"]}>
+  <Tab value="Aave (EVM)">
+    ```json
+    {
+      "chain": "ethereum",
+      "protocol": "aave"
+    }
+    ```
+  </Tab>
+  <Tab value="Kamino (Solana)">
+    ```json
+    {
+      "chain": "solana",
+      "protocol": "kamino"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 这是只读工具，无需策略审批。
+- 协议特定覆盖（`pool_address`、`comet_address`、`market`、`group`、`marginfi_account`）主要用于测试或非默认部署。
+- 协议按链自动选择：EVM 链默认 Aave，Solana 默认 Kamino。
+- 对于 Marginfi，若省略 `marginfi_account`，Seashail 使用最近创建的账户（尽力而为）。
+- 另见：[DeFi 指南](/zh/docs/guides/defi)

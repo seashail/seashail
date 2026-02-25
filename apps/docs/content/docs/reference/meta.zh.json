@@ -1,0 +1,25 @@
+{
+  "title": "参考",
+  "description": "MCP 工具参考文档",
+  "pages": [
+    "index",
+    "mcp-tools",
+    "tools-network",
+    "tools-wallets",
+    "tools-read",
+    "tools-write",
+    "tools-lending",
+    "tools-staking",
+    "tools-liquidity",
+    "tools-perps",
+    "tools-nfts",
+    "tools-predictions",
+    "tools-pumpfun",
+    "tools-policy",
+    "capabilities",
+    "chains",
+    "verification",
+    "cli",
+    "architecture"
+  ]
+}

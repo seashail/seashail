@@ -1,0 +1,68 @@
+---
+title: JetBrains
+description: 通过 MCP 将 Seashail 连接到 JetBrains IDE。
+---
+
+JetBrains IDE（IntelliJ、WebStorm、PyCharm 等）通过 AI Assistant 支持 MCP 服务器。参见 [JetBrains MCP 文档](https://www.jetbrains.com/help/ai-assistant/mcp.html)了解完整详情。
+
+> Seashail 是**仅 stdio** 模式。配置 JetBrains 启动本地命令（`seashail mcp`），而非服务器 URL。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- JetBrains IDE（2025.2+）并启用 AI Assistant
+
+## 设置
+
+1. 打开 **Settings | Tools | AI Assistant | Model Context Protocol (MCP)**
+2. 点击 **Add** 并选择 **STDIO**
+3. 粘贴以下 JSON 配置：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+4. 点击 **OK**，然后 **Apply**
+
+> 如果你已在 Claude Desktop 中配置了 Seashail，可以点击 **Import from Claude** 自动导入。
+
+## 测试网模式
+
+使用相同步骤但修改 args：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp", "--network", "testnet"]
+    }
+  }
+}
+```
+
+## 验证
+
+询问你的 JetBrains AI agent：
+
+```
+What's my SOL balance?
+```
+
+它应该调用 Seashail 的 MCP 工具。
+
+## 故障排除
+
+**MCP 选项不可见**
+MCP 支持需要 JetBrains IDE 版本 2025.2 或更高版本以及有效的 AI Assistant 订阅。
+
+**"seashail: command not found"**
+在配置中使用二进制文件的绝对路径（例如 `/usr/local/bin/seashail`）。

@@ -1,0 +1,155 @@
+---
+title: "实操指南：投资组合再平衡"
+description: 通过兑换将多代币投资组合再平衡到目标配置
+---
+
+## 概述
+
+将投资组合再平衡以维持目标配置。查看当前余额和价格，计算所需交易，执行再平衡兑换，并验证最终状态。
+
+**使用的工具：** `get_balance`、`get_token_price`、`swap_tokens`
+**支持的链：** Solana（示例使用 SOL/USDC/JUP）
+**完成时间：** 5-10 分钟
+
+## 前提条件
+
+- 在目标链上有代币余额的活跃钱包
+- 已定义目标配置百分比（例如 40% SOL、40% USDC、20% JUP）
+
+<Steps>
+
+### 第一步：获取当前余额
+
+查询所有投资组合代币的钱包余额。
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": [
+      "native",
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
+    ]
+  }
+}
+```
+
+**预期结果：** SOL（原生）、USDC 和 JUP 代币的余额及美元价值。
+
+### 第二步：获取代币价格
+
+获取当前美元价格以进行精确计算。
+
+```json
+{
+  "name": "get_token_price",
+  "arguments": {
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+对 USDC 和 JUP 重复此操作。**预期结果：** 每个代币的美元价格。
+
+### 第三步：计算再平衡交易
+
+**计算示例：** 投资组合总计 $10,000。目标：40% SOL、40% USDC、20% JUP。
+
+- 当前：60% SOL（$6,000）、30% USDC（$3,000）、10% JUP（$1,000）
+- 目标：40% SOL（$4,000）、40% USDC（$4,000）、20% JUP（$2,000）
+- **所需交易：** 卖出 $2,000 SOL → 买入 $1,000 USDC + $1,000 JUP
+
+### 第四步：执行再平衡兑换
+
+第一笔交易：将 SOL 兑换为 USDC。
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "native",
+    "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "amount_in": "1000",
+    "amount_units": "usd",
+    "slippage_bps": 100,
+    "provider": "jupiter"
+  }
+}
+```
+
+然后第二笔交易：将 SOL 兑换为 JUP。
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "native",
+    "token_out": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "amount_in": "1000",
+    "amount_units": "usd",
+    "slippage_bps": 100,
+    "provider": "jupiter"
+  }
+}
+```
+
+**预期结果：** 两笔兑换均成功执行并返回交易签名。
+
+### 第五步：验证最终配置
+
+重新查询余额，确认新配置符合目标。
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": [
+      "native",
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
+    ]
+  }
+}
+```
+
+**预期结果：** 投资组合配置现在接近 40/40/20 目标。
+
+</Steps>
+
+## 变体
+
+### 保守型再平衡
+
+对大额再平衡使用较低的滑点容忍度（50 bps 而非 100 bps）。
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "slippage_bps": 50
+  }
+}
+```
+
+### 多链再平衡
+
+如果资金需要跨链移动，在再平衡前添加跨链桥接步骤。使用 `bridge_tokens` 转移资金，然后在目标链上再平衡。
+
+## 注意事项
+
+- **燃料成本：** 每笔兑换消耗 Solana 交易手续费（通常不到 $0.01）。在小额再平衡时需考虑这一因素。
+- **amount_units: "usd"：** 使用美元金额确保在执行过程中不受代币价格波动影响，保持规模一致。
+- **策略限额：** `max_usd_per_swap` 策略字段限制单笔兑换大小。确保限额能适应你的再平衡交易。
+- **滑点：** 更高的滑点容忍度允许更快执行，但会增加价格影响风险。
+
+## 另见
+
+- [代币兑换指南](/zh/docs/guides/swapping)
+- [读取工具参考](/zh/docs/reference/tools-read)
+- [写入工具参考](/zh/docs/reference/tools-write)

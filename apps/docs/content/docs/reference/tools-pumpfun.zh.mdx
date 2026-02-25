@@ -1,0 +1,230 @@
+---
+title: "工具：Pump.fun"
+description: 发现新币、获取代币信息，以及在 Solana 上买卖 pump.fun 代币。
+---
+
+Pump.fun 工具与 Solana 上的 pump.fun 代币发行协议交互。读取工具无需密钥；写入工具需要[策略审批](/zh/docs/reference/tools-policy)。所有工具仅支持 Solana。
+
+## pumpfun_list_new_coins
+
+列出最新的 pump.fun 发行代币。只读。
+
+### 参数
+
+<TypeTable
+  type={{
+    limit: {
+      type: "integer",
+      description: "最大结果数（1–200）。",
+      default: "20",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "coins": [
+    {
+      "mint": "ABC123...",
+      "name": "Example Coin",
+      "symbol": "EXC",
+      "created_at": "2025-01-15T14:00:00Z",
+      "market_cap_sol": 12.5
+    }
+  ],
+  "count": 20
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{ "limit": 50 }
+```
+
+### 注意事项
+
+- 结果按发行时间排序（最新的在前）。
+- 使用 `pumpfun_get_coin_info` 获取特定代币的详细信息。
+
+## pumpfun_get_coin_info
+
+获取 pump.fun 代币详情。只读。
+
+### 参数
+
+<TypeTable
+  type={{
+    mint: {
+      type: "string",
+      description: "代币 mint 地址。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "mint": "ABC123...",
+  "name": "Example Coin",
+  "symbol": "EXC",
+  "description": "An example pump.fun coin.",
+  "image_uri": "https://...",
+  "created_at": "2025-01-15T14:00:00Z",
+  "market_cap_sol": 12.5,
+  "bonding_curve": "6x7y...",
+  "complete": false,
+  "virtual_sol_reserves": 30.0,
+  "virtual_token_reserves": 1000000000
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{ "mint": "ABC123..." }
+```
+
+### 注意事项
+
+- 返回联合曲线详情和储备信息，可用于评估代币状态。
+- 使用 `pumpfun_list_new_coins` 发现最近发行的 mint 地址。
+
+## pumpfun_buy
+
+购买 pump.fun 代币。需要[策略审批](/zh/docs/reference/tools-policy)。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "若省略，使用活跃钱包。",
+    },
+    account_index: {
+      type: "integer",
+      description: "若省略，使用活跃账户索引。",
+    },
+    mint: {
+      type: "string",
+      description: "代币 mint 地址（经过身份验证）。",
+      required: true,
+    },
+    amount_sol: {
+      type: "number",
+      description: "精确花费的 SOL 数量。",
+      required: true,
+    },
+    usd_value: {
+      type: "number",
+      description: "策略审批的可选覆盖值。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "若为 true，跳过价格发现，直接使用 usd_value。",
+      default: "false",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "amount_received": "1000000",
+  "mint": "ABC123..."
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{
+  "mint": "ABC123...",
+  "amount_sol": 0.5
+}
+```
+
+### 注意事项
+
+- mint 地址经过身份验证以保证安全。
+- 购买前使用 `pumpfun_get_coin_info` 评估代币。
+- 需要[策略审批](/zh/docs/reference/tools-policy)——交易可能被自动批准、需要确认或被阻止，取决于策略配置和美元价值。
+- 另见：[Pump.fun 指南](/zh/docs/guides/pumpfun)。
+
+## pumpfun_sell
+
+卖出 pump.fun 代币。需要[策略审批](/zh/docs/reference/tools-policy)。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "若省略，使用活跃钱包。",
+    },
+    account_index: {
+      type: "integer",
+      description: "若省略，使用活跃账户索引。",
+    },
+    mint: {
+      type: "string",
+      description: "代币 mint 地址（经过身份验证）。",
+      required: true,
+    },
+    percent: {
+      type: "number",
+      description: "持仓卖出百分比（0-100）。",
+      required: true,
+    },
+    usd_value: {
+      type: "number",
+      description: "策略审批的可选覆盖值。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "若为 true，跳过价格发现，直接使用 usd_value。",
+      default: "false",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "sol_received": "0.48",
+  "tokens_sold": "500000"
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{
+  "mint": "ABC123...",
+  "percent": 100
+}
+```
+
+### 注意事项
+
+- 使用 `percent: 100` 卖出全部持仓。
+- 需要[策略审批](/zh/docs/reference/tools-policy)——交易可能被自动批准、需要确认或被阻止，取决于策略配置和美元价值。
+- 另见：[Pump.fun 指南](/zh/docs/guides/pumpfun)。

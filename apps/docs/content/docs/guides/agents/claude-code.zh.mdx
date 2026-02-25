@@ -1,0 +1,63 @@
+---
+title: Claude Code
+description: 通过 MCP stdio 将 Seashail 连接到 Claude Code。
+---
+
+Claude Code 通过 `claude` CLI 原生支持 MCP 服务器。参见 [Claude Code MCP 文档](https://code.claude.com/docs/en/mcp)了解完整详情。
+
+> Seashail 是**仅 stdio** 模式。Claude Code 通过 stdio 启动 `seashail mcp` 作为本地命令。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- Claude Code 已安装
+
+## 设置
+
+将 Seashail 添加为 MCP 服务器：
+
+```bash
+claude mcp add seashail -- seashail mcp
+```
+
+这会注册一个名为 `seashail` 的 MCP 服务器，通过 stdio 启动 Seashail 二进制文件。
+
+## 测试网模式
+
+连接到测试网而非主网：
+
+```bash
+claude mcp add seashail-testnet -- seashail mcp --network testnet
+```
+
+你可以同时注册 `seashail`（主网）和 `seashail-testnet`，并在每个会话中切换。
+
+## 验证
+
+设置完成后，启动一个 Claude Code 会话并询问余额：
+
+```
+What's my SOL balance?
+```
+
+Claude Code 应该通过 Seashail 调用 `get_balance` 工具并返回你的钱包余额。
+
+## 故障排除
+
+**"seashail: command not found"**
+如果你的 Seashail 安装不在 `PATH` 中，使用绝对路径：
+
+```bash
+claude mcp add seashail -- /path/to/seashail mcp
+```
+
+**MCP 服务器无响应**
+确保 Seashail 守护进程没有被防火墙或权限问题阻止。在终端中手动运行 `seashail mcp` 检查错误。
+
+**移除并重新添加**
+
+```bash
+claude mcp remove seashail
+claude mcp add seashail -- seashail mcp
+```

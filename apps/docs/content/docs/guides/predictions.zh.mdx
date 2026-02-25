@@ -1,0 +1,229 @@
+---
+title: 预测市场
+description: 使用 Polygon 上的 CLOB（中央限价订单簿）在 Polymarket 上交易事件结果。
+---
+
+## 什么是预测市场
+
+预测市场让你对现实世界事件的结果下注：选举、体育赛事、加密里程碑等。你不只是在投机——你在交易代表市场对将会发生什么的集体判断的结果份额。
+
+Seashail 与最大的预测市场平台 Polymarket 集成，该平台在 Polygon 上使用 CLOB（中央限价订单簿）模型运行。
+
+工作原理：
+
+- 每个事件有 2 个或更多可能的结果（例如，"是"和"否"）
+- 每个结果的份额价格在 $0.00 到 $1.00 之间
+- "是"份额价格为 $0.60 意味着市场将该事件的概率定为 60%
+- 如果事件以你有利的结果解决，你的份额每份支付 $1.00
+- 如果以不利结果解决，你的份额价值为 $0.00
+
+## Polymarket 如何运作
+
+Polymarket 使用 CLOB（中央限价订单簿）——与传统股票交易所使用的相同订单匹配系统。这与大多数 DeFi 协议使用的自动做市商（AMM）不同。
+
+关键概念：
+
+- 你以特定价格下限价单（例如，"以 $0.55 买入 100 份"）
+- 订单留在订单簿中，直到交易对手匹配
+- 你可以查看订单簿深度，了解当前买单和卖单
+- 每个结果有唯一的 `token_id`——这是你下单时使用的标识符
+
+所有 Polymarket 交易发生在 Polygon（EVM）上。你需要：
+
+- 一个 Polygon 钱包地址
+- Polygon 上的 USDC 用于交易（通过跨链桥或兑换获取 Polygon 上的 USDC）
+
+有关将 USDC 转移到 Polygon，请参阅[跨链桥指南](/zh/docs/guides/bridging)。
+
+## 查找市场
+
+Seashail 提供两个市场发现工具：
+
+### 搜索市场
+
+使用 `search_prediction_markets` 按关键字搜索事件：
+
+```json
+{
+  "query": "Bitcoin 100k",
+  "limit": 10,
+  "include_closed": false
+}
+```
+
+响应包含：
+
+- 事件标题和市场问题
+- 带有 `token_id` 值的结果
+- 每个结果的当前价格
+- 市场状态（开放/关闭）
+
+### 查看订单簿
+
+使用 `get_prediction_orderbook` 并提供 `token_id` 查看当前买单和卖单：
+
+```json
+{
+  "token_id": "1234567890"
+}
+```
+
+响应显示：
+
+- 当前买单和卖单价格
+- 每个价格级别的规模（流动性）
+- 中间价格
+
+这帮助你在下单前了解市场深度。
+
+两个工具都是只读操作——无需策略审批。
+
+## 下单预测
+
+使用 `place_prediction` 在 Polymarket 上下 CLOB 订单。
+
+必需参数：
+
+- `token_id` — 结果代币 ID（来自搜索结果）
+- `side` — "buy"（买入）或 "sell"（卖出）
+- `chain` — "polygon"（或 "polygon-amoy" 用于测试）
+
+订单类型：
+
+### 限价单（默认）
+
+指定精确价格和数量：
+
+```json
+{
+  "chain": "polygon",
+  "token_id": "1234567890",
+  "side": "buy",
+  "order_kind": "limit",
+  "price": "0.55",
+  "size": "100",
+  "time_in_force": "gtc"
+}
+```
+
+这以每份 $0.55 的价格下限价买单购买 100 份，有效期直至取消（GTC）。
+
+有效期选项：
+
+- `gtc` — 有效期直至取消（默认）
+- `gtd` — 有效期直至指定日期
+- `fok` — 立即全部成交或取消
+- `fak` — 立即尽量成交，剩余部分取消
+
+### 市价单
+
+以当前市场价格立即执行：
+
+```json
+{
+  "chain": "polygon",
+  "token_id": "1234567890",
+  "side": "buy",
+  "order_kind": "market",
+  "amount_usdc": "50"
+}
+```
+
+这以当前最佳可用价格购买价值 $50 USDC 的份额。
+
+### 策略审批
+
+预测订单受策略评估约束：
+
+- 被视为写操作（与兑换或发送相同）
+- 交易价值会对照 `max_usd_per_tx` 和每日限额进行检查
+- 分级审批适用（可能自动审批、需要确认或被拦截）
+
+有关分级审批的工作方式，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+### 典型工作流程
+
+1. 搜索市场：`search_prediction_markets`
+2. 检查订单簿深度：`get_prediction_orderbook`
+3. 下单：`place_prediction`
+4. 如果提示则确认（通过 MCP 交互确认）
+5. 检查仓位：`get_prediction_positions`
+
+## 平仓
+
+使用 `close_prediction` 取消现有 CLOB 订单：
+
+```json
+{
+  "chain": "polygon",
+  "order_id": "0xabcdef123456"
+}
+```
+
+`order_id` 在你用 `place_prediction` 下单时返回。
+
+注意：这会取消一个开放订单。要卖出你已持有的结果份额，使用 `place_prediction` 并设置 `side: "sell"`。
+
+## 追踪仓位
+
+使用 `get_prediction_positions` 查看所有开放的预测仓位：
+
+```json
+{
+  "chain": "polygon"
+}
+```
+
+响应显示：
+
+- 市场标题和结果
+- 持有的份额数量
+- 平均入场价格
+- 当前市场价格
+- 未实现盈亏（美元）
+
+这是只读操作，使用 Polymarket Data API（无需密钥）。
+
+## 风险注意事项
+
+### 二元结果
+
+预测市场是二元的：如果事件以不利结果解决，你会损失整个仓位。与传统交易中你可能损失一部分不同，预测市场可能导致 100% 损失。
+
+### 流动性不足
+
+一些市场的订单簿很薄。大额订单可能无法完全成交，或可能显著移动价格。下大额订单前务必检查订单簿深度。
+
+### 结算争议
+
+事件结算依赖于预言机数据。有争议的结算可能会延迟支付，或（极少情况下）导致市场无效。结算规则因市场而异。
+
+### USDC 风险敞口
+
+所有 Polymarket 交易以 Polygon 上的 USDC 计价。你面临：
+
+- USDC 脱锚风险（稳定币风险）
+- Polygon 网络风险
+- 将 USDC 转移到 Polygon 时的跨链桥风险
+
+### 策略保障措施
+
+使用策略控制限制风险敞口：
+
+- 为预测设置保守的 `max_usd_per_tx` 限额
+- 使用 `max_usd_per_day` 限制每日预测支出上限
+- 定期使用 `get_prediction_positions` 监控仓位
+
+## 注意事项
+
+- 完整参数详情：[预测市场工具参考](/zh/docs/reference/tools-predictions)
+- 交易需要 Polygon 上的 USDC——先通过跨链桥或兑换获取 Polygon 上的 USDC
+- 相关内容：[跨链桥指南](/zh/docs/guides/bridging)，了解将 USDC 转移到 Polygon
+- Polymarket CLOB 需要 HTTPS 或 localhost（由 Polymarket API 强制执行）
+- Polymarket Gamma API（市场搜索）和 Data API（仓位）无需密钥
+- 下单和取消使用 Polymarket CLOB API（本地签名）
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)，了解策略错误和 CLOB 订单问题的解决方案
+- [术语表](/zh/docs/glossary)，了解写操作、CLOB 和 token_id 的定义

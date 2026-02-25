@@ -1,0 +1,739 @@
+---
+title: "工具：钱包"
+description: 创建、导入和管理钱包——包括多账户池和内部转账。
+---
+
+## list_wallets
+
+列出 Seashail 已知的所有钱包，包含名称、类型、账户数量和缓存地址。
+
+### 参数
+
+无需参数。
+
+<TypeTable type={{}} />
+
+### 响应
+
+```json
+{
+  "wallets": [
+    {
+      "name": "trading-wallet",
+      "type": "generated",
+      "accounts": 3,
+      "addresses": {
+        "solana": ["7xKXt...abc"],
+        "evm": ["0xAbC...123"]
+      }
+    },
+    {
+      "name": "imported",
+      "type": "mnemonic",
+      "accounts": 1,
+      "addresses": {
+        "solana": ["9yLMn...def"],
+        "evm": ["0xDef...456"]
+      }
+    }
+  ],
+  "active_wallet": "trading-wallet",
+  "active_account_index": 0
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{}
+```
+
+### 注意事项
+
+- 地址是从之前的派生操作中缓存的。钱包可能只在部分链上有地址，取决于使用历史。
+- 响应包含当前活跃的钱包和账户索引。
+
+---
+
+## get_wallet_info
+
+返回活跃钱包（默认）或指定钱包的详情。仅显示缓存的公钥地址——无需解锁。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，返回活跃钱包。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "name": "trading-wallet",
+  "type": "generated",
+  "accounts": 2,
+  "active_account_index": 0,
+  "addresses": {
+    "0": {
+      "solana": "7xKXt...abc",
+      "evm": "0xAbC...123"
+    },
+    "1": {
+      "solana": "8zLYu...ghi",
+      "evm": "0xGhi...789"
+    }
+  }
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+活跃钱包：
+
+```json title="Arguments"
+{}
+```
+
+指定钱包：
+
+```json title="Arguments"
+{ "wallet": "my-wallet" }
+```
+
+### 注意事项
+
+- 如需为钱包充值，优先使用 `get_deposit_info`，它会返回存款地址和安全警告。
+- 此工具仅显示缓存的公钥地址，无需解锁。
+
+---
+
+## set_active_wallet
+
+设置活跃钱包和 BIP-44 账户索引。其他工具省略 `wallet` 或 `account_index` 时，使用活跃值。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "要设为活跃的钱包名称。",
+      required: true,
+    },
+    account_index: {
+      type: "integer",
+      description: "要设为活跃的 BIP-44 账户索引（最小值：0）。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "active_wallet": "my-wallet",
+  "active_account_index": 0
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "wallet": "my-wallet", "account_index": 0 }
+```
+
+### 注意事项
+
+- 活跃钱包和账户索引会持续生效，直到更改或守护进程重启。
+- 许多工具在省略这些参数时默认使用活跃钱包/账户。
+
+---
+
+## add_account
+
+向现有钱包添加新账户索引，为下一个 BIP-44 索引派生新地址。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "要添加账户的钱包名称。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "wallet": "my-wallet",
+  "new_account_index": 2,
+  "addresses": {
+    "solana": "NewSolAddress...",
+    "evm": "0xNewEvmAddress..."
+  }
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "wallet": "my-wallet" }
+```
+
+### 注意事项
+
+- 仅支持可派生额外账户的钱包（生成型钱包和助记词钱包）。
+- 私钥钱包只有一个固定账户，无法添加更多账户。
+
+---
+
+## create_wallet
+
+创建一个受沙米尔秘密分享 2-of-3 密钥分割保护的生成型钱包。此工具通过 MCP 交互确认提示输入密码短语。
+
+### 参数
+
+<TypeTable
+  type={{
+    name: {
+      type: "string",
+      description: "新钱包的名称（最少 1 个字符）。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "wallet": {
+    "name": "trading-wallet",
+    "type": "generated",
+    "account_index": 0,
+    "addresses": {
+      "solana": "7xKXt...abc",
+      "evm": "0xAbC...123"
+    }
+  }
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "name": "trading-wallet" }
+```
+
+### 注意事项
+
+- Seashail 通过 MCP 交互确认提示输入密码短语。切勿在工具参数中传递私密信息。
+- 生成型钱包的私密信息由操作系统的密码安全随机数生成器（CSPRNG）熵创建（而非由密码短语生成）。密码短语仅用于加密密钥分片 2 和导入的钱包。
+- Seashail 不存储密码短语。它从密码短语派生加密密钥，并可在有限的会话窗口内（`passphrase_session_seconds`）将派生密钥保存在内存中。
+- 创建钱包时，Seashail 会向你展示一次性的离线备份分片（密钥分片 3），并要求确认已保存。Seashail 不会持久化密钥分片 3。
+
+---
+
+## import_wallet
+
+导入现有助记词或私钥。私密信息始终通过交互提示请求（而非通过工具参数），并在本地加密存储。
+
+### 参数
+
+<TypeTable
+  type={{
+    name: {
+      type: "string",
+      description: "导入钱包的名称（最少 1 个字符）。",
+      required: true,
+    },
+    kind: {
+      type: '"private_key" | "mnemonic"',
+      description: "要导入的私密信息类型。",
+      required: true,
+    },
+    private_key_chain: {
+      type: '"evm" | "solana"',
+      description:
+        'kind 为 "private_key" 时必填。指定私钥所属的链。',
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "name": "imported",
+  "type": "mnemonic",
+  "account_index": 0,
+  "addresses": {
+    "solana": "9yLMn...def",
+    "evm": "0xDef...456"
+  }
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+导入助记词：
+
+```json title="Arguments"
+{ "name": "imported", "kind": "mnemonic" }
+```
+
+导入私钥：
+
+```json title="Arguments"
+{ "name": "imported", "kind": "private_key", "private_key_chain": "evm" }
+```
+
+### 注意事项
+
+- Seashail 会通过 MCP 交互确认提示输入私密信息。切勿在工具参数中传递 `secret`。
+- 当 `kind` 为 `"private_key"` 时，`private_key_chain` 为必填，因为 EVM 和 Solana 的密钥格式不同。
+- 助记词钱包可以派生多个账户。私钥钱包只有一个固定账户。
+
+---
+
+## get_deposit_info
+
+返回指定钱包/账户在特定链上的存款地址（仅地址，无二维码）。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "BIP-44 账户索引（最小值：0）。若省略，使用活跃账户索引。",
+    },
+    chain: {
+      type: "string",
+      description:
+        '要存款的链（例如 "solana"、"ethereum"、"base"、"sepolia"）。若省略，使用当前网络模式的默认链。',
+    },
+    token: {
+      type: "string",
+      description:
+        '可选代币提示，用于显示（例如 "native"、"usdc" 或 mint/合约地址）。不影响存款地址。',
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "chain": "solana",
+  "chain_kind": "solana",
+  "chain_id": null,
+  "asset": {
+    "token": "usdc",
+    "kind": "spl",
+    "symbol": "USDC",
+    "identifier": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+  },
+  "address": "7xKXt...abc",
+  "warnings": [
+    "Only send assets on the selected chain/network. Sending from the wrong chain may be unrecoverable.",
+    "Always verify the address on both sides before sending."
+  ]
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "chain": "solana",
+  "token": "usdc"
+}
+```
+
+### 注意事项
+
+- 存款地址从缓存的公钥地址派生，无需解锁。
+- `token` 是用于显示和安全提示的代币提示，不影响存款地址。
+
+---
+
+## export_shares
+
+轮换生成型钱包的密钥分片，并通过 MCP 交互确认显示一次性的离线备份分片（密钥分片 3）。需要活跃的密码短语会话。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "要导出密钥分片的生成型钱包名称。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "ok": true,
+  "wallet": "trading-wallet",
+  "status": "share_exported"
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "wallet": "trading-wallet" }
+```
+
+### 注意事项
+
+- 仅支持生成型钱包（沙米尔秘密分享 2-of-3）。
+- 需要活跃的密码短语会话。如果会话已过期，Seashail 会再次提示输入密码短语。
+- 密钥分片 3 在交互确认提示中显示，不会包含在工具响应中。
+- 如果设置了 `SEASHAIL_PASSPHRASE`，Seashail 可以在不提示的情况下解锁。
+- 请妥善保存密钥分片 3——它是恢复备份。
+
+---
+
+## rotate_shares
+
+轮换生成型钱包的沙米尔密钥分片，使旧分片失效。通过 MCP 交互确认显示新的一次性密钥分片 3。需要活跃的密码短语会话。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "要轮换密钥分片的生成型钱包名称。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "ok": true,
+  "wallet": "trading-wallet",
+  "status": "shares_rotated"
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "wallet": "trading-wallet" }
+```
+
+### 注意事项
+
+- 仅支持生成型钱包（沙米尔秘密分享 2-of-3）。
+- 需要活跃的密码短语会话。
+- 轮换后，**所有旧分片均失效**。请妥善保存新的密钥分片 3 并丢弃旧备份。
+- 底层私钥不变——仅重新生成沙米尔密钥分片。
+- 密钥分片 3 在交互确认提示中显示，不会包含在工具响应中。
+
+---
+
+## create_wallet_pool
+
+在现有钱包根下创建 N 个托管消费账户（新账户索引）。适用于为交易机器人或资金分配创建多个地址。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+    },
+    count: {
+      type: "integer",
+      description: "要创建的新账户数量（1–100）。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "wallet": "trading-wallet",
+  "created_accounts": [
+    {
+      "account_index": 3,
+      "addresses": { "solana": "Pool1Sol...", "evm": "0xPool1Evm..." }
+    },
+    {
+      "account_index": 4,
+      "addresses": { "solana": "Pool2Sol...", "evm": "0xPool2Evm..." }
+    }
+  ],
+  "total_accounts": 5
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "wallet": "trading-wallet", "count": 5 }
+```
+
+### 注意事项
+
+- 需要解锁密码短语（如果会话已过期，Seashail 会提示）。
+- 账户索引从下一个可用索引开始按顺序分配。
+- 每次调用最多 100 个账户。
+- 创建后，使用 `fund_wallets` 向新账户分发资金。
+
+---
+
+## transfer_between_wallets
+
+在 Seashail 托管的钱包或账户之间转移代币。内部转账默认不受策略限制——详情参见[策略工具](/zh/docs/reference/tools-policy)。
+
+### 参数
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: '要转账的链（例如 "solana"、"base"、"ethereum"）。',
+      required: true,
+    },
+    token: {
+      type: "string",
+      description:
+        '要转移的代币："native"（默认）或代币 mint（Solana）/合约地址（EVM）。',
+    },
+    amount: {
+      type: "string",
+      description: "转账金额。",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        '金额单位："ui" 使用代币小数，"base" 使用原始基础单位。',
+      default: '"ui"',
+    },
+    from_wallet: {
+      type: "string",
+      description: "来源钱包名称。",
+      required: true,
+    },
+    from_account_index: {
+      type: "integer",
+      description: "来源账户索引（最小值：0）。",
+      required: true,
+    },
+    to_wallet: {
+      type: "string",
+      description: "目标钱包名称。",
+      required: true,
+    },
+    to_account_index: {
+      type: "integer",
+      description: "目标账户索引（最小值：0）。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "amount": "1.5",
+  "from": { "wallet": "main", "account_index": 0 },
+  "to": { "wallet": "trading", "account_index": 0 },
+  "tx_hash": "5xYz...signature"
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+在钱包之间转移 SOL：
+
+```json title="Arguments"
+{
+  "chain": "solana",
+  "token": "native",
+  "amount": "2.0",
+  "from_wallet": "main",
+  "from_account_index": 0,
+  "to_wallet": "trading",
+  "to_account_index": 0
+}
+```
+
+在同一钱包内的账户之间转移 USDC：
+
+```json title="Arguments"
+{
+  "chain": "base",
+  "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "amount": "100",
+  "from_wallet": "main",
+  "from_account_index": 0,
+  "to_wallet": "main",
+  "to_account_index": 1
+}
+```
+
+### 注意事项
+
+- Seashail 托管钱包之间的内部转账**默认不受策略限制**。参见[策略工具](/zh/docs/reference/tools-policy)了解如何更改此设置。
+- 来源和目标都必须是 Seashail 托管的钱包。
+- 需要解锁来源钱包的密码短语。
+
+---
+
+## fund_wallets
+
+将资金从一个托管钱包/账户分发到多个托管钱包/账户，单次操作完成。内部转账默认不受策略限制——详情参见[策略工具](/zh/docs/reference/tools-policy)。
+
+### 参数
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: '要转账的链（例如 "solana"、"base"、"ethereum"）。',
+      required: true,
+    },
+    token: {
+      type: "string",
+      description:
+        '要分发的代币："native"（默认）或代币 mint（Solana）/合约地址（EVM）。',
+    },
+    amount_each: {
+      type: "string",
+      description: "发送给每个目标的金额。",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        '金额单位："ui" 使用代币小数，"base" 使用原始基础单位。',
+      default: '"ui"',
+    },
+    from_wallet: {
+      type: "string",
+      description: "来源钱包名称。若省略，使用活跃钱包。",
+    },
+    from_account_index: {
+      type: "integer",
+      description:
+        "来源账户索引（最小值：0）。若省略，使用钱包的最后活跃账户索引。",
+    },
+    destinations: {
+      type: "Array<{ wallet: string, account_index: integer }>",
+      description: "目标钱包/账户对的列表。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "amount_each": "0.1",
+  "from": { "wallet": "main", "account_index": 0 },
+  "transfers": [
+    { "wallet": "trading", "account_index": 0, "tx_hash": "sig1..." },
+    { "wallet": "trading", "account_index": 1, "tx_hash": "sig2..." },
+    { "wallet": "trading", "account_index": 2, "tx_hash": "sig3..." }
+  ],
+  "total_amount": "0.3"
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+向 3 个账户充值 SOL：
+
+```json title="Arguments"
+{
+  "chain": "solana",
+  "token": "native",
+  "amount_each": "0.1",
+  "from_wallet": "main",
+  "from_account_index": 0,
+  "destinations": [
+    { "wallet": "trading", "account_index": 0 },
+    { "wallet": "trading", "account_index": 1 },
+    { "wallet": "trading", "account_index": 2 }
+  ]
+}
+```
+
+### 注意事项
+
+- Seashail 托管钱包之间的内部转账**默认不受策略限制**。参见[策略工具](/zh/docs/reference/tools-policy)了解如何更改此设置。
+- 所有目标都必须是 Seashail 托管的钱包。
+- 每个目标恰好收到 `amount_each`——总转账金额为 `amount_each × len(destinations)`。
+- 与 `create_wallet_pool` 配合使用，先创建账户再充值。
+
+---
+
+## 另见
+
+- [钱包指南](/zh/docs/guides/wallets) -- 钱包创建、导入、多账户池和恢复工作流
+- [安全模型](/zh/docs/guides/security-model) -- 密钥管理、沙米尔密钥分片和密码短语会话

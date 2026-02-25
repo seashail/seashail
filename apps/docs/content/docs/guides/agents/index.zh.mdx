@@ -1,0 +1,128 @@
+---
+title: 连接你的 Agent
+description: 配置 MCP stdio 以便你的 agent 使用 Seashail 工具。
+---
+
+Seashail 通过 stdio 暴露一个 MCP 服务器。任何支持 MCP 的 agent 都可以连接并进行交易。
+
+```bash
+seashail mcp
+```
+
+> Seashail 是**仅 stdio** 模式（自托管）。如果你的 agent 界面要求提供"服务器 URL"（SSE/HTTP），请配置**本地命令**。参见：[任意 MCP 客户端 (Stdio)](/zh/docs/guides/agents/any-mcp-client)。
+
+覆盖当前会话的网络模式：
+
+```bash
+seashail mcp --network testnet
+```
+
+## 一键模板
+
+Seashail 为常见客户端提供配置模板。列出支持的目标：
+
+```bash
+seashail agent list
+```
+
+安装模板（工作区本地或全局，取决于 agent）：
+
+```bash
+seashail agent install cursor
+seashail agent install vscode
+seashail agent install windsurf
+seashail agent install claude-desktop
+```
+
+部分客户端（例如 Continue 和 JetBrains）需要手动配置；参见它们的页面获取复制粘贴模板。
+
+测试网模板：
+
+```bash
+seashail agent install cursor --network testnet
+```
+
+## 选择你的 Agent
+
+<Cards>
+  <Card title="OpenClaw" href="/zh/docs/guides/agents/openclaw" />
+  <Card title="Claude Code" href="/zh/docs/guides/agents/claude-code" />
+  <Card title="Claude Desktop" href="/zh/docs/guides/agents/claude-desktop" />
+  <Card title="Codex" href="/zh/docs/guides/agents/codex" />
+  <Card title="Cursor" href="/zh/docs/guides/agents/cursor" />
+  <Card
+    title="VS Code / GitHub Copilot"
+    href="/zh/docs/guides/agents/github-copilot"
+  />
+  <Card title="Windsurf" href="/zh/docs/guides/agents/windsurf" />
+  <Card title="Cline" href="/zh/docs/guides/agents/cline" />
+  <Card title="Continue" href="/zh/docs/guides/agents/continue" />
+  <Card title="JetBrains" href="/zh/docs/guides/agents/jetbrains" />
+  <Card
+    title="任意 MCP 客户端 (Stdio)"
+    href="/zh/docs/guides/agents/any-mcp-client"
+  />
+</Cards>
+
+## 多客户端行为
+
+MCP 基于 stdio，因此每个 agent 启动自己的 `seashail mcp` 进程。
+
+Seashail 通过使用**单例本地守护进程**来避免密钥和状态分裂：
+
+- `seashail mcp` 作为轻量级 stdio 代理运行
+- 它将所有请求转发给 `seashail daemon`，后者拥有密钥存储和密码短语会话
+- 如果没有运行中的守护进程，`seashail mcp` 会自动启动它
+
+多个 agent 可以安全共享：
+
+- 相同的钱包和密钥存储
+- 相同的内存中密码短语会话
+- 相同的策略计数器（每日限额等）
+
+本地传输仅使用 IPC：
+
+- macOS/Linux：Unix socket 位于 `data_dir/seashail-mcp.sock`
+- Windows：命名管道（无 TCP 监听器）
+
+> **调试模式：** `seashail mcp --standalone` 运行直接的 stdio 服务器，不使用守护进程，适用于调试但不会跨客户端共享状态。
+
+## 其他 Agent（通用 MCP Stdio）
+
+如果你的 agent 未在上方列出，只要它支持 **MCP over stdio**（启动本地命令），你仍然可以连接。
+
+1. 安装 Seashail（推荐）：按照[安装 Seashail](/zh/docs/getting-started/install) 确保 `seashail` 在你的 `PATH` 中。
+2. 配置你的 agent 运行：Command: `seashail`，Args: `mcp`。
+
+测试网（可选）：
+
+- Args: `mcp --network testnet`
+
+如果你的 agent 使用 JSON 配置文件（通常命名为 `.mcp.json`），以下是两种常见格式：
+
+```json
+{
+  "mcpServers": {
+    "seashail": { "command": "seashail", "args": ["mcp"] }
+  }
+}
+```
+
+```json
+{
+  "servers": {
+    "seashail": { "type": "stdio", "command": "seashail", "args": ["mcp"] }
+  }
+}
+```
+
+"免安装"选项（仍然是 stdio）：
+
+- Command: `npx`
+- Args: `-y @seashail/mcp --`
+
+通过让你的 agent 执行以下操作来验证：
+
+```
+What's my SOL balance?
+```

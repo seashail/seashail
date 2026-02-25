@@ -1,0 +1,330 @@
+---
+title: "工具：网络与 RPC"
+description: 网络模式、已配置的链、水龙头链接和 RPC 覆盖。
+---
+
+## get_network_mode
+
+返回有效和已配置的网络模式，以及当前的 Solana RPC URL。首先调用此工具以了解哪些链处于活动状态。
+
+### 参数
+
+无需参数。
+
+<TypeTable type={{}} />
+
+### 响应
+
+```json
+{
+  "configured_mode": "testnet",
+  "effective_mode": "testnet",
+  "solana_rpc_url": "https://api.devnet.solana.com"
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{}
+```
+
+```json title="Response"
+{
+  "configured_mode": "mainnet",
+  "effective_mode": "mainnet",
+  "solana_rpc_url": "https://api.mainnet-beta.solana.com"
+}
+```
+
+### 注意事项
+
+- `configured_mode` 是持久化在 `config.toml` 中的值。
+- `effective_mode` 是运行时模式（如果被环境变量或 CLI 标志覆盖，可能与配置值不同）。
+
+---
+
+## set_network_mode
+
+设置网络模式（`mainnet` 或 `testnet`）并将其持久化到 `config.toml`。可选地在默认主网和 devnet 端点之间切换 Solana RPC。
+
+### 参数
+
+<TypeTable
+  type={{
+    mode: {
+      type: '"mainnet" | "testnet"',
+      description: "要设置的网络模式。",
+      required: true,
+    },
+    apply_default_solana_rpc: {
+      type: "boolean",
+      description:
+        "同时在默认主网和 devnet 端点之间切换 Solana RPC。",
+      default: "true",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "previous_mode": "mainnet",
+  "new_mode": "testnet",
+  "solana_rpc_switched": true,
+  "solana_rpc_url": "https://api.devnet.solana.com"
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "mode": "testnet", "apply_default_solana_rpc": true }
+```
+
+```json title="Response"
+{
+  "previous_mode": "mainnet",
+  "new_mode": "testnet",
+  "solana_rpc_switched": true,
+  "solana_rpc_url": "https://api.devnet.solana.com"
+}
+```
+
+### 注意事项
+
+- 当 `apply_default_solana_rpc` 为 `true`（默认值）时，切换到 `testnet` 会将 Solana RPC 设置为 `https://api.devnet.solana.com`，切换到 `mainnet` 则恢复主网端点。
+- 模式更改会持久化到 `config.toml` 并立即生效。
+
+---
+
+## get_capabilities
+
+返回一个特定于当前机器的能力对象，描述已配置的链、每条 EVM 链上可用的兑换提供商，以及已启用的功能面（spot、perps、NFT）。有关如何解读响应，参见[能力](/zh/docs/reference/capabilities)页面。
+
+### 参数
+
+无需参数。
+
+<TypeTable type={{}} />
+
+### 响应
+
+```json
+{
+  "network_mode": {
+    "effective": "mainnet",
+    "configured": "mainnet"
+  },
+  "chains": {
+    "solana": {
+      "rpc_url": "https://api.mainnet-beta.solana.com",
+      "supports": ["spot", "nfts", "perps"]
+    },
+    "evm": [
+      {
+        "name": "base",
+        "rpc_url": "https://mainnet.base.org",
+        "swap_providers": ["uniswap"],
+        "supports": ["spot"]
+      }
+    ]
+  },
+  "services": {
+    "jupiter": { "api_key_configured": false },
+    "oneinch": { "configured": false }
+  }
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{}
+```
+
+```json title="Response"
+{
+  "network_mode": { "effective": "testnet", "configured": "testnet" },
+  "chains": {
+    "solana": {
+      "rpc_url": "https://api.devnet.solana.com",
+      "supports": ["spot", "nfts"]
+    },
+    "evm": [
+      {
+        "name": "sepolia",
+        "rpc_url": "https://rpc.sepolia.org",
+        "swap_providers": ["uniswap"],
+        "supports": ["spot"]
+      }
+    ]
+  },
+  "services": {
+    "jupiter": { "api_key_configured": false },
+    "oneinch": { "configured": false }
+  }
+}
+```
+
+### 注意事项
+
+- 这是其他工具有效 `chain` 字符串的权威来源。
+- 如果工具返回 `unsupported_chain` 或 `provider_unavailable`，请先检查 `get_capabilities`。
+- 详细说明参见[能力](/zh/docs/reference/capabilities)页面。
+
+---
+
+## get_testnet_faucet_links
+
+返回受支持测试网链的官方水龙头链接。仅供参考——不会实际请求资金。
+
+### 参数
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description:
+        '测试网链名称："solana"、"sepolia"、"base-sepolia"、"arbitrum-sepolia"、"optimism-sepolia"、"polygon-amoy"、"bnb-testnet"、"avalanche-fuji" 或 "monad-testnet"。',
+      required: true,
+    },
+    address: {
+      type: "string",
+      description: "可选地址，用于粘贴到水龙头网站。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "chain": "sepolia",
+  "faucets": [
+    {
+      "name": "Sepolia PoW Faucet",
+      "url": "https://sepolia-faucet.pk910.de/?address=0xYourAddress"
+    },
+    {
+      "name": "Alchemy Sepolia Faucet",
+      "url": "https://sepoliafaucet.com/"
+    }
+  ]
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json title="Arguments"
+{ "chain": "sepolia", "address": "0xAbC123...def456" }
+```
+
+```json title="Response"
+{
+  "chain": "sepolia",
+  "faucets": [
+    {
+      "name": "Sepolia PoW Faucet",
+      "url": "https://sepolia-faucet.pk910.de/?address=0xAbC123...def456"
+    }
+  ]
+}
+```
+
+### 注意事项
+
+- 此工具仅供参考，不会向任何水龙头请求资金。
+- 切勿将私钥、助记词或沙米尔密钥分片粘贴到任何网站。
+- 提供 `address` 时，支持预填充的水龙头 URL 会将其包含在链接中。
+
+---
+
+## configure_rpc
+
+覆盖已配置链的 RPC URL 并将其持久化到 `config.toml`。不会添加新链——仅更新配置中已存在的链。
+
+### 参数
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description:
+        '要配置的链名称（例如 "solana"、"base"、"ethereum"）。',
+      required: true,
+    },
+    url: {
+      type: "string",
+      description: "主 RPC URL。",
+      required: true,
+    },
+    fallback_urls: {
+      type: "string[]",
+      description: "可选的备用 RPC URL，当主 URL 失败时尝试使用。",
+    },
+    mode: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "仅适用于 Solana：指定要更新哪个网络模式的 RPC。若省略，使用有效的网络模式。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "chain": "base",
+  "url": "https://your-rpc.example",
+  "fallback_urls": ["https://backup-1.example", "https://backup-2.example"],
+  "persisted": true
+}
+```
+
+> 响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+EVM 链：
+
+```json title="Arguments"
+{
+  "chain": "base",
+  "url": "https://your-rpc.example",
+  "fallback_urls": ["https://backup-1.example", "https://backup-2.example"]
+}
+```
+
+Solana 模式特定覆盖：
+
+```json title="Arguments"
+{
+  "chain": "solana",
+  "mode": "testnet",
+  "url": "http://127.0.0.1:8899",
+  "fallback_urls": []
+}
+```
+
+### 注意事项
+
+- `configure_rpc` 不会添加新的 EVM 链，仅更新配置中已存在的链。
+- Solana 可以为每个网络模式（`mainnet`/`testnet`）维护独立的 RPC 和备用列表。
+- 覆盖前，使用 `get_capabilities` 查看当前已配置的链。
+
+---
+
+## 另见
+
+- [网络模式指南](/zh/docs/guides/network-mode) -- 测试网默认值、Solana RPC 切换和水龙头链接
+- [配置](/zh/docs/getting-started/configuration) -- 配置文件路径和环境变量覆盖

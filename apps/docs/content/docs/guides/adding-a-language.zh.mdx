@@ -1,0 +1,147 @@
+---
+title: 添加新语言
+description: 逐步指南：如何为 Seashail 文档站和落地页添加新的语言支持。
+---
+
+Seashail 支持多种语言。添加新语言是一个机械化的过程，需要修改两个应用中的配置文件和翻译文件：**文档站**（Fumadocs + MDX）和**落地页**（TypeScript 字典模块）。
+
+本指南以**日语 (ja)** 为贯穿示例。
+
+## 前提条件
+
+- 已克隆仓库并安装依赖（`bun install`）
+- 熟悉 MDX（Markdown + JSX）和 TypeScript
+
+## 文档站（Fumadocs）
+
+文档站使用 [Fumadocs](https://fumadocs.vercel.app/)，采用点分命名约定实现共存翻译。需要进行四项更改。
+
+### 第 1 步：更新 i18n 配置
+
+编辑 `apps/docs/src/lib/i18n.ts`，将新语言添加到 `languages` 数组中：
+
+```ts title="apps/docs/src/lib/i18n.ts"
+export const i18n = defineI18n({
+  defaultLanguage: "en",
+  // highlight-next-line
+  languages: ["en", "zh", "ja"], // 添加 "ja"
+  hideLocale: "default-locale",
+  fallbackLanguage: "en",
+  parser: "dot",
+});
+```
+
+### 第 2 步：创建翻译后的 MDX 页面
+
+对于每个需要翻译的页面，使用 `.{locale}.mdx` 命名约定创建共存文件：
+
+```
+content/docs/
+├── index.mdx          # 英文（默认）
+├── index.zh.mdx       # 中文
+└── index.ja.mdx       # 日文（新增）
+```
+
+新文件应包含相同的 frontmatter 结构（`title`、`description`），值翻译为目标语言，正文内容也需翻译。
+
+没有 `.ja.mdx` 文件的页面会自动回退到英文版本——无需一次性翻译所有页面。
+
+### 第 3 步：创建翻译后的导航标签
+
+对于每个包含 `meta.json` 的目录，创建对应的 `meta.ja.json`，翻译其中的 `title`。`pages` 数组保持不变（slug 与语言无关）：
+
+```json title="content/docs/meta.ja.json"
+{
+  "title": "ドキュメント",
+  "pages": [
+    "index",
+    "getting-started",
+    "guides",
+    "reference",
+    "strategies",
+    "troubleshooting",
+    "glossary"
+  ]
+}
+```
+
+对每个有自己 `meta.json` 的子目录重复此操作（例如 `guides/meta.ja.json`、`reference/meta.ja.json`）。
+
+### 第 4 步：添加 UI 界面翻译（可选）
+
+如果新语言需要自定义 Fumadocs UI 元素的字符串（搜索占位符、目录标题、分页标签等），请通过 Fumadocs i18n 配置添加翻译。详情参见 [Fumadocs i18n 文档](https://fumadocs.vercel.app/docs/ui/internationalization)。
+
+## 落地页（TypeScript 字典模块）
+
+落地页使用静态 TypeScript 字典模块进行翻译。需要进行四项更改。
+
+### 第 1 步：更新语言配置
+
+编辑 `apps/landing/src/i18n/config.ts`，为新语言添加条目：
+
+```ts title="apps/landing/src/i18n/config.ts"
+// 将 "ja" 添加到 locales 元组
+export const locales = ["en", "zh", "ja"] as const;
+
+// 添加到各映射中
+export const htmlLangMap: Record<Locale, string> = {
+  en: "en",
+  zh: "zh-CN",
+  ja: "ja", // 新增
+} as const;
+
+export const ogLocaleMap: Record<Locale, string> = {
+  en: "en_US",
+  zh: "zh_CN",
+  ja: "ja_JP", // 新增
+} as const;
+
+export const localeLabels: Record<Locale, string> = {
+  en: "English",
+  zh: "中文",
+  ja: "日本語", // 新增
+} as const;
+```
+
+### 第 2 步：创建文案字典
+
+创建 `apps/landing/src/content/copy.ja.ts`，复制英文 `copy.ts` 并翻译所有字符串值。结构和导出名称必须与英文模块完全一致：
+
+```ts title="apps/landing/src/content/copy.ja.ts"
+export const hero = {
+  headline: "暗号資産のためのエージェントネイティブ取引インフラ",
+  // ... 翻译所有剩余字符串
+} as const;
+
+// 对所有导出部分重复：features、security、cta 等
+```
+
+### 第 3 步：注册字典
+
+编辑 `apps/landing/src/i18n/get-dictionary.ts`，导入并注册新字典：
+
+```ts title="apps/landing/src/i18n/get-dictionary.ts"
+import * as en from "@/content/copy";
+import * as zh from "@/content/copy.zh";
+import * as ja from "@/content/copy.ja"; // 新增
+
+const dictionaries: Record<Locale, Dictionary> = { en, zh, ja };
+```
+
+### 第 4 步：验证
+
+`[lang]` 路由和 `generateStaticParams` 会自动从配置中获取新语言——无需修改路由代码。在两个应用中运行 `bun run build` 进行验证。
+
+## 站点地图与 SEO
+
+文档站点地图从 Fumadocs 语言配置动态生成 hreflang 条目。将新语言添加到 `i18n.ts` 并创建翻译页面后，站点地图将自动包含新语言的 hreflang 替代链接——无需手动更新站点地图。
+
+## 验证清单
+
+完成上述步骤后：
+
+1. `bun run build` 在 `apps/docs` 和 `apps/landing` 中均成功
+2. 两个站点的语言切换器中出现新语言
+3. 翻译后的页面在新语言下正确渲染
+4. 未翻译的文档页面回退到英文内容
+5. 站点地图包含新语言的 hreflang 条目（仅限已翻译的页面）

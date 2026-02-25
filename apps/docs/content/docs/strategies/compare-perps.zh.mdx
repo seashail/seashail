@@ -1,0 +1,114 @@
+---
+title: Jupiter Perps 与 Hyperliquid 对比
+description: 比较永续合约交易场所，选择最适合你交易策略的平台。
+---
+
+使用 Seashail 进行永续合约交易时，你可以在 Jupiter Perps（Solana）和 Hyperliquid（基于 EVM 的 L1）之间选择。本对比帮助你决定哪个平台更适合你的需求。
+
+## 功能对比
+
+| 功能         | Jupiter Perps           | Hyperliquid                                  |
+| ------------ | ----------------------- | -------------------------------------------- |
+| 链           | Solana                  | Hyperliquid L1（EVM 地址）                   |
+| 订单类型     | 仅市价单                | 市价单、限价单                               |
+| 仓位规模     | 仅美元                  | 美元或资产单位                               |
+| 部分平仓     | 仅全部平仓              | 部分或全部                                   |
+| 修改订单     | 不支持                  | `modify_perp_order` 工具                     |
+| 限价单       | 不支持                  | `place_limit_order` 工具                     |
+| 资金费率     | 8 小时间隔              | 1 小时间隔                                   |
+| 最大杠杆     | 因市场而异              | 因市场而异                                   |
+| 滑点控制     | `slippage_bps`（市价） | `slippage_bps`（市价），精确价格（限价）     |
+| 网络模式     | 仅主网                  | 主网和测试网                                 |
+
+## 何时使用 Jupiter Perps
+
+- 你在 Solana 上交易，希望原生集成
+- 你偏好简单的市价单，无需复杂的订单管理
+- 优先考虑较低的手续费
+- 你希望在 Solana 高吞吐量网络上快速执行
+
+## 何时使用 Hyperliquid
+
+- 你需要高级订单类型（限价单、修改订单）
+- 你想要部分平仓
+- 你需要更频繁的资金费率更新（1 小时 vs 8 小时）
+- 你习惯使用基于 EVM 的 L1
+
+## 使用示例
+
+### Jupiter Perps
+
+以市价单以 5 倍杠杆做多 SOL：
+
+```json
+{
+  "provider": "jupiter_perps",
+  "market": "SOL",
+  "side": "long",
+  "size": "100",
+  "size_units": "usd",
+  "leverage": 5,
+  "order_type": "market",
+  "slippage_bps": 50
+}
+```
+
+全部平仓：
+
+```json
+{
+  "provider": "jupiter_perps",
+  "market": "SOL",
+  "slippage_bps": 50
+}
+```
+
+### Hyperliquid
+
+以市价单以 5 倍杠杆做多 BTC：
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "side": "long",
+  "size": "100",
+  "size_units": "usd",
+  "leverage": 5,
+  "order_type": "market",
+  "slippage_bps": 50
+}
+```
+
+为 ETH 挂限价单：
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "ETH",
+  "side": "short",
+  "size": "50",
+  "size_units": "usd",
+  "leverage": 2,
+  "order_type": "limit",
+  "limit_px": "2500"
+}
+```
+
+部分平仓（平掉 0.5 BTC）：
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "size": "0.5",
+  "size_units": "asset",
+  "slippage_bps": 50
+}
+```
+
+## 另见
+
+- [永续合约指南](/zh/docs/guides/perps) — Seashail 中永续合约的工作原理
+- [工具：永续合约参考](/zh/docs/reference/tools-perps) — 详细参数文档
+- [策略与审批](/zh/docs/guides/policy-and-approvals) — 配置永续合约交易的审批规则

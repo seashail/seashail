@@ -1,0 +1,111 @@
+---
+title: Jupiter vs Uniswap vs 1inch 对比
+description: 比较兑换提供商，了解哪个聚合器为你的交易路由。
+---
+
+Seashail 根据你交易的链自动选择最佳兑换提供商。本对比解释各提供商的区别，以及何时你可能需要明确选择某个提供商。
+
+## 功能对比
+
+| 功能          | Jupiter                   | Uniswap                 | 1inch                   |
+| ------------- | ------------------------- | ----------------------- | ----------------------- |
+| 链            | Solana                    | EVM 链                  | EVM 链                  |
+| 自动选择用于  | Solana 兑换               | EVM 兑换（默认）        | EVM 兑换（替代）        |
+| provider 参数 | `"jupiter"`               | `"uniswap"`             | `"1inch"`               |
+| 路由聚合      | 通过 Jupiter API 多跳路由  | Uniswap 路由器          | 1inch 聚合              |
+| 滑点控制      | `slippage_bps`            | `slippage_bps`          | `slippage_bps`          |
+| 代币格式      | SPL 铸造地址              | ERC-20 合约地址         | ERC-20 合约地址         |
+
+## 何时使用自动选择（推荐）
+
+`provider: "auto"` 参数（默认）自动为你的链选择最佳提供商：
+
+- **Solana 兑换** → Jupiter
+- **EVM 兑换** → Uniswap（默认）
+
+大多数用户应使用 `provider: "auto"` 让 Seashail 处理路由。
+
+## 何时使用明确的提供商选择
+
+以下情况可能需要明确选择提供商：
+
+- 你想对 EVM 兑换使用 1inch（需要 1inch API 配置）
+- 你在跨提供商比较路由
+- 你对特定聚合器有特殊需求
+
+## 使用示例
+
+### 自动选择（推荐）
+
+在 Solana 上兑换（自动选择 Jupiter）：
+
+```json
+{
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "1",
+  "amount_units": "ui",
+  "provider": "auto"
+}
+```
+
+在 Base 上兑换（自动选择 Uniswap）：
+
+```json
+{
+  "chain": "base",
+  "token_in": "native",
+  "token_out": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "amount_in": "0.1",
+  "amount_units": "ui",
+  "provider": "auto"
+}
+```
+
+### 明确提供商选择
+
+在 Solana 上明确使用 Jupiter：
+
+```json
+{
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "1",
+  "amount_units": "ui",
+  "provider": "jupiter"
+}
+```
+
+在 Ethereum 上明确使用 Uniswap：
+
+```json
+{
+  "chain": "ethereum",
+  "token_in": "native",
+  "token_out": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount_in": "0.1",
+  "amount_units": "ui",
+  "provider": "uniswap"
+}
+```
+
+在 Arbitrum 上明确使用 1inch（需要 1inch 配置）：
+
+```json
+{
+  "chain": "arbitrum",
+  "token_in": "native",
+  "token_out": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+  "amount_in": "0.1",
+  "amount_units": "ui",
+  "provider": "1inch"
+}
+```
+
+## 另见
+
+- [代币兑换指南](/zh/docs/guides/swapping) — Seashail 中兑换的工作原理
+- [工具：写入参考](/zh/docs/reference/tools-write#swap_tokens) — 详细的 `swap_tokens` 参数
+- [链与资金](/zh/docs/guides/chains-and-funding) — 每个提供商支持的链

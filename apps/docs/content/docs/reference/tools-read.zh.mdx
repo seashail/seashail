@@ -1,0 +1,654 @@
+---
+title: "工具：读取"
+description: 余额、投资组合、代币检查、燃料估算、价格、交易历史和跨链桥状态。特定领域的读取工具与其对应的写入工具一同记录。
+---
+
+## inspect_token
+
+只读代币检查（权限、小数位数、供应量），用于评估新上线代币的风险。
+
+### 参数
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: "solana 或 EVM 链名称。",
+      required: true,
+    },
+    token: {
+      type: "string",
+      description: "native，或代币 mint（Solana）/合约地址（EVM）。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "name": "Wrapped SOL",
+  "symbol": "SOL",
+  "decimals": 9,
+  "supply": "549805996.47",
+  "mint_authority": null,
+  "freeze_authority": null,
+  "warnings": []
+}
+```
+
+### 示例
+
+参数（Solana SPL mint）：
+
+```json
+{ "chain": "solana", "token": "So11111111111111111111111111111111111111112" }
+```
+
+参数（EVM ERC-20 合约）：
+
+```json
+{ "chain": "base", "token": "0x..." }
+```
+
+### 注意事项
+
+- 在 Solana 上，Seashail 会返回 mint 权限、冻结权限，以及存在时的警告信息。
+- 在 EVM 上，Seashail 会尝试获取 ERC-20 元数据，并检测常见的 EIP-1967 代理模式。
+
+## get_defi_yield_pools
+
+获取并过滤 DeFi 收益池元数据（尽力而为），供智能体研究使用。只读，不执行交易。
+
+### 参数
+
+<TypeTable
+  type={{
+    chains: {
+      type: "string[]",
+      description:
+        "可选链过滤器（匹配上游链名称，例如 Ethereum、Arbitrum、Base、Solana）。",
+    },
+    query: {
+      type: "string",
+      description:
+        "可选子字符串过滤器，应用于项目/符号（不区分大小写）。",
+    },
+    min_tvl_usd: {
+      type: "number",
+      description: "过滤掉小型流动性池。",
+      default: "10000000",
+    },
+    min_apy: {
+      type: "number",
+      description: "最低年化收益率（百分比）。",
+      default: "0",
+    },
+    stablecoin_only: {
+      type: "boolean",
+      description:
+        "若为 true，仅包含上游数据集标记为稳定币为主的流动性池。",
+      default: "true",
+    },
+    exclude_il_risk: {
+      type: "boolean",
+      description:
+        "若为 true，排除上游数据集中标记有无常损失风险的流动性池。",
+      default: "true",
+    },
+    max_results: {
+      type: "integer",
+      description: "返回的最大结果数（1–100）。",
+      default: "20",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "pools": [
+    {
+      "chain": "Ethereum",
+      "project": "aave-v3",
+      "symbol": "USDC",
+      "tvl_usd": 1200000000,
+      "apy": 3.42,
+      "stablecoin": true,
+      "il_risk": false
+    }
+  ],
+  "count": 1
+}
+```
+
+### 示例
+
+```json
+{
+  "chains": ["Ethereum", "Arbitrum", "Base"],
+  "query": "aave",
+  "min_tvl_usd": 10000000,
+  "min_apy": 0,
+  "stablecoin_only": true,
+  "exclude_il_risk": true,
+  "max_results": 20
+}
+```
+
+### 注意事项
+
+- `chains` 按上游数据集的链命名过滤（例如 `Ethereum`、`Arbitrum`、`Base`），与 Seashail 用于交易的 `chain` 标识符不同。
+
+## get_balance
+
+查询钱包的代币余额。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "若省略，使用活跃钱包。",
+    },
+    account_index: {
+      type: "integer",
+      description: "若省略，使用活跃账户索引。",
+    },
+    chain: {
+      type: "string",
+      description:
+        "solana、bitcoin 或 EVM 链名称（ethereum、base、arbitrum、optimism、polygon、bnb、avalanche、monad、sepolia、base-sepolia、arbitrum-sepolia、optimism-sepolia、polygon-amoy、bnb-testnet、avalanche-fuji、monad-testnet）。若省略，根据网络模式返回默认链。",
+    },
+    tokens: {
+      type: "string[]",
+      description:
+        "可选代币地址/mint 列表。若省略，返回原生代币加上一小组默认代币。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "balances": [
+    {
+      "chain": "solana",
+      "token": "native",
+      "symbol": "SOL",
+      "balance": "1.5",
+      "decimals": 9,
+      "usd_value": 225.0
+    }
+  ]
+}
+```
+
+### 示例
+
+参数（使用活跃钱包，当前网络模式的默认链）：
+
+```json
+{}
+```
+
+参数（指定链 + 代币列表）：
+
+```json
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "chain": "solana",
+  "tokens": ["native", "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"]
+}
+```
+
+## get_portfolio
+
+跨所有钱包的聚合投资组合视图，含美元价值。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallets: {
+      type: "string[]",
+      description:
+        "可选钱包名称列表。若省略，使用所有钱包。",
+    },
+    chains: {
+      type: "string[]",
+      description: "可选链列表。若省略，使用默认链。",
+    },
+    tokens: {
+      type: "object",
+      description:
+        "可选的每链代币列表，作为原生代币的补充。键为链名称，值为代币标识符数组（Solana mint 或 EVM 合约地址）。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "total_usd": 5432.1,
+  "holdings": [
+    {
+      "wallet": "my-wallet",
+      "chain": "solana",
+      "token": "native",
+      "symbol": "SOL",
+      "balance": "20.0",
+      "usd_value": 3000.0
+    }
+  ]
+}
+```
+
+### 示例
+
+```json
+{
+  "wallets": ["my-wallet"],
+  "chains": ["solana", "base"]
+}
+```
+
+## get_token_price
+
+代币的当前美元价格估算。
+
+### 参数
+
+<TypeTable
+  type={{
+    chain: {
+      type: "string",
+      description: "solana 或 EVM 链名称。",
+      required: true,
+    },
+    token: {
+      type: "string",
+      description: "native，或代币 mint（Solana）/合约地址（EVM）。",
+      required: true,
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "symbol": "SOL",
+  "price_usd": 150.0
+}
+```
+
+### 示例
+
+```json
+{ "chain": "solana", "token": "native" }
+```
+
+## estimate_gas
+
+估算拟议发送或兑换操作的燃料/手续费。
+
+### 参数
+
+<TypeTable
+  type={{
+    op: {
+      type: "'send_transaction' | 'swap_tokens'",
+      description: "要估算的操作类型。",
+      required: true,
+    },
+    chain: {
+      type: "string",
+      description: "要估算的链。",
+      required: true,
+    },
+    to: {
+      type: "string",
+      description: "接收方地址（op 为 send_transaction 时必填）。",
+    },
+    token: {
+      type: "string",
+      description:
+        "要发送的代币——native 或 mint/合约地址（op 为 send_transaction 时使用）。",
+    },
+    amount: {
+      type: "string",
+      description: "发送金额（op 为 send_transaction 时使用）。",
+    },
+    amount_units: {
+      type: "'ui' | 'base'",
+      description: "金额单位解释。",
+      default: "'ui'",
+    },
+    token_in: {
+      type: "string",
+      description: "兑换的输入代币（op 为 swap_tokens 时使用）。",
+    },
+    token_out: {
+      type: "string",
+      description: "兑换的输出代币（op 为 swap_tokens 时使用）。",
+    },
+    amount_in: {
+      type: "string",
+      description: "兑换的输入金额（op 为 swap_tokens 时使用）。",
+    },
+    slippage_bps: {
+      type: "integer",
+      description: "滑点容忍度，单位基点（0–5000，仅兑换）。",
+      default: "100",
+    },
+    provider: {
+      type: "'auto' | 'jupiter' | 'uniswap' | '1inch'",
+      description: "兑换提供商选择（仅兑换）。",
+      default: "'auto'",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "op": "send_transaction",
+  "chain": "solana",
+  "estimated_fee": "0.000005",
+  "fee_token": "SOL",
+  "fee_usd": 0.00075
+}
+```
+
+### 示例
+
+参数（Solana 发送）：
+
+```json
+{
+  "op": "send_transaction",
+  "chain": "solana",
+  "to": "11111111111111111111111111111111",
+  "token": "native",
+  "amount": "0.01",
+  "amount_units": "ui"
+}
+```
+
+参数（EVM 发送）：
+
+```json
+{
+  "op": "send_transaction",
+  "chain": "base",
+  "to": "0x...",
+  "token": "native",
+  "amount": "0.001",
+  "amount_units": "ui"
+}
+```
+
+参数（兑换）：
+
+```json
+{
+  "op": "swap_tokens",
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "0.05",
+  "slippage_bps": 100,
+  "provider": "auto"
+}
+```
+
+## get_transaction_history
+
+返回本地追踪的交易历史（最新的排在前面），支持可选过滤。
+
+### 参数
+
+<TypeTable
+  type={{
+    limit: {
+      type: "integer",
+      description: "最大结果数（1–1000）。",
+      default: "50",
+    },
+    wallet: {
+      type: "string",
+      description: "可选钱包名称过滤。",
+    },
+    chain: {
+      type: "string",
+      description:
+        "可选链名称过滤（solana、ethereum、base 等）。",
+    },
+    type: {
+      type: "'send' | 'swap' | 'approve' | 'airdrop' | 'wallet_created' | 'wallet_imported'",
+      description: "可选事件类型过滤。",
+    },
+    since_ts: {
+      type: "string",
+      description:
+        "可选 RFC 3339 时间戳（含）。仅返回该时间及之后的事件。",
+    },
+    until_ts: {
+      type: "string",
+      description:
+        "可选 RFC 3339 时间戳（含）。仅返回该时间及之前的事件。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "transactions": [
+    {
+      "type": "send",
+      "chain": "solana",
+      "wallet": "my-wallet",
+      "token": "native",
+      "amount": "0.5",
+      "to": "11111111111111111111111111111111",
+      "tx_hash": "5xYz...",
+      "timestamp": "2025-01-15T14:30:00Z",
+      "usd_value": 75.0
+    }
+  ],
+  "count": 1
+}
+```
+
+### 示例
+
+```json
+{
+  "limit": 100,
+  "wallet": "my-wallet",
+  "chain": "solana",
+  "type": "swap"
+}
+```
+
+## get_portfolio_analytics
+
+从本地交易历史计算的投资组合分析：按类型、链和日期的总量及美元交易量明细。
+
+### 参数
+
+<TypeTable
+  type={{
+    limit: {
+      type: "integer",
+      description: "要分析的最大交易记录数（1–10000）。",
+      default: "500",
+    },
+    wallet: {
+      type: "string",
+      description: "可选钱包名称过滤。",
+    },
+    chain: {
+      type: "string",
+      description: "可选链名称过滤。",
+    },
+    type: {
+      type: "string",
+      description: "可选事件类型过滤。",
+    },
+    since_ts: {
+      type: "string",
+      description: "可选 RFC 3339 时间戳（含）。",
+    },
+    until_ts: {
+      type: "string",
+      description: "可选 RFC 3339 时间戳（含）。",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "total_transactions": 42,
+  "total_usd_volume": 12500.0,
+  "by_type": {
+    "send": { "count": 20, "usd_volume": 5000.0 },
+    "swap": { "count": 22, "usd_volume": 7500.0 }
+  },
+  "by_chain": {
+    "solana": { "count": 30, "usd_volume": 9000.0 },
+    "base": { "count": 12, "usd_volume": 3500.0 }
+  },
+  "by_day": [{ "date": "2025-01-15", "count": 5, "usd_volume": 1200.0 }]
+}
+```
+
+### 示例
+
+```json
+{
+  "wallet": "my-wallet",
+  "since_ts": "2025-01-01T00:00:00Z",
+  "until_ts": "2025-01-31T23:59:59Z"
+}
+```
+
+### 注意事项
+
+- 分析仅基于 Seashail 的本地交易账本（通过 Seashail 执行的交易）。
+- 美元价值是在交易时记录的尽力估算值。
+
+## get_lending_positions
+
+完整文档参见[工具：借贷](/zh/docs/reference/tools-lending#get_lending_positions)。
+
+---
+
+## get_bridge_status
+
+只读跨链桥状态。当 `bridge_id` 为 Wormhole id 时使用 Wormholescan（无密钥）；LayerZero 使用已配置的 DeFi 适配器。
+
+### 参数
+
+<TypeTable
+  type={{
+    bridge_id: {
+      type: "string",
+      description:
+        "跨链桥操作 ID（使用发起交易的签名/txid）。",
+      required: true,
+    },
+    bridge_provider: {
+      type: "'wormhole' | 'layerzero'",
+      description: "跨链桥提供商。",
+      default: "'wormhole'",
+    },
+    include_vaa_bytes: {
+      type: "boolean",
+      description: "若为 true，在可用时包含已签名的 VAA 字节（base64）。",
+      default: "false",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "bridge_id": "5xYz...",
+  "provider": "wormhole",
+  "status": "completed",
+  "source_chain": "solana",
+  "destination_chain": "ethereum",
+  "token": "USDC",
+  "amount": "100.0",
+  "source_tx": "5xYz...",
+  "destination_tx": "0xabc..."
+}
+```
+
+### 示例
+
+```json
+{
+  "bridge_id": "5xYzABC123...",
+  "bridge_provider": "wormhole"
+}
+```
+
+### 注意事项
+
+- Wormhole 查询使用公共 Wormholescan API（无需 API 密钥）。
+- `bridge_id` 应为发起跨链桥交易的交易签名/哈希。
+
+## get_prediction_positions
+
+完整文档参见[工具：预测市场](/zh/docs/reference/tools-predictions#get_prediction_positions)。
+
+---
+
+## search_prediction_markets
+
+完整文档参见[工具：预测市场](/zh/docs/reference/tools-predictions#search_prediction_markets)。
+
+---
+
+## get_prediction_orderbook
+
+完整文档参见[工具：预测市场](/zh/docs/reference/tools-predictions#get_prediction_orderbook)。
+
+---
+
+## pumpfun_list_new_coins
+
+完整文档参见[工具：Pump.fun](/zh/docs/reference/tools-pumpfun#pumpfun_list_new_coins)。
+
+---
+
+## pumpfun_get_coin_info
+
+完整文档参见[工具：Pump.fun](/zh/docs/reference/tools-pumpfun#pumpfun_get_coin_info)。
+
+---
+
+## 另见
+
+- [兑换指南](/zh/docs/guides/swapping) -- 使用读取工具进行价格检查和余额查询的兑换工作流
+- [发送指南](/zh/docs/guides/sending) -- 使用余额和燃料估算的发送工作流
+- [DeFi 指南](/zh/docs/guides/defi) -- 使用收益池和借贷仓位读取的 DeFi 操作
+- [跨链桥接指南](/zh/docs/guides/bridging) -- 使用跨链桥状态追踪的跨链桥接工作流
+- [预测市场指南](/zh/docs/guides/predictions) -- 使用搜索和订单簿读取的预测市场工作流

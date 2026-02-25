@@ -20,16 +20,18 @@ export const env = createEnv({
       process.stderr.write(`  ${JSON.stringify(issue)}\n`);
     }
     process.stderr.write(
-      "\nRequired: NEXT_PUBLIC_LANDING_URL, NEXT_PUBLIC_GITHUB_URL\n"
+      "\nRequired: NEXT_PUBLIC_LANDING_URL, NEXT_PUBLIC_GITHUB_URL, NEXT_PUBLIC_SITE_URL\n"
     );
     process.exit(1);
   },
   client: {
     NEXT_PUBLIC_LANDING_URL: standardSchemaV1(UrlString),
     NEXT_PUBLIC_GITHUB_URL: standardSchemaV1(UrlString),
+    NEXT_PUBLIC_SITE_URL: standardSchemaV1(UrlString),
   },
   experimental__runtimeEnv: {
     NEXT_PUBLIC_LANDING_URL: process.env["NEXT_PUBLIC_LANDING_URL"],
     NEXT_PUBLIC_GITHUB_URL: process.env["NEXT_PUBLIC_GITHUB_URL"],
+    NEXT_PUBLIC_SITE_URL: process.env["NEXT_PUBLIC_SITE_URL"],
   },
 });

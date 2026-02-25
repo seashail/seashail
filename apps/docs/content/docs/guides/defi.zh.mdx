@@ -1,0 +1,160 @@
+---
+title: DeFi 操作
+description: 在多个协议和链上进行借贷、质押和提供流动性。
+---
+
+Seashail 支持四种 DeFi（去中心化金融）基本操作：借贷、借款、质押和流动性提供。省略协议时按链自动选择——EVM 默认使用 Aave/Lido/Uniswap LP，Solana 默认使用 Kamino/Jito/Orca LP。所有 DeFi 写操作均经过策略评估。
+
+另见：[策略与审批](/zh/docs/guides/policy-and-approvals)
+
+## 借贷与借款
+
+### 这是什么
+
+**借贷**（`lend_tokens`）让你向协议存入代币以赚取利息。支持的协议：
+
+- **EVM：** Aave v3（默认）、Compound v3
+- **Solana：** Kamino（默认）、Marginfi
+
+**提款**（`withdraw_lending`）取回你存入的代币加上应计利息。
+
+**借款**（`borrow_tokens`）让你以存入的抵押品进行借款。你必须先存入足够的抵押品。
+
+**还款**（`repay_borrow`）让你偿还借款金额。使用 `amount: "max"`（仅限 Aave）可偿还包括利息在内的全部余额。
+
+**查看仓位**（`get_lending_positions`）是只读操作——显示你在各协议中的活跃借贷仓位。
+
+### 典型工作流程
+
+1. 存入抵押品：`lend_tokens`
+2. 查看仓位：`get_lending_positions`
+3. （可选）以抵押品借款：`borrow_tokens`
+4. 准备好后还款：`repay_borrow`
+5. 提取存款：`withdraw_lending`
+
+### 协议自动选择
+
+当你省略 `protocol` 参数时，Seashail 会自动选择：
+
+- **EVM 链 → Aave**
+- **Solana → Kamino**
+
+如果你需要特定协议，使用 `protocol` 参数覆盖（例如，`protocol: "compound"`）。
+
+### 示例
+
+```json
+{
+  "chain": "ethereum",
+  "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "amount": "1000",
+  "amount_units": "ui"
+}
+```
+
+这将在 Ethereum 上向 Aave 存入 1000 USDC（协议自动选择）。
+
+完整参数请参阅[借贷工具参考](/zh/docs/reference/tools-lending)。
+
+---
+
+## 质押
+
+### 这是什么
+
+**质押**（`stake_tokens`）让你质押原生代币以获取流动性质押衍生品：
+
+- **Lido（Ethereum）：** ETH → stETH
+- **Jito（Solana）：** SOL → JitoSOL
+
+**解除质押**（`unstake_tokens`）将质押衍生品转换回原生代币。时间因协议而异：
+
+- **Jito：** 即时（使用 Jupiter 兑换）
+- **Lido：** 延迟提款队列（通过 Lido 界面或链上读取监控）
+
+其他质押协议（Marinade、Eigenlayer）通过交易封装回退执行——代理或已配置的适配器必须构建交易。
+
+### 协议自动选择
+
+当你省略 `protocol` 参数时：
+
+- **Ethereum → Lido**
+- **Solana → Jito**
+
+### 风险
+
+质押衍生品可能出现脱锚（以低于基础资产的价格交易）。解除质押可能有冷静期，尤其是在 Ethereum 上（Lido 提款队列是异步的）。
+
+### 示例
+
+```json
+{
+  "chain": "solana",
+  "token": "native",
+  "amount": "1.5",
+  "amount_units": "ui",
+  "slippage_bps": 100
+}
+```
+
+这在 Solana 上向 Jito 质押 1.5 SOL（协议自动选择）。
+
+完整参数请参阅[质押工具参考](/zh/docs/reference/tools-staking)。
+
+---
+
+## 流动性提供
+
+### 这是什么
+
+**提供流动性**（`provide_liquidity`）向 AMM（自动做市商）流动性池添加代币：
+
+- **Uniswap LP（EVM）：** EVM 链的默认选择
+- **Orca LP（Solana）：** Solana 的默认选择
+
+**移除流动性**（`remove_liquidity`）从流动性池中提取。
+
+两个工具都使用交易封装执行——代理或已配置的适配器构建交易。这是最复杂的 DeFi 操作，因为你必须了解代币对、价格范围（对于集中流动性）以及无常损失风险。
+
+### 无常损失
+
+当代币价格偏离你的入场价时，你取回的价值可能低于持仓价值。这是 AMM 的基本风险，而非 Seashail 的问题。你通过承担这种风险来赚取交易手续费。
+
+### 示例
+
+```json
+{
+  "chain": "base",
+  "venue": "uniswap_lp",
+  "to": "0xPoolContractAddress",
+  "data": "0xabc123...",
+  "value_wei": "0",
+  "usd_value": 100.0,
+  "usd_value_known": true
+}
+```
+
+这通过交易封装向 Base 上的 Uniswap 流动性池提供流动性。
+
+完整参数请参阅[流动性工具参考](/zh/docs/reference/tools-liquidity)。
+
+---
+
+## 收益发现
+
+使用 `get_defi_yield_pools` 发现各协议和链上的可用收益机会。返回年化收益率（APY）、总锁仓量（TVL）和流动性池详情。
+
+详情请参阅[只读工具参考](/zh/docs/reference/tools-read#get_defi_yield_pools)。
+
+---
+
+## 注意事项
+
+- 所有 DeFi 写操作都需要策略审批——在策略中配置限额
+- 协议特定覆盖（例如，`pool_address`、`comet_address`、`market`、`group`）主要用于测试或非默认部署
+- 相关内容：[链与资金](/zh/docs/guides/chains-and-funding)，了解支持的链
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)，了解策略拒绝和协议错误的解决方案
+- [术语表](/zh/docs/glossary)，了解 ATA、借贷仓位和 DeFi 术语的定义

@@ -1,0 +1,315 @@
+---
+title: 故障排除
+description: 常见错误的解决方案和常见问题解答。
+---
+
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { Callout } from "fumadocs-ui/components/callout";
+
+查找使用 Seashail 时可能遇到的常见错误和问题的解决方案。
+
+## 钱包错误
+
+<Accordions>
+<Accordion title="错误：wallet_not_found">
+**现象：** 工具返回错误码 `wallet_not_found`，消息为 "wallet not found: [name]"
+
+**原因：** 指定的钱包名称在你的 Seashail 密钥存储索引中不存在。通常是因为钱包名称拼写错误，或引用了从未创建过的钱包。
+
+**解决方法：**
+
+1. 运行 `list_wallets` 查看所有可用的钱包名称
+2. 检查确切的拼写（名称区分大小写）
+3. 如果钱包应该存在，用 `seashail paths` 验证数据目录路径
+
+**相关：** [钱包指南](/zh/docs/guides/wallets)
+
+</Accordion>
+
+<Accordion title="错误：passphrase_required / 密码短语会话已过期">
+**现象：** 工具返回错误码 `passphrase_required`，消息为 "passphrase required"
+
+**原因：** 你的密码短语会话已根据配置的 TTL（存活时间）过期。Seashail 将密码短语在内存中缓存一段有限时间以避免重复提示，但过期后必须重新输入。
+
+**解决方法：**
+
+1. 下一次需要访问密钥存储的工具调用将触发 MCP 交互确认提示
+2. 在提示时输入你的密码短语
+3. 要调整会话时长，通过 `update_policy` 更新策略中的 `passphrase_session_ttl_seconds`
+
+**相关：** [安全模型指南](/zh/docs/guides/security-model)
+
+</Accordion>
+
+<Accordion title="错误：backup_not_confirmed">
+**现象：** 工具返回错误码 `backup_not_confirmed`，消息为 "backup not confirmed correctly"
+
+**原因：** 使用沙米尔秘密分享创建新钱包时，必须通过重新输入备份分片来确认备份。此错误表示确认输入与生成的分片不匹配。
+
+**解决方法：**
+
+1. 仔细复制完整的备份分片文本（包括页眉/页脚标记）
+2. 在提示确认时粘贴完全相同的内容
+3. 如果已丢失该分片，必须重新开始钱包创建过程
+4. 将已确认的分片存储在与主设备分离的安全位置
+
+**相关：** [钱包指南](/zh/docs/guides/wallets)
+
+</Accordion>
+
+<Accordion title="错误：keystore_busy">
+**现象：** 工具返回错误码 `keystore_busy`，消息为 "keystore busy; retry the operation"
+
+**原因：** 另一个进程当前持有密钥存储的独占锁。这可能发生在多个 MCP 客户端同时尝试执行密钥存储操作时，或者上一次操作没有正常释放锁时。
+
+**解决方法：**
+
+1. 等待几秒钟后重试操作
+2. 检查是否有其他 Seashail 进程正在运行：`ps aux | grep seashail`
+3. 如果守护进程卡住，重启它：停止守护进程，让代理自动生成新的
+4. 作为最后手段，手动删除锁文件（仅在没有 Seashail 进程运行时）：`rm [data_dir]/seashail-daemon.lock`
+
+**相关：** [架构参考](/zh/docs/reference/architecture)
+
+</Accordion>
+
+<Accordion title="错误：account_index_out_of_range">
+**现象：** 工具返回错误码 `account_index_out_of_range`，消息为 "account index out of range"
+
+**原因：** 指定的账户索引对该钱包不存在。HD 钱包从索引 0 开始按顺序派生账户。此错误表示你请求了一个尚未派生的账户。
+
+**解决方法：**
+
+1. 通过 `list_wallets` 检查钱包的账户数量（显示已派生的账户数）
+2. 账户索引从 0 开始（第一个账户是索引 0，第二个是索引 1，依此类推）
+3. 使用有效的索引，或省略索引参数以使用默认账户（索引 0）
+
+**相关：** [钱包指南](/zh/docs/guides/wallets)
+
+</Accordion>
+</Accordions>
+
+## 策略错误
+
+<Accordions>
+<Accordion title="策略拒绝：交易超出限额（硬性拦截）">
+**现象：** 工具返回错误，指出交易被策略拦截，提及分级审批或美元上限
+
+**原因：** 交易超过了你的某个策略限额（每笔交易美元上限、每日美元上限或特定操作限额）。分级审批系统将该交易评估为"硬性拦截"——即使用户确认也无法继续。
+
+**解决方法：**
+
+1. 用 `get_policy` 检查你当前的策略限额
+2. 要么减少交易金额以符合限额，或
+3. 更新策略以允许更高的金额：通过 `update_policy` 增加 `max_usd_per_tx` 或 `max_usd_per_day_budget`
+4. 考虑为大额交易启用分级审批阈值，而不是直接硬性拦截
+
+**相关：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="滑点超出">
+**现象：** 工具返回错误，指出"滑点超出"或价格超出容忍范围
+
+**原因：** 实际执行价格与报价价格的差异超过了你配置的 `max_slippage_bps`（基点）。这保护你免受因市场波动或流动性不足导致的不利价格执行。
+
+**解决方法：**
+
+1. 对于波动剧烈的市场或低流动性代币，通过 `update_policy` 增加 `max_slippage_bps`（例如从 50 bps 增加到 100 bps）
+2. 重试交易——价格可能已经稳定
+3. 对于兑换，考虑拆分为较小的金额以减少价格影响
+4. 检查代币对在 DEX 上是否有足够的流动性
+
+**相关：** [兑换指南](/zh/docs/guides/swapping)、[策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="操作被策略禁用">
+**现象：** 工具返回错误，指出该操作类型已禁用或被关闭
+
+**原因：** 你的策略通过 `send_enabled`、`swap_enabled`、`bridge_enabled` 或其他操作开关禁用了特定操作类型。写操作可以单独启用或禁用。
+
+**解决方法：**
+
+1. 用 `get_policy` 检查哪些操作已启用
+2. 更新相关开关：通过 `update_policy` 设置 `send_enabled: true`、`swap_enabled: true` 等
+3. 这对于临时限制智能体功能而不更改金额限额非常有用
+
+**相关：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="白名单拒绝">
+**现象：** 工具返回错误，指出目标地址不在白名单中
+
+**原因：** 你的策略启用了地址白名单，而交易的目标地址不在允许集合中。白名单作为允许地址的明确许可列表。
+
+**解决方法：**
+
+1. 用 `get_policy` 检查你当前的白名单（查找 `send_allowlist` 或其他特定操作的白名单）
+2. 将地址添加到白名单：通过 `update_policy` 将地址追加到相应的白名单数组
+3. 或者如果不需要此限制，完全禁用白名单
+4. 验证地址是否正确（拼写错误将无法匹配白名单）
+
+**相关：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+</Accordion>
+</Accordions>
+
+## 余额与交易错误
+
+<Accordions>
+<Accordion title="余额不足">
+**现象：** 交易失败，提示"余额不足"或"资金不足"
+
+**原因：** 你的钱包没有足够的代币来支付交易金额加上燃料费。在 EVM 链上，你需要 ETH（或原生燃料代币）支付燃料费。在 Solana 上，你需要 SOL 支付交易手续费和租金。
+
+**解决方法：**
+
+1. 检查余额：通过 `get_balance` 查询钱包和代币
+2. 对于 EVM 链，除代币金额外，确保有足够的原生代币（ETH 等）用于燃料费
+3. 对于 Solana，确保有足够的 SOL（手续费最少约 0.001 SOL，加上新账户的租金）
+4. 为钱包充值或减少交易金额
+
+**相关：** [发送指南](/zh/docs/guides/sending)、[钱包指南](/zh/docs/guides/wallets)
+
+</Accordion>
+
+<Accordion title="未知美元价值">
+**现象：** 工具返回错误，指出无法确定交易的美元价值
+
+**原因：** Seashail 的价格源没有涉及代币的定价数据。默认情况下，策略引擎需要已知的美元价值来评估交易限额。如果价格不可用，交易将被拦截（故障关闭）。
+
+**解决方法：**
+
+1. 等待并重试——价格源可能暂时不可用
+2. 对于已知合法的代币，调整策略：通过 `update_policy` 设置 `deny_unknown_usd_value: false`
+3. 警告：禁用此检查意味着策略引擎无法对没有价格的代币交易执行美元上限
+4. 对于内部测试或测试网代币，这通常是必要的
+
+**相关：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+
+</Accordion>
+
+<Accordion title="交易失败 / 交易回滚">
+**现象：** 交易已广播但链上执行失败，或模拟显示会回滚
+
+**原因：** 链上执行因合约逻辑失败（流动性不足、验证失败等）。常见原因包括：
+
+- 兑换时滑点容忍度不足
+- 报价和执行之间合约状态已改变
+- 燃料限制过低（EVM）
+- 账户租金未支付（Solana）
+
+**解决方法：**
+
+1. 在区块浏览器上检查交易哈希以查看回滚原因
+2. 对于兑换，增加滑点容忍度或减少金额
+3. 对于 Solana，确保目标 ATA 存在或启用自动创建
+4. 重试交易——链上状态可能已发生变化
+5. 在广播前使用模拟工具进行调试
+
+**相关：** [兑换指南](/zh/docs/guides/swapping)、[DeFi 指南](/zh/docs/guides/defi)
+
+</Accordion>
+</Accordions>
+
+## RPC 与网络错误
+
+<Accordions>
+<Accordion title="RPC 连接错误">
+**现象：** 工具返回错误，指出无法连接到链 RPC 端点
+
+**原因：** Seashail 无法连接到区块链 RPC 节点。这可能是由于网络连接问题、RPC 端点停机或 RPC 配置不正确。
+
+**解决方法：**
+
+1. 检查网络连接
+2. 验证配置中的 RPC 端点 URL
+3. 尝试切换到不同的 RPC 端点（公共或私有）
+4. 检查 RPC 提供商是否正在经历停机
+5. 对于测试网，确保使用测试网专用的 RPC 端点
+
+**相关：** [配置指南](/zh/docs/getting-started/configuration)
+
+</Accordion>
+
+<Accordion title="速率限制">
+**现象：** 工具返回错误，指出超出速率限制或请求过多
+
+**原因：** RPC 端点对你的请求进行了速率限制。公共 RPC 端点通常对每个 IP 地址或 API 密钥有严格的速率限制。
+
+**解决方法：**
+
+1. 等待几秒/几分钟后重试
+2. 降低操作频率
+3. 考虑使用有更高限制的专用 RPC 端点（Alchemy、Infura、Quicknode 等）
+4. 在配置中添加 RPC API 密钥以获得更高限制的认证访问
+
+**相关：** [配置指南](/zh/docs/getting-started/configuration)
+
+</Accordion>
+
+<Accordion title="网络错误 / 网络模式混淆">
+**现象：** 交易失败，因为合约/代币不存在，或连接到了错误的链
+
+**原因：** Seashail 处于错误的网络模式（主网 vs 测试网）。网络模式决定使用哪些默认 RPC 以及预期哪些链 ID。
+
+**解决方法：**
+
+1. 检查当前网络模式：`get_network_mode`
+2. 切换网络模式：`set_network_mode` 设置为 `mainnet` 或 `testnet`
+3. 验证目标链在当前网络模式下可用
+4. 测试时，始终使用测试网模式以避免主网交易
+5. 记住：网络模式是全局的，影响所有链
+
+**相关：** [网络模式指南](/zh/docs/guides/network-mode)
+
+</Accordion>
+</Accordions>
+
+## 诈骗与合规错误
+
+<Accordions>
+<Accordion title="诈骗地址黑名单拦截">
+**现象：** 工具返回错误，指出目标地址在诈骗地址黑名单上
+
+**原因：** 交易的目标地址在 Seashail 定期更新的诈骗地址黑名单上。这是一个社区维护的已知恶意地址列表（诈骗、卷款跑路、被攻击的合约）。
+
+**解决方法：**
+
+1. 验证目标地址是否正确——可能存在拼写错误或恶意剪贴板劫持
+2. 如果你确定该地址是合法的（罕见的误报），可以禁用黑名单：通过 `update_policy` 设置 `enable_scam_blocklist: false`
+3. 向 Seashail 团队报告误报
+4. 警告：禁用黑名单会移除防止向已知恶意地址发送资金的保护
+
+**相关：** [诈骗地址黑名单指南](/zh/docs/guides/scam-blocklist)
+
+</Accordion>
+
+<Accordion title="OFAC SDN 拦截">
+**现象：** 工具返回错误，指出目标地址在 OFAC SDN 名单上
+
+**原因：** 目标地址在美国外国资产控制办公室特别指定国民（SDN）名单上。这是对受制裁地址的合规检查。如果在策略中启用，Seashail 将拦截向这些地址的交易。
+
+**解决方法：**
+
+1. 不要继续——向 OFAC SDN 地址发送可能违反制裁法规
+2. 验证地址是否正确（确认你确实想向此地址发送）
+3. 如果你所在的司法管辖区不要求 OFAC 合规，可以禁用此检查：通过 `update_policy` 设置 `enable_ofac_sdn_check: false`
+4. 警告：禁用此检查可能使你在受 OFAC 监管的司法管辖区面临法律风险
+
+**相关：** [安全模型指南](/zh/docs/guides/security-model)
+
+</Accordion>
+</Accordions>
+
+<Callout type="info" title="仍然卡住了？">
+如果你遇到了这里未涵盖的问题：
+
+1. 运行 `seashail doctor` 获取诊断报告（使用 `--json` 获取机器可读输出）
+2. 查看[架构页面](/zh/docs/reference/architecture)了解各组件如何交互
+3. 查阅[安全模型](/zh/docs/guides/security-model)了解策略和密钥存储行为
+4. 查看[参考部分](/zh/docs/reference)中相关工具的参考页面
+
+</Callout>

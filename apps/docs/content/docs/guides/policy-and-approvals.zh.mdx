@@ -1,0 +1,56 @@
+---
+title: 策略与审批
+description: 设置支出上限、白名单，以及何时需要用户确认。
+---
+
+Seashail 在解密任何密钥材料之前，会对每一个写操作（例如 `send_transaction`、`swap_tokens`、`open_perp_position`、`buy_nft`）进行策略评估。
+
+## 分级审批
+
+默认策略设计为：
+
+- 自动批准小额交易
+- 对较大的交易要求明确的用户确认（MCP 交互确认）
+- 硬性阻止超过最大值的交易
+
+## 常用控制项
+
+- 单笔交易和每日美元上限：`max_usd_per_tx`、`max_usd_per_day`
+- 兑换滑点上限（基点）：`max_slippage_bps`
+- 美元价值未知时失败关闭：`deny_unknown_usd_value`
+- 强制对远程构建的交易进行确认：`require_user_confirm_for_remote_tx`
+- 发送白名单：`send_allow_any`、`send_allowlist`
+- 合约白名单：`contract_allow_any`、`contract_allowlist`
+- 操作开关：`enable_send`、`enable_swap`
+- 永续合约控制：`enable_perps`、`max_leverage`、`max_usd_per_position`
+- NFT 控制：`enable_nft`、`max_usd_per_nft_tx`
+
+## 查看与更新策略
+
+使用：
+
+- `get_policy` 查看当前策略
+- `update_policy` 替换策略规则
+
+### 每个钱包的覆盖设置
+
+Seashail 支持每个钱包的策略覆盖：
+
+- `get_policy({ wallet })` 显示该钱包的生效策略
+- `update_policy({ wallet, policy })` 为该钱包设置覆盖
+- `update_policy({ wallet, clear: true })` 移除覆盖
+
+如果通过 agent 更新策略，推荐以下工作流：
+
+1. 读取 `get_policy`
+2. 仅修改目标字段
+3. 使用 `update_policy` 应用
+
+这样可以避免意外放宽不相关的安全限制。
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)了解策略错误的解决方案
+- [安全模型](/zh/docs/guides/security-model)了解威胁分析和分级审批原理
+- [术语表](/zh/docs/glossary)了解分级审批、基点和策略术语的定义
+- [策略工具参考](/zh/docs/reference/tools-policy)了解完整的参数详情

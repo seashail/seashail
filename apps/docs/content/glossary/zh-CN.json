@@ -1,0 +1,1078 @@
+{
+  "locale": "zh-CN",
+  "authority": "ethereum.org/zh/glossary/ (primary); academy.binance.com/zh/ (fallback)",
+  "terms": [
+    {
+      "term": "Aave",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DeFi protocol name. Never translate."
+    },
+    {
+      "term": "AES-256-GCM",
+      "zh": null,
+      "category": "security",
+      "rationale": "Cryptographic algorithm name. Never translate. Must appear exactly as 'AES-256-GCM' in Chinese documentation. This is the internationally standardized algorithm identifier used verbatim across all languages."
+    },
+    {
+      "term": "airdrop",
+      "zh": "空投",
+      "category": "core",
+      "rationale": "Standard Chinese crypto term. 空 = air, 投 = drop/throw. Universal across all Chinese exchanges and crypto platforms."
+    },
+    {
+      "term": "allowlist",
+      "zh": "白名单",
+      "category": "product",
+      "rationale": "Standard Chinese security/networking term. 白 = white, 名单 = list."
+    },
+    {
+      "term": "AMM",
+      "zh": "自动做市商",
+      "category": "defi",
+      "rationale": "Widely used in Chinese DeFi content. AMM abbreviation kept in headings; 自动做市商 (automatic market maker) in definitions."
+    },
+    {
+      "term": "APY",
+      "zh": "年化收益率",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. APY abbreviation kept alongside Chinese equivalent."
+    },
+    {
+      "term": "Arbitrum",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name. Never translate."
+    },
+    {
+      "term": "Architecture",
+      "zh": "架构",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "Argon2id",
+      "zh": null,
+      "category": "security",
+      "rationale": "Cryptographic algorithm name. Never translate. Must appear exactly as 'Argon2id' in Chinese documentation."
+    },
+    {
+      "term": "ATA",
+      "zh": null,
+      "category": "core",
+      "rationale": "Associated Token Account. Solana technical term. Keep English abbreviation."
+    },
+    {
+      "term": "Avalanche",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name. Never translate."
+    },
+    {
+      "term": "balance",
+      "zh": "余额",
+      "category": "core",
+      "rationale": "Standard Chinese financial term. 余额 = remaining amount."
+    },
+    {
+      "term": "Base",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name (Coinbase L2). Never translate."
+    },
+    {
+      "term": "BIP-39",
+      "zh": null,
+      "category": "core",
+      "rationale": "Bitcoin Improvement Proposal standard identifier. Never translate."
+    },
+    {
+      "term": "BIP-44",
+      "zh": null,
+      "category": "core",
+      "rationale": "Bitcoin Improvement Proposal standard identifier. Never translate."
+    },
+    {
+      "term": "block",
+      "zh": "区块",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 区块 = block (in blockchain context)."
+    },
+    {
+      "term": "block explorer",
+      "zh": "区块浏览器",
+      "category": "core",
+      "rationale": "Standard Chinese crypto term. 区块 = block, 浏览器 = browser/explorer."
+    },
+    {
+      "term": "blockchain",
+      "zh": "区块链",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 区块 = block, 链 = chain."
+    },
+    {
+      "term": "blocklist",
+      "zh": "黑名单",
+      "category": "product",
+      "rationale": "Standard Chinese security term. 黑 = black, 名单 = list."
+    },
+    {
+      "term": "Blur",
+      "zh": null,
+      "category": "brand",
+      "rationale": "NFT marketplace name. Never translate."
+    },
+    {
+      "term": "BNB",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain/token name. Never translate."
+    },
+    {
+      "term": "borrowing",
+      "zh": "借款",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term."
+    },
+    {
+      "term": "bps",
+      "zh": "基点",
+      "category": "core",
+      "rationale": "Standard Chinese financial term. bps = basis points = 基点. 1 bps = 0.01%."
+    },
+    {
+      "term": "bridge",
+      "zh": "跨链桥",
+      "category": "core",
+      "rationale": "ethereum.org uses 链桥; Chinese crypto community predominantly says 跨链桥 (cross-chain bridge). Using 跨链桥 as it is more descriptive and more commonly encountered in Chinese DeFi content. Deviation from ethereum.org documented."
+    },
+    {
+      "term": "Bridging",
+      "zh": "跨链桥接",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "chain",
+      "zh": "链",
+      "category": "core",
+      "rationale": "Short form of 'blockchain'. 链 = chain. Used in compound terms: 链上 (on-chain), 跨链 (cross-chain)."
+    },
+    {
+      "term": "Chains",
+      "zh": "链",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "Claude",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Anthropic product name. Never translate."
+    },
+    {
+      "term": "Cline",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Editor/agent product name. Never translate."
+    },
+    {
+      "term": "CLOB",
+      "zh": "中央限价订单簿",
+      "category": "perps",
+      "rationale": "Central Limit Order Book. CLOB abbreviation kept in headings; full Chinese form in definitions."
+    },
+    {
+      "term": "collateral",
+      "zh": "抵押品",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. Source: academy.binance.com/zh/."
+    },
+    {
+      "term": "Compound",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DeFi protocol name. Never translate."
+    },
+    {
+      "term": "Configuration",
+      "zh": "配置",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "confirmation",
+      "zh": "确认",
+      "category": "core",
+      "rationale": "Standard Chinese term. 确认 = confirm/confirmation."
+    },
+    {
+      "term": "Continue",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Editor/agent product name. Never translate."
+    },
+    {
+      "term": "Cursor",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Editor/agent product name. Never translate."
+    },
+    {
+      "term": "daemon",
+      "zh": "守护进程",
+      "category": "product",
+      "rationale": "Standard Chinese Unix/OS term. 守护 = guard/daemon, 进程 = process."
+    },
+    {
+      "term": "DAO",
+      "zh": "去中心化自治组织",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. Use DAO abbreviation in navigation and headings; 去中心化自治组织 (decentralized autonomous organization) on first occurrence in body text, DAO thereafter."
+    },
+    {
+      "term": "DCA",
+      "zh": "定投",
+      "category": "defi",
+      "rationale": "Dollar-cost averaging. 定投 = fixed investment / regular investment. Standard term in Chinese financial/crypto content."
+    },
+    {
+      "term": "DeFi",
+      "zh": "去中心化金融",
+      "category": "defi",
+      "rationale": "Source: ethereum.org/zh/glossary/. Keep 'DeFi' as-is in most contexts; use 去中心化金融 (decentralized finance) in definitions and first use."
+    },
+    {
+      "term": "DeFi Operations",
+      "zh": "DeFi 操作",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "deposit",
+      "zh": "存款",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. 存款 = deposit."
+    },
+    {
+      "term": "devnet",
+      "zh": null,
+      "category": "cli",
+      "rationale": "Solana development network identifier. Keep English."
+    },
+    {
+      "term": "DEX",
+      "zh": "去中心化交易所",
+      "category": "defi",
+      "rationale": "Source: ethereum.org/zh/glossary/. DEX abbreviation kept in headings; full form in definitions."
+    },
+    {
+      "term": "elicitation",
+      "zh": "交互确认",
+      "category": "product",
+      "rationale": "Seashail/MCP-specific term. No standard Chinese crypto term exists. 交互 (interactive) + 确认 (confirmation) describes the MCP user-prompt mechanism where the user must actively confirm. More descriptive than 请求输入 (request input)."
+    },
+    {
+      "term": "ERC-20",
+      "zh": null,
+      "category": "core",
+      "rationale": "Ethereum token standard identifier. Never translate."
+    },
+    {
+      "term": "ERC-721",
+      "zh": null,
+      "category": "core",
+      "rationale": "Ethereum token standard identifier. Never translate."
+    },
+    {
+      "term": "Ethereum",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name. Never translate."
+    },
+    {
+      "term": "EVM",
+      "zh": null,
+      "category": "core",
+      "rationale": "Ethereum Virtual Machine. Technical abbreviation. Keep English."
+    },
+    {
+      "term": "faucet",
+      "zh": "水龙头",
+      "category": "core",
+      "rationale": "Standard Chinese crypto term for testnet token dispensers. 水龙头 = faucet (literal translation widely adopted)."
+    },
+    {
+      "term": "fee",
+      "zh": "手续费",
+      "category": "core",
+      "rationale": "Standard Chinese financial term. 手续费 = handling fee / transaction fee."
+    },
+    {
+      "term": "funding rate",
+      "zh": "资金费率",
+      "category": "perps",
+      "rationale": "Source: coinglass.com/zh/. Universal term in Chinese perpetuals trading across all exchanges."
+    },
+    {
+      "term": "gas",
+      "zh": "燃料",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. Use 燃料 in educational/definitional contexts; keep 'Gas' in tool parameter names and UI labels where brevity is needed. Document dual-use: ethereum.org chose 燃料 for clarity; exchanges often keep 'Gas' for familiarity."
+    },
+    {
+      "term": "Getting Started",
+      "zh": "快速开始",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "Glossary",
+      "zh": "术语表",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "governance",
+      "zh": "治理",
+      "category": "defi",
+      "rationale": "Standard Chinese term in both traditional finance and DeFi contexts. 治理 = governance."
+    },
+    {
+      "term": "Guides",
+      "zh": "指南",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "hash",
+      "zh": "哈希",
+      "category": "core",
+      "rationale": "Phonetic transliteration widely adopted in Chinese CS and crypto. 哈希 is universally understood."
+    },
+    {
+      "term": "HKDF",
+      "zh": null,
+      "category": "security",
+      "rationale": "Cryptographic algorithm name (HMAC-based Key Derivation Function). Never translate. Must appear exactly as 'HKDF' in Chinese documentation."
+    },
+    {
+      "term": "Hyperliquid",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Perps exchange name. Never translate."
+    },
+    {
+      "term": "impermanent loss",
+      "zh": "无常损失",
+      "category": "defi",
+      "rationale": "Source: academy.binance.com/zh/ and multiple Chinese DeFi platforms. 无常 = impermanent/transient (Buddhist-derived; fits the 'loss that may reverse' concept). Highly consistent across Chinese DeFi ecosystem."
+    },
+    {
+      "term": "Installation",
+      "zh": "安装",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "internal transfer",
+      "zh": "内部转账",
+      "category": "product",
+      "rationale": "Standard Chinese banking/finance term. 内部 = internal, 转账 = transfer."
+    },
+    {
+      "term": "Jito",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Staking protocol name. Never translate."
+    },
+    {
+      "term": "Jupiter",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DEX aggregator name. Never translate."
+    },
+    {
+      "term": "Kamino",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DeFi protocol name. Never translate."
+    },
+    {
+      "term": "key",
+      "zh": "密钥",
+      "category": "core",
+      "rationale": "Generic cryptographic key. 密钥 = cryptographic key. Note: specific forms have specific terms — private key → 私钥, public key → 公钥. Use 密钥 only in generic contexts."
+    },
+    {
+      "term": "keystore",
+      "zh": "密钥存储",
+      "category": "security",
+      "rationale": "Security-critical. 密钥 = cryptographic key, 存储 = storage. Compound term describing the encrypted storage for wallet keys. Standard in Chinese crypto wallet documentation."
+    },
+    {
+      "term": "LayerZero",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Cross-chain protocol name. Never translate."
+    },
+    {
+      "term": "lending",
+      "zh": "借贷",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. 借贷 = lending/borrowing."
+    },
+    {
+      "term": "leverage",
+      "zh": "杠杆",
+      "category": "perps",
+      "rationale": "Standard Chinese financial term. 杠杆 = lever/leverage. Universal across Chinese exchanges."
+    },
+    {
+      "term": "Lido",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Staking protocol name. Never translate."
+    },
+    {
+      "term": "limit order",
+      "zh": "限价单",
+      "category": "perps",
+      "rationale": "Standard Chinese trading term. 限价 = limit price, 单 = order."
+    },
+    {
+      "term": "liquidation",
+      "zh": "爆仓",
+      "category": "perps",
+      "rationale": "Colloquial Chinese term widely used in crypto trading. 爆仓 = position liquidation (lit. 'blown warehouse'). Note: 清算 is the formal term used in traditional finance. 爆仓 is more widely understood in Chinese crypto contexts."
+    },
+    {
+      "term": "liquidity",
+      "zh": "流动性",
+      "category": "defi",
+      "rationale": "Standard across ethereum.org, Binance Academy, and all Chinese financial content."
+    },
+    {
+      "term": "liquidity pool",
+      "zh": "流动性池",
+      "category": "defi",
+      "rationale": "Source: academy.binance.com/zh/. 流动性 = liquidity, 池 = pool. Widely used."
+    },
+    {
+      "term": "long",
+      "zh": "多头",
+      "category": "perps",
+      "rationale": "Standard Chinese trading term. 多头 = long position (noun form). 做多 = go long (verb form). Standard across Chinese exchanges."
+    },
+    {
+      "term": "Magic Eden",
+      "zh": null,
+      "category": "brand",
+      "rationale": "NFT marketplace name. Never translate."
+    },
+    {
+      "term": "mainnet",
+      "zh": "主网",
+      "category": "core",
+      "rationale": "Standard Chinese crypto term. 主 = main, 网 = network."
+    },
+    {
+      "term": "Marginfi",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DeFi protocol name. Never translate."
+    },
+    {
+      "term": "mark price",
+      "zh": "标记价格",
+      "category": "perps",
+      "rationale": "Standard in Chinese exchanges. 标记 = mark, 价格 = price."
+    },
+    {
+      "term": "market order",
+      "zh": "市价单",
+      "category": "perps",
+      "rationale": "Standard Chinese trading term. 市价 = market price, 单 = order."
+    },
+    {
+      "term": "marketplace",
+      "zh": "交易市场",
+      "category": "core",
+      "rationale": "Standard Chinese term. 交易 = transaction/trade, 市场 = market."
+    },
+    {
+      "term": "MCP",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Model Context Protocol. Technical protocol name. Never translate."
+    },
+    {
+      "term": "mint",
+      "zh": "铸造",
+      "category": "core",
+      "rationale": "When used as verb (minting tokens): 铸造 (forge/mint). When referring to Solana token mint address, keep 'mint' in English as a technical identifier."
+    },
+    {
+      "term": "mnemonic",
+      "zh": "助记词",
+      "category": "security",
+      "rationale": "Security-critical. Source: ethereum.org/zh/glossary/ ('创建数字钱包时向你提供的单词列表'). 助记词 = mnemonic/memory-aid words. Same as 'seed phrase'. Universal across all Chinese wallet documentation."
+    },
+    {
+      "term": "Monad",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name. Never translate."
+    },
+    {
+      "term": "network mode",
+      "zh": "网络模式",
+      "category": "product",
+      "rationale": "Standard Chinese tech term. 网络 = network, 模式 = mode."
+    },
+    {
+      "term": "Network Mode",
+      "zh": "网络模式",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "NFT",
+      "zh": "非同质化代币",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. Use NFT abbreviation in navigation and headings; 非同质化代币 (non-fungible token) on first occurrence in body text, NFT thereafter."
+    },
+    {
+      "term": "NFT Operations",
+      "zh": "NFT 操作",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "node",
+      "zh": "节点",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 节点 = node (network node)."
+    },
+    {
+      "term": "nonce",
+      "zh": "随机数",
+      "category": "core",
+      "rationale": "Standard Chinese cryptography term. 随机数 = random number. In transaction context, refers to sequential transaction counter."
+    },
+    {
+      "term": "Notes",
+      "zh": "注意事项",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "OFAC SDN",
+      "zh": null,
+      "category": "brand",
+      "rationale": "U.S. regulatory list name (Specially Designated Nationals). Keep English."
+    },
+    {
+      "term": "OpenClaw",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Product name. Never translate."
+    },
+    {
+      "term": "OpenSea",
+      "zh": null,
+      "category": "brand",
+      "rationale": "NFT marketplace name. Never translate."
+    },
+    {
+      "term": "Optimism",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name. Never translate."
+    },
+    {
+      "term": "oracle",
+      "zh": "预言机",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 预言机 = oracle (lit. 'prophecy machine'). Standard in all Chinese blockchain content."
+    },
+    {
+      "term": "Orca",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DEX name. Never translate."
+    },
+    {
+      "term": "orderbook",
+      "zh": "订单簿",
+      "category": "perps",
+      "rationale": "More common than 委托簿 in Chinese exchanges. 订单 = order, 簿 = book."
+    },
+    {
+      "term": "Overview",
+      "zh": "概述",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "passphrase",
+      "zh": "密码短语",
+      "category": "security",
+      "rationale": "Security-critical. No ethereum.org entry. 密码短语 (secret-code short-phrase) is the standard rendering in Chinese cryptography/wallet documentation. Distinct from 口令 (generic password) which lacks the 'phrase' nuance. Distinct from 助记词 (mnemonic/seed phrase). Used consistently in Chinese versions of hardware wallet guides (Ledger, Trezor zh-CN)."
+    },
+    {
+      "term": "passphrase session",
+      "zh": "密码短语会话",
+      "category": "product",
+      "rationale": "Seashail-specific compound term. 密码短语 = passphrase (see above), 会话 = session. Describes the cached decryption key with TTL."
+    },
+    {
+      "term": "perpetual futures",
+      "zh": "永续合约",
+      "category": "perps",
+      "rationale": "Universal in Chinese crypto. 永续 = perpetual, 合约 = contract/futures."
+    },
+    {
+      "term": "Perps Trading",
+      "zh": "永续合约交易",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "PnL",
+      "zh": "盈亏",
+      "category": "perps",
+      "rationale": "Standard Chinese financial term. 盈 = profit, 亏 = loss. PnL abbreviation kept alongside in technical contexts."
+    },
+    {
+      "term": "policy",
+      "zh": "策略",
+      "category": "product",
+      "rationale": "Short form of 'policy engine'. 策略 = policy/strategy. Standard Chinese enterprise/financial term."
+    },
+    {
+      "term": "Policy and Approvals",
+      "zh": "策略与审批",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "policy context",
+      "zh": "策略上下文",
+      "category": "product",
+      "rationale": "Standard Chinese dev term. 策略 = policy/strategy, 上下文 = context."
+    },
+    {
+      "term": "policy engine",
+      "zh": "策略引擎",
+      "category": "product",
+      "rationale": "Seashail product term. User decision (CONTEXT.md). 策略 = strategy/policy, 引擎 = engine. Standard Chinese enterprise software terminology."
+    },
+    {
+      "term": "Polygon",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name. Never translate."
+    },
+    {
+      "term": "Polymarket",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Prediction market platform name. Never translate."
+    },
+    {
+      "term": "portfolio",
+      "zh": "投资组合",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. 投资 = investment, 组合 = combination/portfolio."
+    },
+    {
+      "term": "position",
+      "zh": "仓位",
+      "category": "perps",
+      "rationale": "Standard Chinese trading term. 仓位 = position (in trading context). 仓 = warehouse/position, 位 = position/place."
+    },
+    {
+      "term": "Prediction Markets",
+      "zh": "预测市场",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "price feed",
+      "zh": "价格源",
+      "category": "core",
+      "rationale": "Standard Chinese crypto/DeFi term. 价格 = price, 源 = source/feed."
+    },
+    {
+      "term": "private key",
+      "zh": "私钥",
+      "category": "security",
+      "rationale": "Source: ethereum.org/zh/glossary/. 私 = private/secret, 钥 = key. Security-critical: mistranslation to 密钥 (generic cryptographic key) or 私人密钥 (less standard) would reduce clarity. 私钥 is the universally recognized Chinese term across all major exchanges and wallets."
+    },
+    {
+      "term": "proxy",
+      "zh": "代理",
+      "category": "product",
+      "rationale": "Standard Chinese networking/systems term. 代理 = proxy/agent."
+    },
+    {
+      "term": "public key",
+      "zh": "公钥",
+      "category": "security",
+      "rationale": "Source: ethereum.org/zh/glossary/. Security-critical. 公 = public, 钥 = key. Standard across all Chinese crypto platforms."
+    },
+    {
+      "term": "Pump.fun",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Platform name. Never translate."
+    },
+    {
+      "term": "Raydium",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DEX name. Never translate."
+    },
+    {
+      "term": "rebalancing",
+      "zh": "再平衡",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. 再 = re-, 平衡 = balance."
+    },
+    {
+      "term": "receipt",
+      "zh": "收据",
+      "category": "core",
+      "rationale": "Standard Chinese term. In transaction context, 交易收据 = transaction receipt."
+    },
+    {
+      "term": "Reference",
+      "zh": "参考",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "remote tx",
+      "zh": "远程交易",
+      "category": "product",
+      "rationale": "Standard Chinese tech term. 远程 = remote, 交易 = transaction."
+    },
+    {
+      "term": "RPC",
+      "zh": null,
+      "category": "core",
+      "rationale": "Remote Procedure Call. Technical abbreviation. Keep English."
+    },
+    {
+      "term": "scam blocklist",
+      "zh": "诈骗地址黑名单",
+      "category": "product",
+      "rationale": "Compound: 诈骗 = scam, 地址 = address, 黑名单 = blocklist."
+    },
+    {
+      "term": "Seashail",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Product/brand name. Never translate."
+    },
+    {
+      "term": "Security Model",
+      "zh": "安全模型",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "See Also",
+      "zh": "另见",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "seed phrase",
+      "zh": "助记词",
+      "category": "security",
+      "rationale": "Security-critical. Same as 'mnemonic'. Source: ethereum.org/zh/glossary/. 助记词 = memory-aid words. Universal in Chinese wallet documentation."
+    },
+    {
+      "term": "Sending",
+      "zh": "发送",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "Shamir",
+      "zh": "沙米尔秘密分享",
+      "category": "security",
+      "rationale": "Security-critical. Shorthand for Shamir's Secret Sharing. Same translation. 沙米尔 = phonetic transliteration of Shamir. 秘密分享 = secret sharing. See also: 'Shamir's Secret Sharing'."
+    },
+    {
+      "term": "Shamir's Secret Sharing",
+      "zh": "沙米尔秘密分享",
+      "category": "security",
+      "rationale": "Security-critical. No ethereum.org entry. 沙米尔 = phonetic transliteration of Shamir. 秘密分享 = secret sharing (established Chinese cryptography term). The 2-of-3 threshold scheme is referenced as '(2, 3) 秘密分享方案' in Chinese academic cryptography literature. Alternative: 'Shamir秘密分享' keeping the name in English - both acceptable; 沙米尔秘密分享 chosen as it reads more naturally in Chinese prose."
+    },
+    {
+      "term": "share",
+      "zh": "密钥分片",
+      "category": "security",
+      "rationale": "Security-critical. In context of Shamir Secret Sharing. 密钥 = key, 分片 = shard/fragment. Standard in Chinese MPC/Shamir implementations."
+    },
+    {
+      "term": "short",
+      "zh": "空头",
+      "category": "perps",
+      "rationale": "Standard Chinese trading term. 空头 = short position (noun form). 做空 = go short (verb form). Standard across Chinese exchanges."
+    },
+    {
+      "term": "signature",
+      "zh": "签名",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/ uses 数字签名 (digital signature). 签名 = signature. Use 数字签名 in formal definitions, 签名 in general contexts."
+    },
+    {
+      "term": "slippage",
+      "zh": "滑点",
+      "category": "defi",
+      "rationale": "Standard in Chinese trading contexts. Source: Binance, OKX, Bybit all use 滑点. 滑 = slip, 点 = point."
+    },
+    {
+      "term": "smart contract",
+      "zh": "智能合约",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 智能 = smart, 合约 = contract."
+    },
+    {
+      "term": "Solana",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Blockchain name. Never translate."
+    },
+    {
+      "term": "SPL",
+      "zh": null,
+      "category": "core",
+      "rationale": "Solana Program Library. Technical standard. Keep English abbreviation."
+    },
+    {
+      "term": "stablecoin",
+      "zh": "稳定币",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 稳定 = stable, 币 = coin."
+    },
+    {
+      "term": "stake",
+      "zh": "质押",
+      "category": "defi",
+      "rationale": "Verb form of 'staking'. 质押 = pledge/stake. Same Chinese rendering as 'staking'. Source: ethereum.org/zh/glossary/."
+    },
+    {
+      "term": "Staking",
+      "zh": "质押",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency. Also a core crypto term: source ethereum.org/zh/glossary/."
+    },
+    {
+      "term": "staking",
+      "zh": "质押",
+      "category": "defi",
+      "rationale": "Source: ethereum.org/zh/glossary/. 质押 is the standard Chinese financial term for pledging assets as collateral/security. Used universally across Chinese exchanges."
+    },
+    {
+      "term": "stdio",
+      "zh": null,
+      "category": "cli",
+      "rationale": "Standard I/O. Technical computing term. Keep English."
+    },
+    {
+      "term": "Strategies & Recipes",
+      "zh": "策略与方案",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "swap",
+      "zh": "兑换",
+      "category": "defi",
+      "rationale": "Token exchange operation. 兑换 = exchange/swap. Same Chinese rendering as 'Swapping' section heading."
+    },
+    {
+      "term": "Swapping",
+      "zh": "兑换",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "Tensor",
+      "zh": null,
+      "category": "brand",
+      "rationale": "NFT marketplace name. Never translate."
+    },
+    {
+      "term": "testnet",
+      "zh": "测试网",
+      "category": "core",
+      "rationale": "Standard Chinese crypto term. 测试 = test, 网 = network."
+    },
+    {
+      "term": "tiered approval",
+      "zh": "分级审批",
+      "category": "product",
+      "rationale": "Standard Chinese enterprise/finance term. 分级 = tiered/graded, 审批 = approval."
+    },
+    {
+      "term": "token",
+      "zh": "代币",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 代币 = token (representative coin). Universal in Chinese crypto."
+    },
+    {
+      "term": "tool envelope",
+      "zh": "工具封装",
+      "category": "product",
+      "rationale": "Seashail/MCP-specific. 工具 = tool, 封装 = envelope/wrapper. Standard Chinese software term."
+    },
+    {
+      "term": "transaction",
+      "zh": "交易",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 交易 = transaction/trade."
+    },
+    {
+      "term": "transaction guard",
+      "zh": "交易守卫",
+      "category": "product",
+      "rationale": "Seashail product term. User decision (CONTEXT.md). 交易 = transaction, 守卫 = guard."
+    },
+    {
+      "term": "transfer",
+      "zh": "转账",
+      "category": "core",
+      "rationale": "Standard Chinese financial term. 转 = transfer, 账 = account."
+    },
+    {
+      "term": "Troubleshooting",
+      "zh": "故障排除",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "TVL",
+      "zh": "总锁仓量",
+      "category": "defi",
+      "rationale": "Total Value Locked. Standard in Chinese DeFi. TVL abbreviation kept alongside."
+    },
+    {
+      "term": "Uniswap",
+      "zh": null,
+      "category": "brand",
+      "rationale": "DEX name. Never translate."
+    },
+    {
+      "term": "USD value",
+      "zh": "美元价值",
+      "category": "product",
+      "rationale": "Standard Chinese financial term. 美元 = USD, 价值 = value. Used in Seashail policy context for spending limit evaluation."
+    },
+    {
+      "term": "validator",
+      "zh": "验证者",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. 验证 = verify, 者 = person/one who."
+    },
+    {
+      "term": "VS Code",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Editor/product name. Never translate."
+    },
+    {
+      "term": "wallet",
+      "zh": "钱包",
+      "category": "core",
+      "rationale": "Source: ethereum.org/zh/glossary/. Universal in all Chinese crypto platforms. 钱 = money, 包 = bag/pouch."
+    },
+    {
+      "term": "Wallets",
+      "zh": "钱包",
+      "category": "ui",
+      "rationale": "Section heading translation for Phase 9 navigation consistency."
+    },
+    {
+      "term": "Windsurf",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Editor/agent product name. Never translate."
+    },
+    {
+      "term": "withdraw",
+      "zh": "提款",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. 提 = withdraw, 款 = funds."
+    },
+    {
+      "term": "Wormhole",
+      "zh": null,
+      "category": "brand",
+      "rationale": "Cross-chain protocol name. Never translate."
+    },
+    {
+      "term": "write op",
+      "zh": "写操作",
+      "category": "product",
+      "rationale": "Shorthand for 'write operation'. Same translation. Standard Chinese dev term. 写 = write, 操作 = operation. See also: 'write operation'."
+    },
+    {
+      "term": "write operation",
+      "zh": "写操作",
+      "category": "product",
+      "rationale": "Standard Chinese dev term. 写 = write, 操作 = operation."
+    },
+    {
+      "term": "yield",
+      "zh": "收益",
+      "category": "defi",
+      "rationale": "Standard Chinese financial term. 收益 = yield/returns."
+    },
+    {
+      "term": "yield farming",
+      "zh": "流动性挖矿",
+      "category": "defi",
+      "rationale": "Source: academy.binance.com/zh/. 流动性 = liquidity, 挖矿 = mining. More common than 收益农业 (yield agriculture) in Chinese DeFi content."
+    },
+    {
+      "term": "zeroize",
+      "zh": null,
+      "category": "security",
+      "rationale": "Rust security crate name and technique. Never translate. Must appear exactly as 'zeroize' in Chinese documentation. Refers to secure memory clearing to prevent key material leakage."
+    }
+  ],
+  "neverTranslate": [
+    "seashail mcp",
+    "seashail daemon",
+    "seashail agent install",
+    "seashail paths",
+    "seashail doctor",
+    "seashail wallet create",
+    "seashail openclaw install",
+    "--passphrase",
+    "--network",
+    "--network testnet",
+    "--json",
+    "SEASHAIL_PASSPHRASE",
+    "SEASHAIL_CONFIG_DIR",
+    "SEASHAIL_DATA_DIR",
+    "SEASHAIL_NETWORK_MODE",
+    "SEASHAIL_NETWORK",
+    "SEASHAIL_TESTNET_MODE",
+    "policy.toml",
+    "config.toml",
+    "seashail-daemon.lock",
+    "data_dir",
+    "config_dir",
+    "claude mcp add",
+    "estimate_gas",
+    "deny_unknown_usd_value",
+    "require_user_confirm_for_remote_tx"
+  ]
+}

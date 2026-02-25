@@ -1,0 +1,118 @@
+---
+title: 网络模式（主网/测试网）
+description: Seashail 如何在主网和测试网之间切换默认值，以及它强制和不强制的内容。
+---
+
+Seashail 支持两种网络模式：
+
+- `mainnet`（默认）
+- `testnet`
+
+网络模式是一个便捷设置。它影响工具省略 `chain` 或 `chains` 时的默认值。它不会硬性阻止主网/测试网的使用：如果工具明确指定了链（例如 `chain="ethereum"`），Seashail 会使用该链，无论当前模式如何。
+
+## 网络模式改变了什么
+
+当工具省略 `chain` 或 `chains` 时：
+
+- `mainnet` 默认为：`solana` 加上 EVM 主网（例如 `ethereum`、`base`、`arbitrum`、`optimism`、`polygon`、`bnb`、`avalanche`）
+- `testnet` 默认为：`solana` 加上 EVM 测试网（例如 `sepolia`、`base-sepolia`、`bnb-testnet`）
+
+你可以随时按调用覆盖默认值：
+
+- `get_balance` 接受单个 `chain`
+- `get_portfolio` 接受 `chains` 列表
+
+## 检查当前模式
+
+从 agent 调用：
+
+- `get_network_mode`
+
+返回：
+
+- `effective`：当前应用的模式（包括任何按会话的覆盖）
+- `configured`：持久化在 `config.toml` 中的模式（如果已设置）
+- `legacy_testnet_mode`：为兼容性保留的旧版布尔标志
+
+## 设置模式（持久化）
+
+### 选项 1：MCP（推荐用于 Agent）
+
+调用：
+
+- `set_network_mode`
+
+这会持久化到 `config.toml`。它还支持 `apply_default_solana_rpc`，当为 true 时，将 Solana RPC 切换到该模式的内置默认值。
+
+### 选项 2：编辑 `config.toml`
+
+添加或修改：
+
+```toml
+network_mode = "testnet"
+```
+
+## 设置模式（按会话覆盖）
+
+这只影响该 `seashail mcp` 进程，不修改 `config.toml`：
+
+```bash
+seashail mcp --network testnet
+```
+
+当你想让两个不同的 MCP 客户端（或两个不同的工作区）使用不同的默认值时，这很有用。
+
+## 首次运行默认值（零配置）
+
+如果你想让 Seashail 在首次运行时（在 `config.toml` 存在之前）将 `config.toml` 初始化为测试网，设置：
+
+```bash
+export SEASHAIL_NETWORK_MODE=testnet
+```
+
+别名：
+
+```bash
+export SEASHAIL_NETWORK=testnet
+```
+
+旧版兼容（不推荐）：
+
+```bash
+export SEASHAIL_TESTNET_MODE=1
+```
+
+## Solana RPC、Devnet/Testnet 与空投
+
+- `request_airdrop` 仅在 Solana devnet/testnet/本地验证者上支持。
+- 即使 `network_mode="testnet"`，Seashail 也会通过检查集群创世区块哈希来阻止 Solana mainnet-beta 上的空投。
+
+如果你使用测试网模式，将 `rpc.solana_rpc_url` 设置为：
+
+- devnet：`https://api.devnet.solana.com`
+- testnet：`https://api.testnet.solana.com`
+- 本地验证者：`http://127.0.0.1:<port>`
+
+你也可以使用以下方式持久化自定义 RPC：
+
+- `configure_rpc`
+
+## EVM 测试网与水龙头
+
+EVM 网络通过链名选择（例如 `ethereum`、`sepolia`、`base-sepolia`）。
+
+大多数 EVM 水龙头需要浏览器/验证码，无法从 CLI 可靠地自动化，但 Seashail 提供：
+
+- `get_testnet_faucet_links`（仅供参考）
+
+推荐起步资源：
+
+- Solana devnet 水龙头：https://faucet.solana.com/
+- Ethereum Sepolia + Base Sepolia：Coinbase Developer Platform (CDP) 水龙头：https://docs.cdp.coinbase.com/faucets/docs/welcome
+- BNB Chain 测试网水龙头：https://www.bnbchain.org/en/testnet-faucet
+
+## 另见
+
+- [CLI 参考](/zh/docs/reference/cli)了解 `--network` 标志和 CLI 网络配置
+- [故障排除](/zh/docs/troubleshooting)了解网络错误的解决方案
+- [术语表](/zh/docs/glossary)了解网络模式和测试网的定义

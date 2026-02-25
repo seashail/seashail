@@ -1,0 +1,612 @@
+---
+title: "工具：写入"
+description: 空投、转账、兑换和跨链桥接（策略门控签名）。
+---
+
+写入工具可能触发：
+
+- 策略评估
+- 通过 MCP 交互确认进行用户确认（取决于策略和美元价值）
+- 本地签名和广播
+
+另见：
+
+- [策略与审批](/zh/docs/guides/policy-and-approvals)
+
+## request_airdrop
+
+在 devnet、测试网或本地验证节点上请求 Solana 空投。在主网上被阻止。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: '"solana"',
+      description: "必须为 solana。",
+      default: '"solana"',
+    },
+    address: {
+      type: "string",
+      description:
+        "接收空投的 Solana 地址。若省略，使用选定账户的钱包 Solana 地址。",
+    },
+    amount: {
+      type: "string",
+      description: "请求的 SOL 数量。",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = SOL，base = lamports。",
+      default: '"ui"',
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "amount": "1",
+  "amount_units": "ui"
+}
+```
+
+### 示例
+
+```json
+{
+  "wallet": "my-wallet",
+  "account_index": 0,
+  "amount": "1",
+  "amount_units": "ui"
+}
+```
+
+### 注意事项
+
+- 仅在 devnet、测试网和本地验证节点上可用。
+- 若省略 `address`，Seashail 使用选定账户的钱包 Solana 地址。
+- 速率限制可能因验证节点/水龙头而异。
+
+---
+
+## send_transaction
+
+转移原生代币或同质化代币（Solana 上的 SPL；EVM 上的 ERC-20）。需要[策略审批](/zh/docs/guides/policy-and-approvals)。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description:
+        '执行的链："solana" 或 EVM 链名称（ethereum、base、arbitrum、optimism、polygon、bnb、avalanche 及测试网）。',
+      required: true,
+    },
+    to: {
+      type: "string",
+      description: "接收方地址（Solana 公钥或 EVM 0x 地址）。",
+      required: true,
+    },
+    token: {
+      type: "string",
+      description:
+        '代币标识符。原生代币使用 "native"（SOL/ETH 等），Solana SPL mint 公钥，或 EVM ERC-20 合约地址。',
+      default: '"native"',
+    },
+    amount: {
+      type: "string",
+      description: "以十进制字符串表示的发送金额。",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description:
+        "ui = 人类可读单位（SOL、ETH、代币单位）。base = 原始单位（lamports、wei）。",
+      default: '"ui"',
+    },
+  }}
+/>
+
+### 各链行为
+
+<Tabs items={["Solana", "EVM"]}>
+  <Tab value="Solana">
+    - 支持原生 SOL 和 SPL 代币 - 对于 SPL 发送，如果接收方的关联代币账户（ATA）不存在，Seashail 会自动创建 - 代币标识符：SPL mint 公钥或 `"native"` - 金额单位：`"ui"` = SOL 或代币单位，`"base"` = lamports 或原始基础单位
+  </Tab>
+  <Tab value="EVM">
+    - 支持原生 ETH/MATIC/BNB/AVAX 等及 ERC-20 代币 - 代币标识符：ERC-20 合约地址或 `"native"` - 金额单位：`"ui"` = 代币单位（例如 ETH），`"base"` = wei 或原始基础单位 - 配置了诈骗地址黑名单时可能阻止接收方
+  </Tab>
+</Tabs>
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "solana",
+  "to": "11111111111111111111111111111111",
+  "token": "native",
+  "amount": "0.01",
+  "amount_units": "ui",
+  "status": "confirmed"
+}
+```
+
+### 示例
+
+<Tabs items={["Solana native", "Solana SPL", "EVM native", "EVM ERC-20"]}>
+  <Tab value="Solana native">
+    ```json
+    {
+      "chain": "solana",
+      "to": "11111111111111111111111111111111",
+      "token": "native",
+      "amount": "0.01",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="Solana SPL">
+    ```json
+    {
+      "chain": "solana",
+      "to": "11111111111111111111111111111111",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "5",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM native">
+    ```json
+    {
+      "chain": "base",
+      "to": "0xRecipientAddress",
+      "token": "native",
+      "amount": "0.001",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM ERC-20">
+    ```json
+    {
+      "chain": "base",
+      "to": "0xRecipientAddress",
+      "token": "0xTokenContractAddress",
+      "amount": "10",
+      "amount_units": "ui"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 需要[策略审批](/zh/docs/guides/policy-and-approvals)——交易可能被自动批准、需要确认或被阻止，取决于策略配置和美元价值。
+- 配置了诈骗地址黑名单时，Seashail 可能阻止接收方。
+- Solana 上的 SPL 发送时，如有需要，Seashail 会自动创建接收方的关联代币账户。
+- `wallet` 和 `account_index` 字段可选——若省略，Seashail 使用当前活跃的钱包和账户。
+
+---
+
+## swap_tokens
+
+通过链上 DEX 聚合器执行代币兑换。需要[策略审批](/zh/docs/guides/policy-and-approvals)。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: '执行的链："solana" 或 EVM 链名称。',
+      required: true,
+    },
+    token_in: {
+      type: "string",
+      description:
+        '输入代币。原生代币使用 "native"（SOL/ETH 等），或代币 mint（Solana）/合约地址（EVM）。',
+      required: true,
+    },
+    token_out: {
+      type: "string",
+      description:
+        '输出代币。原生代币使用 "native"（SOL/ETH 等），或代币 mint（Solana）/合约地址（EVM）。',
+      required: true,
+    },
+    amount_in: {
+      type: "string",
+      description: "要兑换的输入代币数量，以十进制字符串表示。",
+      required: true,
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = 人类可读单位，base = 原始单位。",
+      default: '"ui"',
+    },
+    slippage_bps: {
+      type: "integer",
+      description:
+        "最大滑点，单位基点（1 基点 = 0.01%）。范围：0–5000。",
+      default: "100",
+    },
+    provider: {
+      type: '"auto" | "jupiter" | "uniswap" | "1inch"',
+      description:
+        'DEX 提供商。"auto" 为 Solana 选择 Jupiter，为 EVM 选择 Uniswap。',
+      default: '"auto"',
+    },
+  }}
+/>
+
+### 各链行为
+
+<Tabs items={["Solana (Jupiter)", "EVM (Uniswap)", "EVM (1inch)"]}>
+  <Tab value="Solana (Jupiter)">
+    - Solana 的默认提供商（`provider="auto"` 解析为 Jupiter）- 代币标识符：SPL mint 公钥或 `"native"` - Jupiter 自动跨多个流动性来源进行路由 - 无需 ERC-20 授权步骤（Solana 使用代币账户）
+  </Tab>
+  <Tab value="EVM (Uniswap)">
+    - EVM 链的默认提供商（`provider="auto"` 解析为 Uniswap）- 代币标识符：ERC-20 合约地址或 `"native"` - 可能需要先进行 ERC-20 授权/批准交易——Seashail 会自动处理 - 适用于所有已配置的 EVM 链（Ethereum、Base、Arbitrum、Optimism、Polygon、BNB、Avalanche）
+  </Tab>
+  <Tab value="EVM (1inch)">
+    - 可选提供商——需要 API 密钥配置（检查 `get_capabilities.services`）- 代币标识符：ERC-20 合约地址或 `"native"` - 显式设置 `provider` 为 `"1inch"` 以使用此提供商 - 通过跨更多流动性来源聚合可能提供更优价格
+  </Tab>
+</Tabs>
+
+### 响应
+
+```json
+{
+  "signature": "5UfD...txid",
+  "chain": "solana",
+  "token_in": "native",
+  "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount_in": "0.05",
+  "amount_out": "8.234",
+  "provider": "jupiter",
+  "status": "confirmed"
+}
+```
+
+### 示例
+
+<Tabs items={["Solana (Jupiter)", "EVM (Uniswap)", "EVM (1inch)"]}>
+  <Tab value="Solana (Jupiter)">
+    ```json
+    {
+      "chain": "solana",
+      "token_in": "native",
+      "token_out": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount_in": "0.05",
+      "amount_units": "ui",
+      "slippage_bps": 100,
+      "provider": "auto"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM (Uniswap)">
+    ```json
+    {
+      "chain": "base",
+      "token_in": "native",
+      "token_out": "0xTokenContractAddress",
+      "amount_in": "0.01",
+      "amount_units": "ui",
+      "slippage_bps": 100,
+      "provider": "uniswap"
+    }
+    ```
+  </Tab>
+  <Tab value="EVM (1inch)">
+    ```json
+    {
+      "chain": "base",
+      "token_in": "0xTokenInAddress",
+      "token_out": "0xTokenOutAddress",
+      "amount_in": "100",
+      "slippage_bps": 50,
+      "provider": "1inch"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- `provider="auto"` 为 Solana 选择 Jupiter，为 EVM 链选择 Uniswap。
+- 某些提供商需要额外配置——检查 `get_capabilities.services` 以验证可用性。
+- EVM 兑换可能涉及 ERC-20 输入代币的授权/批准交易。Seashail 会在执行兑换前自动处理。
+- `slippage_bps` 范围为 0–5000（0% 至 50%）。默认值 100 表示最大 1% 滑点。
+
+---
+
+## bridge_tokens
+
+跨链桥接代币。当提供 `to_chain`、`token` 和 `amount` 时，Seashail 在 EVM 和 Solana 上执行原生 Wormhole 代币桥（或在 EVM 上执行 LayerZero OFT v1）。否则，回退到执行提供的交易封装。需要[策略审批](/zh/docs/guides/policy-and-approvals)。
+
+### 参数
+
+**核心参数：**
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description:
+        "执行链——跨链桥接的来源链。Solana 或 EVM 链名称。",
+      required: true,
+    },
+    bridge_provider: {
+      type: '"wormhole" | "layerzero"',
+      description: "跨链桥提供商选择。",
+      default: '"wormhole"',
+    },
+    to_chain: {
+      type: "string",
+      description:
+        "目标链名称（EVM 链名称或 solana）。原生 Wormhole/LayerZero 路径必填。",
+    },
+    token: {
+      type: "string",
+      description:
+        "要桥接的代币。EVM：ERC-20 合约地址。Solana：SPL mint 公钥。原生路径必填。",
+    },
+    amount: {
+      type: "string",
+      description:
+        "以十进制字符串表示的桥接金额。注意：Wormhole 原生路径不支持 amount=max。原生路径必填。",
+    },
+    amount_units: {
+      type: '"ui" | "base"',
+      description: "ui = 人类可读代币单位，base = 原始基础单位。",
+      default: '"ui"',
+    },
+    recipient: {
+      type: "string",
+      description:
+        "目标链上的接收方。EVM→EVM 或 Solana→EVM：EVM 地址。EVM→Solana：Solana 所有者公钥（Seashail 会为封装 mint 派生 ATA）。默认为目标链上的同一 Seashail 钱包。",
+    },
+  }}
+/>
+
+**Wormhole 特定参数：**
+
+<TypeTable
+  type={{
+    recipient_token_account: {
+      type: "string",
+      description:
+        "仅限 EVM→Solana：覆盖确切目标 SPL 代币账户公钥。若省略，Seashail 使用派生的 ATA。",
+    },
+    redeem: {
+      type: "boolean",
+      description:
+        "若为 true，Seashail 将尽力获取已签名的 VAA 并在目标链上赎回。需要目标链手续费（EVM 燃料或 SOL）。",
+      default: "true",
+    },
+    token_bridge_address: {
+      type: "string",
+      description:
+        "覆盖来源 Wormhole 代币桥合约（适用于本地测试/模拟）。",
+    },
+    to_token_bridge_address: {
+      type: "string",
+      description:
+        "覆盖目标 Wormhole 代币桥合约（适用于本地测试/模拟）。",
+    },
+  }}
+/>
+
+**LayerZero 特定参数：**
+
+<TypeTable
+  type={{
+    dst_gas: {
+      type: "integer",
+      description:
+        "仅限 LayerZero（OFT v1）：adapterParams 的目标燃料限制。",
+      default: "200000",
+    },
+  }}
+/>
+
+**策略参数：**
+
+<TypeTable
+  type={{
+    usd_value: {
+      type: "number",
+      description:
+        "用于策略执行的尽力美元价值。若省略，视为未知。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "覆盖标志。若提供了 usd_value，则视为 true。",
+      default: "false",
+    },
+  }}
+/>
+
+**交易封装回退（EVM）：**
+
+<TypeTable
+  type={{
+    to: {
+      type: "string",
+      description:
+        "EVM：交易接收方/合约地址。用于交易封装回退模式。",
+    },
+    data: {
+      type: "string",
+      description: "EVM：0x 前缀的调用数据。空时使用 0x。",
+    },
+    value_wei: {
+      type: "string",
+      description: "EVM：以十进制字符串表示的 wei 价值。",
+      default: '"0"',
+    },
+  }}
+/>
+
+**交易封装回退（Solana）：**
+
+<TypeTable
+  type={{
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana：base64 编码的 VersionedTransaction 字节（未签名；Seashail 将签名）。",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana：程序 ID 白名单。每条指令的程序 ID 必须在此列表中。",
+    },
+  }}
+/>
+
+**适配器参数：**
+
+<TypeTable
+  type={{
+    asset: {
+      type: "object",
+      description:
+        "协议特定请求对象，供可选适配器用于构建交易封装。",
+    },
+  }}
+/>
+
+### 各链行为
+
+<Tabs items={["Solana → EVM", "EVM → Solana", "EVM → EVM"]}>
+  <Tab value="Solana → EVM">
+    - `chain`：`"solana"`，`to_chain`：EVM 链名称（例如 `"base"`、`"ethereum"`）- `token`：要桥接的代币的 SPL mint 公钥 - Seashail 处理 Wormhole 转账和目标链上的可选自动赎回 - `recipient` 默认为目标链上同一钱包的 EVM 地址 - 自动赎回（`redeem=true`）要求目标链钱包有燃料支付赎回交易
+  </Tab>
+  <Tab value="EVM → Solana">
+    - `chain`：EVM 链名称（例如 `"base"`），`to_chain`：`"solana"` - `token`：要桥接的代币的 ERC-20 合约地址 - `recipient`：Solana 所有者公钥——Seashail 自动派生封装 mint 的 ATA - 可选 `recipient_token_account` 覆盖确切目标 SPL 代币账户 - 可能需要先进行 ERC-20 授权交易——Seashail 会自动处理
+  </Tab>
+  <Tab value="EVM → EVM">
+    - `chain`：来源 EVM 链，`to_chain`：目标 EVM 链 - `token`：来源链上的 ERC-20 合约地址 - `recipient` 默认为目标链上同一钱包的地址 - 可能需要先进行 ERC-20 授权交易——Seashail 会自动处理
+  </Tab>
+</Tabs>
+
+### 响应
+
+```json
+{
+  "signature": "0xabc...txhash",
+  "chain": "base",
+  "to_chain": "solana",
+  "token": "0xUSDCContractAddress",
+  "amount": "100",
+  "bridge_provider": "wormhole",
+  "bridge_id": "0xabc...txhash",
+  "status": "submitted"
+}
+```
+
+`bridge_id` 可与 [`get_bridge_status`](/zh/docs/reference/tools-read#get_bridge_status) 配合使用以检查进度。
+
+### 示例
+
+<Tabs items={["Solana → Base (USDC)", "Base → Solana (USDC)", "查询状态"]}>
+  <Tab value="Solana → Base (USDC)">
+    ```json
+    {
+      "chain": "solana",
+      "to_chain": "base",
+      "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "50",
+      "amount_units": "ui",
+      "bridge_provider": "wormhole",
+      "redeem": true
+    }
+    ```
+  </Tab>
+  <Tab value="Base → Solana (USDC)">
+    ```json
+    {
+      "chain": "base",
+      "to_chain": "solana",
+      "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "amount": "100",
+      "amount_units": "ui",
+      "bridge_provider": "wormhole",
+      "recipient": "YourSolanaOwnerPubkey",
+      "redeem": true
+    }
+    ```
+  </Tab>
+  <Tab value="查询状态">
+    发起跨链桥接后，用 [`get_bridge_status`](/zh/docs/reference/tools-read#get_bridge_status) 查询状态：
+
+    ```json
+    {
+      "bridge_id": "0xabc...txhash",
+      "bridge_provider": "wormhole"
+    }
+    ```
+
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- **原生路径需要三个参数全部提供：** `to_chain`、`token` 和 `amount` 必须全部提供，Seashail 才能执行原生 Wormhole/LayerZero 桥接。如果缺少任一参数，Seashail 将回退到交易封装模式。
+- **不支持 `amount=max`**（Wormhole 原生路径）。
+- **`redeem=true`（默认）**会尝试在目标链上自动赎回。这要求目标钱包有燃料（EVM 目标需要 ETH，Solana 目标需要 SOL）。
+- **`bridge_provider`** 默认为 `"wormhole"`。EVM 链上的 OFT v1 代币也支持 LayerZero（`"layerzero"`）。
+- **策略：** 跨链桥接必须在[策略配置](/zh/docs/guides/policy-and-approvals)中启用（`enable_bridge` 字段）。
+- **状态追踪：** 使用 [`get_bridge_status`](/zh/docs/reference/tools-read#get_bridge_status) 以交易签名作为 `bridge_id` 来监控桥接进度、VAA 可用性和赎回状态。

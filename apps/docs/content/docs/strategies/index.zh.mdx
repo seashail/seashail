@@ -1,0 +1,26 @@
+---
+title: 策略与方案
+description: 常见交易和投资组合操作的多工具工作流实操指南。
+---
+
+实操指南是展示如何组合 Seashail 的 MCP 工具完成实际任务的多工具工作流。每份指南提供带有 JSON 工具调用示例的分步说明，你可以按照这些示例操作或根据自己的使用场景进行调整。
+
+## 可用实操指南
+
+**[新建钱包设置](/zh/docs/strategies/new-wallet-setup)** — 创建、保护新钱包并配置策略控制。
+工具：`create_wallet`、`export_shares`、`update_policy`、`get_deposit_info`、`get_balance`
+
+**[投资组合再平衡](/zh/docs/strategies/portfolio-rebalancing)** — 通过兑换将多代币投资组合再平衡到目标配置。
+工具：`get_balance`、`get_token_price`、`swap_tokens`
+
+**[定投（DCA）](/zh/docs/strategies/dca)** — 使用固定美元金额执行周期性定投买入。
+工具：`get_balance`、`swap_tokens`、`get_token_price`
+
+**[流动性挖矿](/zh/docs/strategies/yield-farming)** — 研究收益池并将资金部署到借贷或质押协议。
+工具：`get_defi_yield_pools`、`lend_tokens`、`stake_tokens`、`get_lending_positions`
+
+**[多链管理](/zh/docs/strategies/multi-chain-management)** — 在链之间转移资金，在目标链上兑换，并分配到子账户。
+工具：`get_balance`、`bridge_tokens`、`get_bridge_status`、`swap_tokens`、`transfer_between_wallets`
+
+**[风险监控](/zh/docs/strategies/risk-monitoring)** — 监控跨协议的投资组合健康状况、持仓和爆仓风险。
+工具：`get_portfolio`、`get_portfolio_analytics`、`get_positions`、`get_lending_positions`

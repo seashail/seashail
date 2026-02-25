@@ -1,0 +1,344 @@
+---
+title: 我可以问什么？
+description: 通过按操作目标分组的自然语言示例，了解 Seashail 的功能。
+---
+
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+
+Seashail 理解自然语言请求，并将其转化为安全、符合策略的交易。本页展示你可以请求的内容，按照你想完成的目标分组——无需技术知识。
+
+## 投资组合与余额
+
+<Accordions>
+  <Accordion title="查看我的余额">
+    **示例：**
+    - "显示我的 Solana 余额"
+    - "我的投资组合总价值是多少？"
+    - "列出我所有的钱包"
+    - "我有多少 ETH？"
+    - "显示我在 Base 上的 USDC 余额"
+
+    **使用的工具：** `get_balance`、`get_portfolio`、`list_wallets`
+
+    **了解更多：** [链与资金](/zh/docs/guides/chains-and-funding)
+
+  </Accordion>
+
+  <Accordion title="跟踪投资组合表现">
+    **示例：**
+    - "我的投资组合这周表现如何？"
+    - "显示我的交易量明细"
+    - "我的 30 天盈亏是多少？"
+    - "显示我的交易历史"
+
+    **使用的工具：** `get_portfolio`（带 `include_history`）、`get_portfolio_analytics`、`get_transaction_history`
+
+    **了解更多：** [链与资金](/zh/docs/guides/chains-and-funding)
+
+  </Accordion>
+
+  <Accordion title="获取充值地址">
+    **示例：**
+    - "给我我的 Solana 充值地址"
+    - "显示在 Base 上接收 USDC 的二维码"
+    - "我的 ETH 地址是什么？"
+    - "我可以往这个钱包发送资金到哪里？"
+
+    **使用的工具：** `get_deposit_info`、`get_wallet_info`
+
+    **了解更多：** [链与资金](/zh/docs/guides/chains-and-funding)
+
+  </Accordion>
+</Accordions>
+
+## 交易
+
+<Accordions>
+  <Accordion title="兑换代币">
+    **示例：**
+    - "用 10 USDC 兑换 SOL"
+    - "在 Base 上用 0.1 ETH 换 USDC"
+    - "在 Solana 上用 100 USDC 换 BONK"
+    - "把我的 SOL 转换成 USDT"
+
+    **使用的工具：** `swap_tokens`
+
+    **了解更多：** [代币兑换](/zh/docs/guides/swapping)
+
+  </Accordion>
+
+  <Accordion title="发送代币">
+    **示例：**
+    - "发送 5 SOL 到 [地址]"
+    - "在 Ethereum 上转账 100 USDC 到 [地址]"
+    - "发送 0.5 ETH 到我朋友的地址"
+    - "在我的钱包之间转移资金"
+
+    **使用的工具：** `send_transaction`、`transfer_between_wallets`
+
+    **了解更多：** [发送代币](/zh/docs/guides/sending)
+
+  </Accordion>
+
+  <Accordion title="跨链桥接">
+    **示例：**
+    - "将 100 USDC 从 Solana 桥接到 Base"
+    - "将 ETH 从 Ethereum 转移到 Arbitrum"
+    - "查看我的跨链桥状态"
+    - "将 USDC 从 Base 转移到 Polygon"
+
+    **使用的工具：** `bridge_tokens`、`get_bridge_status`
+
+    **了解更多：** [跨链桥接指南](/zh/docs/guides/bridging)
+
+  </Accordion>
+
+  <Accordion title="估算手续费">
+    **示例：**
+    - "在 Solana 上兑换需要多少费用？"
+    - "估算发送 ETH 的燃料费"
+    - "兑换 100 USDC 的手续费是多少？"
+
+    **使用的工具：** `estimate_gas`
+
+    **了解更多：** [发送代币](/zh/docs/guides/sending)、[代币兑换](/zh/docs/guides/swapping)
+
+  </Accordion>
+</Accordions>
+
+## DeFi
+
+<Accordions>
+  <Accordion title="借贷并赚取收益">
+    **示例：**
+    - "在 Aave 上借出 1000 USDC"
+    - "从 Kamino 提取我的借贷仓位"
+    - "在 Aave 上提供 ETH 并赚取利息"
+    - "查看我的借贷仓位"
+
+    **使用的工具：** `lend_tokens`、`withdraw_lending`、`get_lending_positions`
+
+    **了解更多：** [DeFi 指南](/zh/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="质押代币">
+    **示例：**
+    - "用 Lido 质押 1 ETH"
+    - "用 Jito 质押 SOL"
+    - "取消质押我的 stETH"
+
+    **使用的工具：** `stake_tokens`、`unstake_tokens`
+
+    **了解更多：** [DeFi 指南](/zh/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="提供流动性">
+    **示例：**
+    - "在 Orca 上向 SOL/USDC 池添加流动性"
+    - "在 Uniswap 上提供流动性"
+    - "从流动性池中移除我的流动性"
+
+    **使用的工具：** `provide_liquidity`、`remove_liquidity`
+
+    **了解更多：** [DeFi 指南](/zh/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="研究收益机会">
+    **示例：**
+    - "显示最佳稳定币收益"
+    - "Solana 上最高年化收益率的池是哪些？"
+    - "找到低风险的安全收益机会"
+
+    **使用的工具：** `get_defi_yield_pools`
+
+    **了解更多：** [DeFi 指南](/zh/docs/guides/defi)
+
+  </Accordion>
+
+  <Accordion title="查看 DeFi 仓位">
+    **示例：**
+    - "显示我的 Aave 仓位"
+    - "我在 Kamino 上的健康因子是多少？"
+    - "显示我所有的 DeFi 仓位"
+
+    **使用的工具：** `get_lending_positions`、`get_portfolio`（带 `include_health`）
+
+    **了解更多：** [DeFi 指南](/zh/docs/guides/defi)
+
+  </Accordion>
+</Accordions>
+
+## 永续合约交易
+
+<Accordions>
+  <Accordion title="开仓永续合约">
+    **示例：**
+    - "以 5 倍杠杆做多 SOL"
+    - "在 Hyperliquid 上用 $500 做空 BTC"
+    - "用 $100 以 10 倍杠杆做多 ETH"
+
+    **使用的工具：** `open_perp_position`
+
+    **了解更多：** [永续合约指南](/zh/docs/guides/perps)
+
+  </Accordion>
+
+  <Accordion title="管理永续合约仓位">
+    **示例：**
+    - "平掉我的 SOL 多头仓位"
+    - "以 $3000 价格为 ETH 挂限价单"
+    - "修改我的 BTC 订单"
+    - "平掉一半的仓位"
+
+    **使用的工具：** `close_perp_position`、`modify_perp_order`、`place_limit_order`
+
+    **了解更多：** [永续合约指南](/zh/docs/guides/perps)
+
+  </Accordion>
+
+  <Accordion title="查看市场数据">
+    **示例：**
+    - "显示 BTC 永续合约市场数据"
+    - "我有哪些开仓仓位？"
+    - "ETH 的资金费率是多少？"
+    - "显示所有 Hyperliquid 市场"
+
+    **使用的工具：** `get_market_data`、`get_positions`
+
+    **了解更多：** [永续合约指南](/zh/docs/guides/perps)
+
+  </Accordion>
+</Accordions>
+
+## NFT 操作
+
+<Accordions>
+  <Accordion title="查看和转移 NFT">
+    **示例：**
+    - "显示我的 Solana NFT"
+    - "列出我的 NFT 收藏"
+    - "将 [NFT] 转移到 [地址]"
+    - "我拥有哪些 NFT？"
+
+    **使用的工具：** `get_nft_inventory`、`transfer_nft`
+
+    **了解更多：** [NFT 指南](/zh/docs/guides/nfts)
+
+  </Accordion>
+
+  <Accordion title="交易 NFT">
+    **示例：**
+    - "在 Magic Eden 上购买这个 NFT"
+    - "在 Tensor 上挂我的 NFT"
+    - "在 OpenSea 上出价"
+    - "以 5 SOL 出售我的 NFT"
+
+    **使用的工具：** `buy_nft`、`sell_nft`、`bid_nft`
+
+    **了解更多：** [NFT 指南](/zh/docs/guides/nfts)
+
+  </Accordion>
+</Accordions>
+
+## 迷因币与预测市场
+
+<Accordions>
+  <Accordion title="交易 pump.fun 代币">
+    **示例：**
+    - "显示新的 pump.fun 发行"
+    - "买入 0.5 SOL 的 [代币]"
+    - "卖出 50% 的我的 pump.fun 持仓"
+    - "获取 [pump.fun 代币] 的信息"
+
+    **使用的工具：** `pumpfun_list_new_coins`、`pumpfun_get_coin_info`、`pumpfun_buy`、`pumpfun_sell`
+
+    **了解更多：** [Pump.fun 与预测指南](/zh/docs/guides/pumpfun-predictions)
+
+  </Accordion>
+
+  <Accordion title="交易预测市场">
+    **示例：**
+    - "在 Polymarket 上搜索选举市场"
+    - "在 [市场] 上购买 Yes 份额"
+    - "这个事件的赔率是多少？"
+    - "显示我的预测仓位"
+
+    **使用的工具：** `search_prediction_markets`、`place_prediction`、`get_prediction_positions`、`get_prediction_orderbook`
+
+    **了解更多：** [Pump.fun 与预测指南](/zh/docs/guides/pumpfun-predictions)
+
+  </Accordion>
+</Accordions>
+
+## 钱包管理
+
+<Accordions>
+  <Accordion title="创建和管理钱包">
+    **示例：**
+    - "创建一个名为 'trading' 的新钱包"
+    - "导入我现有的私钥"
+    - "切换到我的另一个钱包"
+    - "向我的钱包添加新账户"
+
+    **使用的工具：** `create_wallet`、`import_wallet`、`set_active_wallet`、`add_account`、`create_wallet_pool`
+
+    **了解更多：** [快速入门](/zh/docs)、[钱包安全](/zh/docs/wallet-security)
+
+  </Accordion>
+
+  <Accordion title="配置安全设置">
+    **示例：**
+    - "设置 $500 的每日消费限额"
+    - "显示我当前的策略"
+    - "禁止 NFT 购买"
+    - "允许小额兑换自动审批"
+
+    **使用的工具：** `update_policy`、`get_policy`
+
+    **了解更多：** [策略与审批](/zh/docs/guides/policy-and-approvals)
+
+  </Accordion>
+</Accordions>
+
+## 网络与配置
+
+<Accordions>
+  <Accordion title="切换网络">
+    **示例：**
+    - "切换到测试网"
+    - "我是在主网还是测试网？"
+    - "切换到主网模式"
+
+    **使用的工具：** `set_network_mode`、`get_network_mode`
+
+    **了解更多：** [快速入门](/zh/docs)
+
+  </Accordion>
+
+  <Accordion title="配置 RPC">
+    **示例：**
+    - "设置自定义 Solana RPC 端点"
+    - "为 Ethereum 使用我自己的 RPC"
+
+    **使用的工具：** `configure_rpc`
+
+    **了解更多：** [参考：会话与配置工具](/zh/docs/reference/tools-session-config)
+
+  </Accordion>
+
+  <Accordion title="检查功能">
+    **示例：**
+    - "Seashail 支持哪些链？"
+    - "有哪些功能可用？"
+    - "我可以在 Arbitrum 上交易吗？"
+    - "显示支持的网络"
+
+    **使用的工具：** `get_capabilities`、`get_testnet_faucet_links`
+
+    **了解更多：** [快速入门](/zh/docs)、[链与资金](/zh/docs/guides/chains-and-funding)
+
+  </Accordion>
+</Accordions>

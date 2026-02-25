@@ -1,0 +1,157 @@
+---
+title: MCP 工具
+description: 工具清单（仅已实现的功能面）及详细参考文档的查阅指引。
+---
+
+所有工具通过 MCP stdio 提供服务，运行方式：
+
+```bash
+seashail mcp
+```
+
+如需了解各链的支持情况，从以下工具开始：
+
+- `get_capabilities`
+
+## 网络与 RPC
+
+参见：[工具：网络与 RPC](/zh/docs/reference/tools-network)
+
+- `get_network_mode`
+- `set_network_mode`
+- `configure_rpc`
+- `get_testnet_faucet_links`
+- `get_capabilities`
+
+注意事项：
+
+- 网络模式主要影响工具未指定 `chain`/`chains` 时的默认链选择。
+- 显式指定链的工具无论模式如何都会使用该链。
+
+> 相关指南：[网络模式](/zh/docs/guides/network-mode)
+
+## 读取工具
+
+参见：[工具：读取](/zh/docs/reference/tools-read)
+
+- `inspect_token`
+- `get_defi_yield_pools`
+- `get_balance`
+- `get_portfolio`
+- `get_token_price`
+- `estimate_gas`
+- `get_transaction_history`
+- `get_portfolio_analytics`
+- `get_bridge_status`
+
+特定领域的读取工具与其对应的写入工具一同记录：参见[借贷](/zh/docs/reference/tools-lending)、[预测市场](/zh/docs/reference/tools-predictions)和 [Pump.fun](/zh/docs/reference/tools-pumpfun)。
+
+> 相关指南：[链与充值](/zh/docs/guides/chains-and-funding)
+
+## 钱包与配置工具
+
+参见：[工具：钱包](/zh/docs/reference/tools-wallets)
+
+- `list_wallets`
+- `get_wallet_info`
+- `get_deposit_info`
+- `set_active_wallet`
+- `add_account`
+- `create_wallet`
+- `import_wallet`
+- `export_shares`
+- `rotate_shares`
+- `create_wallet_pool`
+- `transfer_between_wallets`
+- `fund_wallets`
+
+> 相关指南：[钱包](/zh/docs/guides/wallets)
+
+## 写入工具
+
+参见：[工具：发送、兑换与跨链桥](/zh/docs/reference/tools-write)
+
+- `request_airdrop`
+- `send_transaction`
+- `swap_tokens`
+- `bridge_tokens`
+
+> 相关指南：[发送指南](/zh/docs/guides/sending) | [兑换指南](/zh/docs/guides/swapping) | [跨链桥接指南](/zh/docs/guides/bridging)
+
+## 策略工具
+
+参见：[工具：策略](/zh/docs/reference/tools-policy)
+
+- `get_policy`
+- `update_policy`
+
+> 相关指南：[策略与审批](/zh/docs/guides/policy-and-approvals)
+
+## 永续合约工具
+
+参见：[工具：永续合约](/zh/docs/reference/tools-perps)
+
+- `get_market_data`
+- `get_positions`
+- `open_perp_position`
+- `close_perp_position`
+- `place_limit_order`
+- `modify_perp_order`
+
+> 相关指南：[永续合约交易指南](/zh/docs/guides/perps)
+
+## NFT 工具
+
+参见：[工具：NFT](/zh/docs/reference/tools-nfts)
+
+- `get_nft_inventory`
+- `transfer_nft`
+- `buy_nft`
+- `sell_nft`
+- `bid_nft`
+
+> 相关指南：[NFT 指南](/zh/docs/guides/nfts)
+
+## DeFi 工具
+
+参见：[工具：借贷](/zh/docs/reference/tools-lending) | [工具：质押](/zh/docs/reference/tools-staking) | [工具：流动性](/zh/docs/reference/tools-liquidity)
+
+- `lend_tokens`
+- `withdraw_lending`
+- `borrow_tokens`
+- `repay_borrow`
+- `get_lending_positions`
+- `stake_tokens`
+- `unstake_tokens`
+- `provide_liquidity`
+- `remove_liquidity`
+
+> 相关指南：[DeFi 指南](/zh/docs/guides/defi)
+
+## 预测市场工具
+
+参见：[工具：预测市场](/zh/docs/reference/tools-predictions)
+
+- `search_prediction_markets`
+- `get_prediction_orderbook`
+- `get_prediction_positions`
+- `place_prediction`
+- `close_prediction`
+
+> 相关指南：[预测市场指南](/zh/docs/guides/predictions)
+
+## Pump.fun 工具
+
+参见：[工具：Pump.fun](/zh/docs/reference/tools-pumpfun)
+
+- `pumpfun_list_new_coins`
+- `pumpfun_get_coin_info`
+- `pumpfun_buy`
+- `pumpfun_sell`
+
+> 相关指南：[Pump.fun 指南](/zh/docs/guides/pumpfun)
+
+## 注意事项
+
+- 写入操作可能需要通过 MCP 交互确认进行分级审批，具体取决于策略配置。
+- Seashail 拒绝在工具参数中传递私密信息。导入和签名操作使用 MCP 交互确认提示完成。

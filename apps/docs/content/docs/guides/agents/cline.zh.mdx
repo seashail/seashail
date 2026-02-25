@@ -1,0 +1,73 @@
+---
+title: Cline
+description: 通过 MCP 将 Seashail 连接到 Cline（VS Code 扩展）。
+---
+
+Cline 通过其内置界面支持 stdio 模式的 MCP 服务器。参见 [Cline MCP 文档](https://docs.cline.bot/mcp/configuring-mcp-servers)了解完整详情。
+
+> Seashail 是**仅 stdio** 模式。配置 Cline 运行本地命令（`seashail mcp`），而非"服务器 URL"。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- Cline VS Code 扩展已安装
+
+## 设置
+
+1. 在 VS Code 中打开 Cline
+2. 导航到 **MCP Servers** 设置
+3. 添加一个名为 `seashail` 的新服务器
+4. 设置：
+   - **Command:** `seashail`
+   - **Args:** `mcp`
+
+## 测试网模式
+
+连接到测试网，将 args 设置为 `mcp --network testnet`：
+
+- **Command:** `seashail`
+- **Args:** `mcp --network testnet`
+
+## 替代方式：直接编辑配置文件
+
+Cline 将其 MCP 配置存储在 `cline_mcp_settings.json` 中。通过以下方式访问：
+Cline 面板 > MCP Servers 图标 > Configure 标签 > Advanced MCP Settings。
+
+文件位置：
+
+- **macOS:** `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+- **Windows:** `%APPDATA%/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+- **Linux:** `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+
+将 Seashail 添加到文件中：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"],
+      "disabled": false
+    }
+  }
+}
+```
+
+## 验证
+
+设置完成后，启动一个 Cline 会话并询问：
+
+```
+What's my SOL balance?
+```
+
+Cline 应该通过 MCP 发现并调用 Seashail 工具。
+
+## 故障排除
+
+**服务器无法连接**
+确保 `seashail` 在你的 `PATH` 中。在终端中运行 `seashail mcp` 测试 — 你应该看到 MCP 服务器启动。
+
+**Cline 未检测到 MCP 工具**
+在 Cline 设置中添加 MCP 服务器后重启 VS Code。

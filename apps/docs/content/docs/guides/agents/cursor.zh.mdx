@@ -1,0 +1,80 @@
+---
+title: Cursor
+description: 通过 MCP 配置将 Seashail 连接到 Cursor。
+---
+
+Cursor 从 `.cursor/mcp.json`（项目级）或 `~/.cursor/mcp.json`（全局）读取 MCP 服务器配置。
+
+> Seashail 是**仅 stdio** 模式。配置 Cursor 运行本地命令（`seashail mcp`），而非"服务器 URL"。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- Cursor 已安装
+
+## 设置（推荐）
+
+使用一键安装器创建项目级配置：
+
+```bash
+seashail agent install cursor
+```
+
+这会在你当前工作区创建 `.cursor/mcp.json`。
+
+## 手动设置
+
+在你的项目根目录创建 `.cursor/mcp.json`（或 `~/.cursor/mcp.json` 用于全局配置）：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## "免安装"选项 (npx)
+
+如果你不想将 `seashail` 安装到 `PATH` 中，可以通过 `npx` 运行：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "npx",
+      "args": ["-y", "@seashail/mcp", "--"]
+    }
+  }
+}
+```
+
+## 测试网模式
+
+```bash
+seashail agent install cursor --network testnet
+```
+
+或手动将 args 设置为 `["mcp", "--network", "testnet"]`。
+
+## 验证
+
+设置完成后，打开 Cursor 聊天并询问：
+
+```
+What's my SOL balance?
+```
+
+Cursor 应该自动发现并使用 Seashail 的 MCP 工具。
+
+## 故障排除
+
+**未检测到 MCP 服务器**
+确保配置文件在正确位置。对于工作区本地配置，它必须位于你在 Cursor 中打开的项目根目录下的 `.cursor/mcp.json`。
+
+**全局 vs. 本地**
+全局配置（`~/.cursor/mcp.json`）适用于所有项目。本地配置（项目中的 `.cursor/mcp.json`）会覆盖该工作区的全局配置。

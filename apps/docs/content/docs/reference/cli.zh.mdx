@@ -1,0 +1,426 @@
+---
+title: CLI 参考
+description: Seashail 所有命令和子命令的命令行界面参考。
+---
+
+Seashail 提供命令行界面，用于运行 MCP 服务器、管理智能体配置、诊断和升级。本页记录所有可用命令及其标志和使用示例。
+
+> 没有 `seashail wallet` 命令。钱包操作仅通过 MCP 工具进行。通过 MCP 智能体使用 `create_wallet`、`import_wallet` 和其他钱包工具。
+
+## seashail mcp
+
+通过 stdio 运行 MCP 服务器。默认情况下，这会启动一个轻量级 stdio 代理，将请求转发给单例本地 Seashail 守护进程（使多个智能体可以共享一个密钥和策略状态）。
+
+### 标志
+
+<TypeTable
+  type={{
+    network: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "覆盖此会话的配置网络模式。影响工具省略 chain/chains 参数时的默认链选择。",
+    },
+    standalone: {
+      type: "boolean",
+      description:
+        "在此进程中运行独立的 MCP 服务器（无守护进程，智能体之间不共享）。",
+      default: "false",
+    },
+  }}
+/>
+
+### 示例
+
+以代理模式启动 MCP 服务器（推荐）：
+
+```bash
+seashail mcp
+```
+
+以测试网覆盖模式启动：
+
+```bash
+seashail mcp --network testnet
+```
+
+以独立模式启动（无守护进程共享）：
+
+```bash
+seashail mcp --standalone
+```
+
+### 注意事项
+
+- 代理模式（默认）允许多个智能体进程共享一个守护进程状态（密钥存储、密码短语会话、策略）。
+- 代理在守护进程未运行时会自动启动它。
+- 使用 `--standalone` 进行隔离测试或单智能体场景。
+- 有关代理/守护进程关系的详细信息，请参阅[架构](/zh/docs/reference/architecture)。
+
+---
+
+## seashail daemon
+
+运行单例 Seashail 守护进程。守护进程持有独占密钥存储锁，并管理所有 MCP 客户端的密码短语会话。
+
+### 标志
+
+<TypeTable
+  type={{
+    idle_exit_seconds: {
+      type: "integer",
+      description:
+        "在空闲（无活跃客户端）此秒数后退出。如果未设置，则运行直至终止。",
+    },
+  }}
+/>
+
+### 示例
+
+运行守护进程直至终止：
+
+```bash
+seashail daemon
+```
+
+运行守护进程，空闲 5 分钟后自动退出：
+
+```bash
+seashail daemon --idle-exit-seconds 300
+```
+
+### 注意事项
+
+- 通常不需要手动运行——代理模式下的 `seashail mcp` 会自动启动守护进程。
+- 守护进程在 `$DATA_DIR/seashail-daemon.lock` 处持有独占文件系统锁，以防止脑裂状态。
+- 当所有 MCP 客户端断开连接时，空闲计时器开始计时。如果设置了 `--idle-exit-seconds`，守护进程在该时长后退出。
+
+---
+
+## seashail paths
+
+打印数据目录、配置目录和日志文件的解析路径。用于调试配置问题。
+
+### 标志
+
+无标志。
+
+### 示例
+
+```bash
+seashail paths
+```
+
+输出（JSON）：
+
+```json
+{
+  "config_dir": "/Users/you/.config/seashail",
+  "data_dir": "/Users/you/.local/share/seashail",
+  "log_file": "/Users/you/.local/share/seashail/seashail.log.jsonl"
+}
+```
+
+### 注意事项
+
+- 路径遵循平台约定（Linux 上的 XDG、macOS 应用程序支持、Windows AppData）。
+- 使用 `SEASHAIL_CONFIG_DIR` 和 `SEASHAIL_DATA_DIR` 环境变量进行覆盖。
+
+---
+
+## seashail doctor
+
+打印快速自诊断报告。报告不包含任何秘密信息，可以安全地粘贴到 issue 或支持请求中。
+
+### 标志
+
+<TypeTable
+  type={{
+    json: {
+      type: "boolean",
+      description: "将 JSON 输出到 stdout（机器可读）。",
+      default: "false",
+    },
+  }}
+/>
+
+### 示例
+
+人类可读报告：
+
+```bash
+seashail doctor
+```
+
+机器可读 JSON：
+
+```bash
+seashail doctor --json
+```
+
+### 注意事项
+
+- 报告包含版本信息、解析路径、钱包数量、策略摘要和基本连接检查。
+- 可安全公开粘贴——不包含私钥、密码短语或地址。
+
+---
+
+## seashail agent list
+
+列出 `print` 和 `install` 命令支持的智能体目标。
+
+### 标志
+
+无标志。
+
+### 示例
+
+```bash
+seashail agent list
+```
+
+输出（JSON）：
+
+```json
+[
+  { "name": "cursor", "config_path": "~/.cursor/mcp_config.json" },
+  { "name": "vscode", "config_path": "~/.vscode/mcp_config.json" },
+  { "name": "windsurf", "config_path": "~/.windsurf/mcp_config.json" },
+  {
+    "name": "claude-desktop",
+    "config_path": "~/Library/Application Support/Claude/claude_desktop_config.json"
+  }
+]
+```
+
+### 注意事项
+
+- 目前支持 Cursor、VSCode、Windsurf 和 Claude Desktop。
+- 在 `agent print` 和 `agent install` 中使用这些目标名称。
+
+---
+
+## seashail agent print
+
+将特定智能体目标的完整 JSON 配置模板打印到 stdout。用于在安装前检查配置。
+
+### 标志
+
+<TypeTable
+  type={{
+    agent: {
+      type: '"cursor" | "vscode" | "windsurf" | "claude-desktop"',
+      description: "要打印配置的智能体目标。",
+      required: true,
+    },
+    network: {
+      type: '"mainnet" | "testnet"',
+      description: "输出测试网模板（seashail mcp --network testnet）。",
+      default: '"mainnet"',
+    },
+  }}
+/>
+
+### 示例
+
+打印 Cursor 配置：
+
+```bash
+seashail agent print cursor
+```
+
+打印测试网配置：
+
+```bash
+seashail agent print cursor --network testnet
+```
+
+### 注意事项
+
+- 输出是有效的 JSON，可以管道传输到文件或直接安装。
+- 模板包含带有适当标志的正确 `seashail mcp` 命令。
+
+---
+
+## seashail agent install
+
+将配置模板安装到智能体的默认配置路径（或通过 `--path` 指定的自定义路径）。
+
+### 标志
+
+<TypeTable
+  type={{
+    agent: {
+      type: '"cursor" | "vscode" | "windsurf" | "claude-desktop"',
+      description: "要安装配置的智能体目标。",
+      required: true,
+    },
+    network: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "安装测试网模板（seashail mcp --network testnet）。",
+      default: '"mainnet"',
+    },
+    path: {
+      type: "string",
+      description: "覆盖目标配置文件路径。",
+    },
+  }}
+/>
+
+### 示例
+
+安装到默认位置：
+
+```bash
+seashail agent install cursor
+```
+
+安装测试网配置：
+
+```bash
+seashail agent install cursor --network testnet
+```
+
+安装到自定义路径：
+
+```bash
+seashail agent install cursor --path ~/my-config.json
+```
+
+### 注意事项
+
+- 如果配置文件已存在，将提示你确认覆盖。
+- 安装后，重启你的智能体/编辑器以加载新配置。
+
+---
+
+## seashail openclaw install
+
+安装或管理 OpenClaw 插件集成。这为 OpenClaw 提供一流的 Seashail 工具支持。
+
+### 标志
+
+<TypeTable
+  type={{
+    network: {
+      type: '"mainnet" | "testnet"',
+      description:
+        "通过 OpenClaw 调用 Seashail 时的仅会话网络模式。",
+      default: '"mainnet"',
+    },
+    plugin: {
+      type: "string",
+      description:
+        "用于 openclaw plugins install 的插件路径或 npm 规范。如果省略，使用仓库路径（从仓库运行时）或 @seashail/seashail。",
+    },
+    link: {
+      type: "boolean",
+      description:
+        "链接本地插件路径而不是复制（对开发友好）。",
+      default: "false",
+    },
+    openclaw_config_path: {
+      type: "string",
+      description:
+        "覆盖 OpenClaw 配置路径（默认为 $OPENCLAW_CONFIG_PATH 或 ~/.openclaw/openclaw.json）。",
+    },
+    seashail_path: {
+      type: "string",
+      description:
+        '覆盖插件配置中存储的 seashail 二进制路径（默认：PATH 中的 "seashail"）。',
+    },
+    restart_gateway: {
+      type: "boolean",
+      description:
+        "安装/配置更新后重启 OpenClaw 网关服务。",
+      default: "true",
+    },
+    enable_in_sandbox: {
+      type: "boolean",
+      description:
+        "在 OpenClaw 的沙箱智能体模式中允许 Seashail 插件（tools.sandbox.tools.allow += seashail）。",
+      default: "true",
+    },
+    onboard_wallet: {
+      type: "boolean",
+      description:
+        "安装/配置插件后，确保 Seashail 有默认钱包。如果没有钱包，则创建一个名为 default 的机器本地生成钱包，包含 EVM/Solana/Bitcoin 地址（无密码短语提示）。",
+      default: "true",
+    },
+  }}
+/>
+
+### 示例
+
+使用默认设置安装：
+
+```bash
+seashail openclaw install
+```
+
+以测试网模式安装：
+
+```bash
+seashail openclaw install --network testnet
+```
+
+使用本地插件进行开发安装：
+
+```bash
+seashail openclaw install --link --plugin ./packages/openclaw-seashail-plugin
+```
+
+### 注意事项
+
+- 此命令在底层运行 `openclaw plugins install` 并更新 OpenClaw 配置。
+- `--restart-gateway` 自动重启 OpenClaw 的网关以接受更改。
+- `--onboard-wallet` 在没有钱包时创建默认钱包，使设置无障碍。
+
+---
+
+## seashail upgrade
+
+通过重新运行托管安装程序将 Seashail 升级到最新版本。
+
+### 标志
+
+<TypeTable
+  type={{
+    yes: {
+      type: "boolean",
+      description:
+        "跳过确认提示（在非交互式 shell 中必需）。",
+      default: "false",
+    },
+    quiet: {
+      type: "boolean",
+      description: "禁止显示安装程序输出（用于脚本/定时任务）。",
+      default: "false",
+    },
+  }}
+/>
+
+### 示例
+
+交互式升级：
+
+```bash
+seashail upgrade
+```
+
+非交互式升级：
+
+```bash
+seashail upgrade --yes
+```
+
+静默升级（用于脚本）：
+
+```bash
+seashail upgrade --yes --quiet
+```
+
+### 注意事项
+
+- 使用 `SEASHAIL_UPGRADE_METHOD=installer` 覆盖自动检测。
+- upgrade 命令检查当前版本，仅在有更新版本可用时才升级。

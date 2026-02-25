@@ -1,0 +1,267 @@
+---
+title: "工具：策略"
+description: 查看和更新管控所有写入操作的交易策略规则。
+---
+
+Seashail 在解密密钥材料**之前**，对每次写入工具调用进行策略评估。策略控制分级审批（自动批准/确认/硬性阻止）、各功能面操作开关、交易限额和地址白名单。
+
+另见：
+
+- [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+- [写入工具](/zh/docs/reference/tools-write) — 受策略管控的工具
+
+## get_policy
+
+返回有效的策略配置。提供 `wallet` 时，返回该钱包的有效策略（全局默认值与任何钱包特定覆盖值合并后的结果）。
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description:
+        "钱包名称。若省略，返回全局默认策略。",
+    },
+  }}
+/>
+
+### 响应
+
+响应为完整的策略对象，包含所有字段及其当前值。未设置覆盖时，所有字段返回默认值：
+
+```json
+{
+  "auto_approve_usd": 10.0,
+  "confirm_up_to_usd": 1000.0,
+  "hard_block_over_usd": 1000.0,
+  "max_usd_per_tx": 100.0,
+  "max_usd_per_day": 500.0,
+  "max_slippage_bps": 100,
+  "deny_unknown_usd_value": true,
+  "require_user_confirm_for_remote_tx": true,
+  "enable_send": true,
+  "enable_swap": true,
+  "enable_perps": true,
+  "enable_nft": true,
+  "enable_pumpfun": true,
+  "enable_bridge": true,
+  "enable_lending": true,
+  "enable_staking": true,
+  "enable_liquidity": true,
+  "enable_prediction": true,
+  "enable_ofac_sdn": true,
+  "send_allow_any": false,
+  "send_allowlist": [],
+  "contract_allow_any": false,
+  "contract_allowlist": [],
+  "max_leverage": 3,
+  "max_usd_per_position": 100.0,
+  "max_usd_per_nft_tx": 100.0,
+  "pumpfun_max_sol_per_buy": 0.1,
+  "pumpfun_max_buys_per_hour": 10,
+  "max_usd_per_bridge_tx": 100.0,
+  "max_usd_per_lending_tx": 200.0,
+  "max_usd_per_stake_tx": 500.0,
+  "max_usd_per_liquidity_tx": 100.0,
+  "max_usd_per_prediction_tx": 100.0
+}
+```
+
+### 示例
+
+获取全局默认策略：
+
+```json
+{}
+```
+
+获取特定钱包的有效策略（存在钱包覆盖时包含覆盖值）：
+
+```json
+{ "wallet": "my-wallet" }
+```
+
+## update_policy
+
+更新策略规则。仅修改包含的字段——其他所有字段保持当前值不变。
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description:
+        "钱包名称。若省略，更新全局默认策略。",
+    },
+    policy: {
+      type: "object",
+      description:
+        "要更新的策略字段。除非 clear 为 true，否则必填。仅包含要更改的字段。",
+    },
+    clear: {
+      type: "boolean",
+      default: "false",
+      description:
+        "移除钱包特定覆盖，恢复为全局默认值。仅在提供 wallet 时有效。",
+    },
+  }}
+/>
+
+### 响应
+
+返回完整的已更新策略对象（与 `get_policy` 响应格式相同）。
+
+### 示例
+
+更新全局分级审批阈值：
+
+```json
+{
+  "policy": {
+    "auto_approve_usd": 5,
+    "confirm_up_to_usd": 500
+  }
+}
+```
+
+设置钱包特定覆盖（为热钱包降低单笔交易限额）：
+
+```json
+{
+  "wallet": "hot-wallet",
+  "policy": {
+    "max_usd_per_tx": 10
+  }
+}
+```
+
+清除钱包覆盖（恢复为全局默认值）：
+
+```json
+{ "wallet": "hot-wallet", "clear": true }
+```
+
+禁用特定操作功能面：
+
+```json
+{
+  "policy": {
+    "enable_perps": false,
+    "enable_pumpfun": false,
+    "enable_prediction": false
+  }
+}
+```
+
+配置发送地址白名单：
+
+```json
+{
+  "policy": {
+    "send_allow_any": false,
+    "send_allowlist": [
+      "11111111111111111111111111111111",
+      "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
+    ]
+  }
+}
+```
+
+## 策略字段参考
+
+所有策略字段按类别分组。默认值来源于 Seashail Rust 源码（`policy.rs` 中的 `Default` 实现）。
+
+### 分级审批
+
+以下三个字段根据美元价值定义交易的审批层级：
+
+| 字段                  | 类型   | 默认值   | 描述                                                         |
+| --------------------- | ------ | -------- | ------------------------------------------------------------ |
+| `auto_approve_usd`    | number | `10.0`   | 低于此美元金额的交易自动批准                                 |
+| `confirm_up_to_usd`   | number | `1000.0` | 低于此美元金额时需要用户确认（MCP 交互确认）                 |
+| `hard_block_over_usd` | number | `1000.0` | 超过此美元金额的交易被硬性阻止                               |
+
+使用默认值，$50 的交易：`$50 > auto_approve_usd (10)` → 需要确认；`$50 ≤ confirm_up_to_usd (1000)` → 用户确认后允许。
+
+### 交易限额
+
+| 字段               | 类型    | 默认值  | 描述                                                          |
+| ------------------ | ------- | ------- | ------------------------------------------------------------- |
+| `max_usd_per_tx`   | number  | `100.0` | 单笔交易美元硬限额（与分级无关）                              |
+| `max_usd_per_day`  | number  | `500.0` | 所有写入操作的每日（UTC）累计美元限额                         |
+| `max_slippage_bps` | integer | `100`   | 兑换允许的最大滑点（基点；100 = 1%）                         |
+
+### 安全控制
+
+| 字段                                 | 类型    | 默认值 | 描述                                                                                                                                     |
+| ------------------------------------ | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `deny_unknown_usd_value`             | boolean | `true` | 无法计算美元价值时阻止写入操作（故障关闭）。防止 `usd_value=0` 成为绕过自动批准的漏洞。                                                  |
+| `require_user_confirm_for_remote_tx` | boolean | `true` | 对任何远程构建字节的交易（例如聚合器 API）要求确认。独立于美元分级。                                                                     |
+| `enable_ofac_sdn`                    | boolean | `true` | 阻止向 OFAC SDN 名单地址发送交易。如果你的管辖区不适用，可禁用。                                                                         |
+
+### 操作开关
+
+每个开关启用或禁用整个操作功能面。禁用时，该功能面的任何工具调用在策略评估前即被拒绝。
+
+| 字段                | 类型    | 默认值 | 描述                                                                                    |
+| ------------------- | ------- | ------ | --------------------------------------------------------------------------------------- |
+| `enable_send`       | boolean | `true` | 启用/禁用发送操作（`send_transaction`）                                                 |
+| `enable_swap`       | boolean | `true` | 启用/禁用兑换操作（`swap_tokens`）                                                      |
+| `enable_perps`      | boolean | `true` | 启用/禁用永续合约交易（`open_perp_position`、`close_perp_position` 等）                 |
+| `enable_nft`        | boolean | `true` | 启用/禁用 NFT 操作（`buy_nft`、`sell_nft`、`transfer_nft` 等）                         |
+| `enable_pumpfun`    | boolean | `true` | 启用/禁用 pump.fun 操作（`pumpfun_buy`、`pumpfun_sell`）                                |
+| `enable_bridge`     | boolean | `true` | 启用/禁用跨链桥接（`bridge_tokens`）                                                    |
+| `enable_lending`    | boolean | `true` | 启用/禁用借贷操作（`lend_tokens`、`withdraw_lending`、`borrow_tokens`）                 |
+| `enable_staking`    | boolean | `true` | 启用/禁用质押/收益（`stake_tokens`、`unstake_tokens`）                                  |
+| `enable_liquidity`  | boolean | `true` | 启用/禁用流动性提供（`add_liquidity`、`remove_liquidity`）                              |
+| `enable_prediction` | boolean | `true` | 启用/禁用预测市场操作                                                                   |
+
+### 地址白名单
+
+| 字段                 | 类型     | 默认值  | 描述                                                                                                                             |
+| -------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `send_allow_any`     | boolean  | `false` | 允许向任意地址发送（禁用白名单）                                                                                                 |
+| `send_allowlist`     | string[] | `[]`    | 允许的接收方地址。为空且 `send_allow_any` 为 false 时，所有发送被阻止。                                                          |
+| `contract_allow_any` | boolean  | `false` | 允许与任意合约进行 DeFi 交互（禁用白名单）                                                                                       |
+| `contract_allowlist` | string[] | `[]`    | 允许的合约地址。为空且 `contract_allow_any` 为 false 时，Seashail 对已知协议路由器执行内置白名单。                               |
+
+### 各功能面限额
+
+各功能面上限在全局 `max_usd_per_tx` 和分级审批阈值**之外**额外执行。
+
+| 字段                        | 类型    | 默认值  | 描述                                                                   |
+| --------------------------- | ------- | ------- | ---------------------------------------------------------------------- |
+| `max_leverage`              | integer | `3`     | 永续合约的最大杠杆                                                     |
+| `max_usd_per_position`      | number  | `100.0` | 每个永续合约仓位的最大美元价值                                         |
+| `max_usd_per_nft_tx`        | number  | `100.0` | 每笔 NFT 交易的最大美元价值                                            |
+| `max_usd_per_bridge_tx`     | number  | `100.0` | 每笔跨链桥接交易的最大美元价值                                         |
+| `max_usd_per_lending_tx`    | number  | `200.0` | 每笔借贷交易的最大美元价值                                             |
+| `max_usd_per_stake_tx`      | number  | `500.0` | 每笔质押交易的最大美元价值                                             |
+| `max_usd_per_liquidity_tx`  | number  | `100.0` | 每笔流动性提供交易的最大美元价值                                       |
+| `max_usd_per_prediction_tx` | number  | `100.0` | 每笔预测市场交易的最大美元价值                                         |
+| `pumpfun_max_sol_per_buy`   | number  | `0.1`   | 每次 pump.fun 买入的最大 SOL（链原生单位，非美元）                     |
+| `pumpfun_max_buys_per_hour` | integer | `10`    | 每个钱包+账户每小时最大 pump.fun 买入次数（滚动窗口）                  |
+
+## 策略评估工作原理
+
+每次写入工具调用在解密密钥材料之前都会经历以下评估流程：
+
+1. **操作开关** — 功能面是否启用？（`enable_send`、`enable_swap` 等）如果禁用 → **阻止**。
+2. **各功能面限额** — 交易是否超过功能面特定上限？（`max_usd_per_nft_tx`、`max_leverage`、`pumpfun_max_sol_per_buy` 等）如果超过 → **阻止**。
+3. **地址白名单** — 接收方/合约是否在白名单上？（`send_allowlist`、`contract_allowlist`）如果不在 → **阻止**。
+4. **单笔交易限额** — 金额是否超过 `max_usd_per_tx`？如果超过 → **阻止**。
+5. **分级审批** — 美元金额落在哪个区间？
+   - 低于 `auto_approve_usd` → **自动批准**
+   - 介于 `auto_approve_usd` 和 `confirm_up_to_usd` 之间 → **需要用户确认**（MCP 交互确认）
+   - 超过 `hard_block_over_usd` → **硬性阻止**
+6. **未知美元价值** — 如果 `deny_unknown_usd_value` 为 true 且定价不可用 → **阻止**（故障关闭）。
+7. **远程交易** — 如果 `require_user_confirm_for_remote_tx` 为 true 且交易字节由远程构建 → **需要用户确认**。
+8. **每日累计** — 此交易是否会使当天总额超过 `max_usd_per_day`？如果是 → **阻止**。
+
+注意事项：
+
+- 推荐做法：先调用 `get_policy`，然后仅修改目标字段，再调用 `update_policy`。这样可减少意外放宽不相关安全设置的风险。
+- 钱包特定覆盖完全替换全局默认值（不按字段合并）。如有疑问，用钱包名称调用 `get_policy` 查看有效配置。
+
+另见：
+
+- [策略与审批指南](/zh/docs/guides/policy-and-approvals)
+- [写入工具](/zh/docs/reference/tools-write) — 发送、兑换、跨链桥接、借贷及其他受策略管控的工具

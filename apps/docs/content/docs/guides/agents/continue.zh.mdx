@@ -1,0 +1,79 @@
+---
+title: Continue
+description: 通过 MCP 将 Seashail 连接到 Continue。
+---
+
+[Continue](https://www.continue.dev) 支持 stdio 模式的 MCP 服务器。参见 [Continue MCP 文档](https://docs.continue.dev/customize/deep-dives/mcp)了解完整详情。
+
+> Seashail 是**仅 stdio** 模式。配置 Continue 启动本地命令（`seashail mcp`），而非服务器 URL。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- Continue 扩展已安装
+
+## 设置（选项 1：独立文件）
+
+在你的项目中创建 `.continue/mcpServers/seashail.yaml`：
+
+```yaml
+name: Seashail
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: seashail
+    command: seashail
+    args:
+      - mcp
+```
+
+## 设置（选项 2：config.yaml）
+
+添加到你的 `.continue/config.yaml`：
+
+```yaml
+mcpServers:
+  - name: seashail
+    command: seashail
+    args:
+      - mcp
+```
+
+## 设置（选项 3：JSON 文件）
+
+Continue 也读取放置在 `.continue/mcpServers/` 中的 JSON 文件。创建 `.continue/mcpServers/seashail.json`：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## 测试网模式
+
+对于 YAML，将 args 改为：
+
+```yaml
+args:
+  - mcp
+  - "--network"
+  - testnet
+```
+
+对于 JSON，将 args 改为 `["mcp", "--network", "testnet"]`。
+
+## 验证
+
+询问 Continue：
+
+```
+What's my SOL balance?
+```
+
+它应该调用 Seashail 的 MCP 工具。

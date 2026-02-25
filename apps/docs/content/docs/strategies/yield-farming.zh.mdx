@@ -1,0 +1,144 @@
+---
+title: "实操指南：流动性挖矿"
+description: 研究收益池并将资金部署到借贷或质押协议
+---
+
+## 概述
+
+将资金部署到 DeFi 协议以获取收益。研究可用收益池，检查钱包余额，部署到借贷（Aave/Kamino）或质押（Lido/Jito），并监控仓位。
+
+**使用的工具：** `get_defi_yield_pools`、`lend_tokens`、`stake_tokens`、`get_lending_positions`、`get_balance`
+**支持的链：** EVM（Aave、Lido）和 Solana（Kamino、Jito）
+**完成时间：** 10-15 分钟
+
+## 前提条件
+
+- 有稳定币或原生代币余额的活跃钱包
+- 已定义风险承受能力（保守型 = 借贷，中等型 = 质押）
+
+<Steps>
+
+### 第一步：研究可用收益池
+
+按总锁仓量和稳定币重点筛选 DeFi 收益池。
+
+```json
+{
+  "name": "get_defi_yield_pools",
+  "arguments": {
+    "chains": ["Ethereum", "Solana", "Base", "Arbitrum"],
+    "min_tvl_usd": 50000000,
+    "min_apy": 3,
+    "stablecoin_only": true,
+    "exclude_il_risk": true,
+    "max_results": 10
+  }
+}
+```
+
+**预期结果：** 包含项目名称、年化收益率（APY）、总锁仓量（TVL）和所在链的收益池列表。示例：Base 上 Aave USDC 借贷年化 4.5%。
+
+### 第二步：检查钱包余额
+
+验证可用于部署的资金。
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "base",
+    "tokens": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"]
+  }
+}
+```
+
+**预期结果：** Base 上的 USDC 余额。确保有足够余额用于部署加上燃料费。
+
+### 第三步：部署到借贷协议
+
+在 Base 上向 Aave 借出 USDC。Seashail 自动为 EVM 链选择 Aave。
+
+```json
+{
+  "name": "lend_tokens",
+  "arguments": {
+    "chain": "base",
+    "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amount": "1000",
+    "amount_units": "ui"
+  }
+}
+```
+
+**预期结果：** 交易签名。USDC 现已提供给 Aave 并开始赚取收益。
+
+### 第四步：（替代方案）质押获取流动性质押收益
+
+如果目标是原生代币收益，在 Solana 上通过 Jito 质押 SOL。
+
+```json
+{
+  "name": "stake_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token": "native",
+    "amount": "10",
+    "amount_units": "ui"
+  }
+}
+```
+
+**预期结果：** 交易签名。你收到 jitoSOL（流动性质押代币），代表已质押的 SOL 加上累积收益。
+
+### 第五步：监控仓位
+
+检查借贷仓位以跟踪已提供的余额和累积利息。
+
+```json
+{
+  "name": "get_lending_positions",
+  "arguments": {
+    "chain": "base"
+  }
+}
+```
+
+**预期结果：** 仓位详情，包括已提供的 USDC、健康因子（如果有借款）和当前年化收益率。
+
+</Steps>
+
+## 变体
+
+### 杠杆收益
+
+提供抵押品，借入稳定币，再次借出借入的金额以放大收益。**注意：** 增加爆仓风险。
+
+```json
+{
+  "name": "lend_tokens",
+  "arguments": {
+    "chain": "base",
+    "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amount": "2000"
+  }
+}
+```
+
+然后使用 `borrow_tokens` 以抵押品借款，再用借入的资金调用 `lend_tokens`。
+
+### 仅稳定币策略
+
+专注于稳定币借贷以避免资产价格风险。在 `get_defi_yield_pools` 中使用 `stablecoin_only: true` 过滤器。
+
+## 注意事项
+
+- **无常损失：** 不适用于单资产借贷/质押。仅在向 AMM 流动性池提供流动性时才相关（本指南不涵盖）。
+- **协议自动选择：** Seashail 默认使用 Aave（EVM）和 Kamino（Solana）进行借贷，使用 Lido（EVM）和 Jito（Solana）进行质押。
+- **总锁仓量作为安全指标：** 更高的总锁仓量通常表示协议经过了更多实战检验，但不保证安全性。
+- **定期监控：** 每周检查仓位，确保健康因子保持在 1.5 以上（如有借款），并跟踪收益累积情况。
+
+## 另见
+
+- [DeFi 指南](/zh/docs/guides/defi)
+- [借贷工具参考](/zh/docs/reference/tools-lending)
+- [质押工具参考](/zh/docs/reference/tools-staking)

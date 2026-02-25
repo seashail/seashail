@@ -1,0 +1,161 @@
+---
+title: 永续合约交易
+description: 在 Hyperliquid 和 Jupiter Perps 上使用杠杆交易永续合约。
+---
+
+## 什么是永续合约
+
+永续合约（Perps）是一种追踪资产价格且没有到期日的杠杆衍生品：
+
+- 你可以做**多头**（价格上涨时获利）或做**空头**（价格下跌时获利）
+- 杠杆会同等放大盈利和亏损——10 倍杠杆仓位在价格下跌 1% 时损失 10% 的保证金
+- 与传统期货不同，永续合约没有到期日；它们保持开放，直到你平仓或被爆仓
+- Seashail 支持两个永续合约交易所：**Hyperliquid**（EVM 地址）和 **Jupiter Perps**（Solana 地址）
+
+## 交易所差异
+
+### Hyperliquid
+
+- 使用你钱包的 **EVM 地址**（通过 Arbitrum 桥接，但 Hyperliquid 运行自己的 L1）
+- 支持主网和测试网
+- 丰富的市场：BTC、ETH、SOL 和许多 Alt 永续合约
+- 省略 `provider` 参数时的默认交易所
+- 同时支持市价单和限价单
+- 支持部分平仓
+
+### Jupiter Perps
+
+- 使用你钱包的 **Solana 地址**
+- 仅限主网（不支持测试网）
+- 以 SOL 为中心的市场
+- 明确设置 `provider: "jupiter_perps"`
+- 仅限市价单
+- 仅限全部平仓
+
+## 开仓
+
+使用 `open_perp_position` 进入杠杆仓位：
+
+- **必需参数：** `market`（例如，"BTC"）、`side`（"long" 或 "short"）、`size`、`leverage`
+- 策略评估适用：强制执行 `max_leverage` 和 `max_usd_per_position`
+- 杠杆受你的策略限制约束——如果请求的杠杆超过 `max_leverage`，工具将拒绝
+- 如果你的策略需要对交易价值进行确认，你会收到 MCP 交互确认提示
+
+### 典型工作流程：
+
+1. 查看可用市场：`get_market_data`
+2. 开仓：`open_perp_position`
+3. 如果策略需要，通过 MCP 交互确认
+4. 验证仓位已开：`get_positions`
+
+示例（Hyperliquid，3 倍杠杆做多 BTC）：
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC",
+  "side": "long",
+  "size": "100",
+  "size_units": "usd",
+  "leverage": 3,
+  "order_type": "market"
+}
+```
+
+有关分级审批的工作方式，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## 管理仓位
+
+### 查看仓位
+
+使用 `get_positions` 查看所有开放仓位：
+
+- 返回市场、方向（多头/空头）、数量、入场价格、当前标记价格
+- 显示未实现盈亏（PnL）
+- 在 Hyperliquid 和 Jupiter Perps 上均可使用
+
+### 平仓
+
+使用 `close_perp_position` 退出仓位：
+
+- **Hyperliquid：** 支持全部平仓（省略 `size`）或部分平仓（提供 `size`）
+- **Jupiter Perps：** 仅支持全部平仓
+- 策略评估适用（与开仓相同）
+
+示例（在 Hyperliquid 上平掉全部 BTC 仓位）：
+
+```json
+{
+  "provider": "hyperliquid",
+  "market": "BTC"
+}
+```
+
+### 限价单
+
+使用 `place_limit_order` 下达在价格达到目标时执行的订单：
+
+- **仅限 Hyperliquid**（Jupiter Perps 不支持限价单）
+- 指定 `market`、`side`、`size`、`leverage` 和 `limit_px`
+- 适用于在特定价格水平进入仓位
+
+### 修改订单
+
+使用 `modify_perp_order` 修改现有限价单：
+
+- **仅限 Hyperliquid**
+- 实现方式为取消 + 新建订单
+- 可修改价格、数量或杠杆
+
+## 风险注意事项
+
+### 爆仓
+
+如果你的仓位亏损接近保证金，交易所将强制清算：
+
+- 杠杆越高 = 爆仓价格越接近入场价格
+- 10 倍多头仓位在价格下跌约 10% 时被爆仓
+- 10 倍空头仓位在价格上涨约 10% 时被爆仓
+- 爆仓可能导致该仓位的保证金全部损失
+
+### 资金费率
+
+永续合约收取定期资金费用，以保持永续合约价格与现货价格锚定：
+
+- 当市场看涨（永续 > 现货）时，**多头仓位支付**资金费给空头仓位
+- 当市场看跌（永续 < 现货）时，**空头仓位支付**资金费给多头仓位
+- 资金费率显示在 `get_market_data` 中，通常每 8 小时收取一次
+- 持续的资金成本会随时间侵蚀利润
+
+### 交易所风险
+
+每个交易所都有其自身的风险特征：
+
+- **Hyperliquid：** 较新的交易所，有自己的 L1；存在智能合约和预言机风险
+- **Jupiter Perps：** 依赖 Solana 的预言机基础设施和程序安全性
+- 两者都是去中心化交易所，但均存在智能合约和预言机故障风险
+- 考虑将大仓位分散到多个交易所以降低风险
+
+### 策略控制
+
+配置永续合约特定的策略控制以限制敞口：
+
+- `enable_perps`：主开关（默认：`true`）
+- `max_leverage`：限制杠杆倍数上限（默认：`10`）
+- `max_usd_per_position`：限制仓位规模上限（默认：`1000`）
+- 如需额外保障，设置更低的限制
+
+有关策略配置，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## 注意事项
+
+- 完整参数详情：[永续合约工具参考](/zh/docs/reference/tools-perps)
+- 交易前先读取 `get_market_data`，查看可用市场、当前价格和资金费率
+- 相关内容：[兑换指南](/zh/docs/guides/swapping)，了解现货代币兑换（无杠杆）
+- 永续合约交易风险极高；只用你能承受全部损失的资金交易
+
+## 另见
+
+- [安全模型](/zh/docs/guides/security-model)，了解杠杆风险分析
+- [故障排除](/zh/docs/troubleshooting)，了解策略拒绝和爆仓错误的解决方案
+- [术语表](/zh/docs/glossary)，了解基点（bps）、杠杆和资金费率的定义

@@ -1,0 +1,292 @@
+---
+title: "工具：流动性"
+description: 通过交易封装在 Uniswap LP 和 Orca LP 上提供和移除流动性。
+---
+
+流动性工具通过交易封装管理 AMM 仓位。所有工具需要[策略审批](/zh/docs/reference/tools-policy)。省略 venue 时按链自动选择（EVM 默认 Uniswap LP，Solana 默认 Orca LP）。
+
+## provide_liquidity
+
+向 AMM 流动性池添加流动性。执行交易封装——智能体或已配置的适配器必须构建交易。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: '执行的链："solana" 或 EVM 链名称。',
+      required: true,
+    },
+    venue: {
+      type: '"auto" | "uniswap_lp" | "orca_lp"',
+      description:
+        "交易场所选择。若省略，按链默认：EVM 默认 Uniswap LP，Solana 默认 Orca LP。",
+      default: '"auto"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "用于策略执行的尽力美元价值。若省略，视为未知。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "表示 usd_value 是否已知的覆盖标志。若提供了 usd_value，则视为 true。",
+      default: "false",
+    },
+    to: {
+      type: "string",
+      description:
+        "EVM：流动性池交互的交易接收方/合约地址。",
+    },
+    data: {
+      type: "string",
+      description: "EVM：addLiquidity 调用的 0x 前缀调用数据。",
+    },
+    value_wei: {
+      type: "string",
+      description:
+        "EVM：以十进制字符串表示的 wei 价值（用于原生代币流动性）。",
+      default: '"0"',
+    },
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana：base64 编码的 VersionedTransaction 字节（未签名；Seashail 将签名）。",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana：程序 ID 白名单。每条指令的程序 ID 必须在此列表中。",
+    },
+    asset: {
+      type: "object",
+      description:
+        "协议特定请求对象，供可选适配器用于构建交易封装。",
+    },
+  }}
+/>
+
+### 各场所行为
+
+<Tabs items={["Uniswap LP (EVM)", "Orca LP (Solana)"]}>
+  <Tab value="Uniswap LP (EVM)">
+    - 省略 `venue` 时 EVM 链的默认场所 - 提供：提供 EVM 封装（`to` + `data` + `value_wei`）用于 addLiquidity 调用 - 智能体或适配器必须构建包含流动性池合约地址和调用数据的交易封装 - ERC-20 代币可能需要授权——智能体/适配器应单独处理或包含在封装中 - 支持 Ethereum、Base、Arbitrum、Optimism、Polygon、BNB、Avalanche
+  </Tab>
+  <Tab value="Orca LP (Solana)">
+    - 省略 `venue` 时 Solana 的默认场所 - 提供：提供 Solana 封装（`tx_b64` + `allowed_program_ids`）- 智能体或适配器必须构建包含 Orca LP 程序指令的交易封装 - 出于安全原因，`allowed_program_ids` 必须包含 Orca LP 程序 ID - 支持 Solana 主网
+  </Tab>
+</Tabs>
+
+### 响应
+
+```json
+{
+  "chain": "base",
+  "venue": "uniswap_lp",
+  "txid": "0xabc...txhash",
+  "usd_value": 100.0
+}
+```
+
+响应结构仅供参考，实际字段可能因场所而异。Solana 返回 `signature` 而非 `txid`。
+
+### 示例
+
+<Tabs items={["EVM Envelope (Uniswap)", "Solana Envelope (Orca)"]}>
+  <Tab value="EVM Envelope (Uniswap)">
+    ```json
+    {
+      "chain": "base",
+      "venue": "uniswap_lp",
+      "to": "0xPoolContractAddress",
+      "data": "0xabc123...",
+      "value_wei": "0",
+      "usd_value": 100.0,
+      "usd_value_known": true
+    }
+    ```
+
+    `to` 字段是 Uniswap 流动性池或路由合约地址。`data` 字段包含编码的 addLiquidity 调用。
+
+  </Tab>
+  <Tab value="Solana Envelope (Orca)">
+    ```json
+    {
+      "chain": "solana",
+      "venue": "orca_lp",
+      "tx_b64": "AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9A...",
+      "allowed_program_ids": ["9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP"],
+      "usd_value": 200.0,
+      "usd_value_known": true
+    }
+    ```
+
+    `tx_b64` 字段包含 base64 编码的未签名交易。`allowed_program_ids` 必须包含 Orca LP 程序 ID。
+
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 需要[策略审批](/zh/docs/reference/tools-policy)——交易可能被自动批准、需要确认或被阻止，取决于策略配置和美元价值。
+- **仅封装执行：** 这些工具执行交易封装，没有原生执行路径。智能体或已配置的适配器必须通过封装字段提供交易封装（EVM：`to`、`data`、`value_wei`；Solana：`tx_b64`、`allowed_program_ids`）。
+- **适配器支持：** 若未提供封装字段，Seashail 使用交易市场适配器（若已配置）获取交易。如果没有配置适配器且未提供封装，工具返回错误。
+- **场所自动选择：** 若省略 `venue`，Seashail 按链选择（EVM → Uniswap LP，Solana → Orca LP）。
+- 另见：[DeFi 指南](/zh/docs/guides/defi)
+
+---
+
+## remove_liquidity
+
+从 AMM 流动性池移除流动性。执行交易封装——智能体或已配置的适配器必须构建交易。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "钱包名称。若省略，使用活跃钱包。",
+      default: "active wallet",
+    },
+    account_index: {
+      type: "integer",
+      description:
+        "钱包内的账户索引。若省略，使用活跃账户索引。",
+      default: "active index",
+    },
+    chain: {
+      type: "string",
+      description: '执行的链："solana" 或 EVM 链名称。',
+      required: true,
+    },
+    venue: {
+      type: '"auto" | "uniswap_lp" | "orca_lp"',
+      description:
+        "交易场所选择。若省略，按链默认：EVM 默认 Uniswap LP，Solana 默认 Orca LP。",
+      default: '"auto"',
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "用于策略执行的尽力美元价值。若省略，视为未知。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description:
+        "表示 usd_value 是否已知的覆盖标志。若提供了 usd_value，则视为 true。",
+      default: "false",
+    },
+    to: {
+      type: "string",
+      description:
+        "EVM：流动性池交互的交易接收方/合约地址。",
+    },
+    data: {
+      type: "string",
+      description: "EVM：removeLiquidity 调用的 0x 前缀调用数据。",
+    },
+    value_wei: {
+      type: "string",
+      description:
+        "EVM：以十进制字符串表示的 wei 价值（移除时通常为 0）。",
+      default: '"0"',
+    },
+    tx_b64: {
+      type: "string",
+      description:
+        "Solana：base64 编码的 VersionedTransaction 字节（未签名；Seashail 将签名）。",
+    },
+    allowed_program_ids: {
+      type: "string[]",
+      description:
+        "Solana：程序 ID 白名单。每条指令的程序 ID 必须在此列表中。",
+    },
+    asset: {
+      type: "object",
+      description:
+        "协议特定请求对象，供可选适配器用于构建交易封装。",
+    },
+  }}
+/>
+
+### 各场所行为
+
+<Tabs items={["Uniswap LP (EVM)", "Orca LP (Solana)"]}>
+  <Tab value="Uniswap LP (EVM)">
+    - 省略 `venue` 时 EVM 链的默认场所 - 移除：提供 EVM 封装（`to` + `data` + `value_wei`）用于 removeLiquidity 调用 - 智能体或适配器必须构建包含流动性池合约地址和调用数据的交易封装 - 将底层代币返还给钱包 - 支持 Ethereum、Base、Arbitrum、Optimism、Polygon、BNB、Avalanche
+  </Tab>
+  <Tab value="Orca LP (Solana)">
+    - 省略 `venue` 时 Solana 的默认场所 - 移除：提供 Solana 封装（`tx_b64` + `allowed_program_ids`）- 智能体或适配器必须构建包含 Orca LP 程序指令的交易封装 - 出于安全原因，`allowed_program_ids` 必须包含 Orca LP 程序 ID - 将底层代币返还给钱包 - 支持 Solana 主网
+  </Tab>
+</Tabs>
+
+### 响应
+
+```json
+{
+  "chain": "base",
+  "venue": "uniswap_lp",
+  "txid": "0xabc...txhash",
+  "usd_value": 100.0
+}
+```
+
+响应结构仅供参考，实际字段可能因场所而异。Solana 返回 `signature` 而非 `txid`。
+
+### 示例
+
+<Tabs items={["EVM Envelope (Uniswap)", "Solana Envelope (Orca)"]}>
+  <Tab value="EVM Envelope (Uniswap)">
+    ```json
+    {
+      "chain": "base",
+      "venue": "uniswap_lp",
+      "to": "0xPoolContractAddress",
+      "data": "0xdef456...",
+      "value_wei": "0",
+      "usd_value": 100.0,
+      "usd_value_known": true
+    }
+    ```
+
+    `to` 字段是 Uniswap 流动性池或路由合约地址。`data` 字段包含编码的 removeLiquidity 调用。
+
+  </Tab>
+  <Tab value="Solana Envelope (Orca)">
+    ```json
+    {
+      "chain": "solana",
+      "venue": "orca_lp",
+      "tx_b64": "AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9A...",
+      "allowed_program_ids": ["9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP"],
+      "usd_value": 200.0,
+      "usd_value_known": true
+    }
+    ```
+
+    `tx_b64` 字段包含 base64 编码的未签名交易。`allowed_program_ids` 必须包含 Orca LP 程序 ID。
+
+  </Tab>
+</Tabs>
+
+### 注意事项
+
+- 需要[策略审批](/zh/docs/reference/tools-policy)——交易可能被自动批准、需要确认或被阻止，取决于策略配置和美元价值。
+- **仅封装执行：** 这些工具执行交易封装，没有原生执行路径。智能体或已配置的适配器必须通过封装字段提供交易封装（EVM：`to`、`data`、`value_wei`；Solana：`tx_b64`、`allowed_program_ids`）。
+- **适配器支持：** 若未提供封装字段，Seashail 使用交易市场适配器（若已配置）获取交易。如果没有配置适配器且未提供封装，工具返回错误。
+- **场所自动选择：** 若省略 `venue`，Seashail 按链选择（EVM → Uniswap LP，Solana → Orca LP）。
+- 另见：[DeFi 指南](/zh/docs/guides/defi)

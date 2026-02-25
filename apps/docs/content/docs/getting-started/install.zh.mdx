@@ -1,0 +1,137 @@
+---
+title: 安装
+description: 安装 Seashail 并配置你的 agent 使用它作为 MCP 服务器。
+---
+
+## 推荐方式：安装 `seashail` 二进制文件
+
+Seashail 是一个本地二进制文件。你的 agent 通过 MCP stdio 服务器运行它（通过 `seashail mcp`）。
+
+你需要：
+
+- `git`
+- `cargo`（Rust 工具链）
+
+### macOS / Linux
+
+```bash
+curl -fsSL https://seashail.com/install | sh
+```
+
+如果安装后找不到 `seashail`，将默认安装目录添加到你的 shell `PATH`：
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Windows (PowerShell)
+
+如果你有 WSL，可以在 WSL 内运行 macOS/Linux 安装程序。
+
+否则，使用 PowerShell 安装（源码构建）：
+
+```powershell
+irm https://seashail.com/install.ps1 | iex
+```
+
+如果安装后找不到 `seashail`，将默认安装目录添加到当前会话的 `PATH`：
+
+```powershell
+$env:Path = "$HOME\.local\bin;$env:Path"
+```
+
+## 免安装选项
+
+如果你不想安装 `seashail` 二进制文件，可以在 agent 的 MCP 配置中引用以下包装器。它们会自动安装并运行 Seashail。
+
+### npx (Node.js)
+
+使用以下作为 MCP 服务器命令：
+
+- **Command:** `npx`
+- **Args:** `-y @seashail/mcp --`
+
+测试网：
+
+- **Args:** `-y @seashail/mcp -- --network testnet`
+
+### uvx (Python)
+
+使用以下作为 MCP 服务器命令：
+
+- **Command:** `uvx`
+- **Args:** `seashail-mcp`
+
+测试网：
+
+- **Args:** `seashail-mcp -- --network testnet`
+
+> 这些包装器在底层调用 `seashail mcp`。如果 `seashail` 已安装，它们会直接使用；否则会运行托管安装程序（源码构建）。
+
+## OpenClaw 用户
+
+如果你使用 [OpenClaw](https://openclaw.ai)，可以将 Seashail 安装为原生插件：
+
+```bash
+seashail openclaw install
+```
+
+或通过 OpenClaw CLI 直接安装：
+
+```bash
+openclaw plugins install @seashail/seashail
+openclaw plugins enable seashail
+openclaw gateway restart
+```
+
+查看 [OpenClaw 设置指南](../guides/agents/openclaw)了解完整详情。
+
+## 验证安装
+
+安装完成后，验证二进制文件是否正常工作：
+
+```bash
+seashail doctor
+```
+
+此命令检查常见问题（缺失依赖项、权限、路径配置）。如需详细诊断信息，请参阅 [CLI 参考](../reference/cli#doctor)。
+
+## 从源码构建（开发）
+
+如果你在开发此仓库：
+
+```bash
+bun install
+bun run check
+
+cargo build -p seashail
+```
+
+二进制文件位于：
+
+```bash
+./target/debug/seashail
+```
+
+要在 agent 中使用开发版二进制文件，将 agent 配置指向：
+
+- **Command:** `./target/debug/seashail`
+- **Args:** `mcp`
+
+你还可以打印解析后的配置和数据路径：
+
+```bash
+./target/debug/seashail paths
+```
+
+## 下一步
+
+- [连接你的 Agent](../guides/agents) — 设置 Claude Desktop、Cursor、VS Code、OpenClaw 等
+- [快速开始](./quickstart) — 创建你的第一个钱包并开始交易
+- [配置](./configuration) — 自定义路径、网络模式和 RPC 端点
+
+## 注意事项
+
+- Seashail 是非托管的：如果你丢失了密码短语和/或恢复密钥分片，资金可能永久无法恢复。
+- 交易不可逆转。
+- 如有常见安装问题，请参阅[故障排除](../troubleshooting)。

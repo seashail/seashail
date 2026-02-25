@@ -1,0 +1,410 @@
+---
+title: "工具：预测市场"
+description: 搜索市场、读取订单簿和仓位，并在 Polymarket CLOB 上下单或取消订单。
+---
+
+预测市场工具与 Polygon 上 Polymarket 的 CLOB（中央限价订单簿）交互。读取工具无需密钥；写入工具需要[策略审批](/zh/docs/reference/tools-policy)。
+
+## search_prediction_markets
+
+通过 Polymarket Gamma API 搜索 Polymarket 事件/市场（无需密钥）。返回结果和 CLOB `token_id`，可用于交易。
+
+### 参数
+
+<TypeTable
+  type={{
+    query: {
+      type: "string",
+      description: "搜索查询。",
+      required: true,
+    },
+    chain: {
+      type: "string",
+      description: "polygon（或 polygon-amoy 用于测试）。",
+      default: "'polygon'",
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "协议。",
+      default: "'polymarket'",
+    },
+    limit: {
+      type: "integer",
+      description: "每类最大结果数（1–100）。",
+      default: "10",
+    },
+    page: {
+      type: "integer",
+      description: "分页页码。",
+      default: "1",
+    },
+    include_closed: {
+      type: "boolean",
+      description: "若为 true，结果中包含已关闭的市场。",
+      default: "false",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "events": [
+    {
+      "title": "2025 US Presidential Election",
+      "markets": [
+        {
+          "question": "Will the Republican nominee win?",
+          "outcomes": [
+            { "name": "Yes", "token_id": "1234567890", "price": 0.55 },
+            { "name": "No", "token_id": "9876543210", "price": 0.45 }
+          ]
+        }
+      ]
+    }
+  ],
+  "count": 1
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{
+  "query": "bitcoin price",
+  "limit": 5,
+  "include_closed": false
+}
+```
+
+### 注意事项
+
+- 每个结果返回的 `token_id` 可传入 `get_prediction_orderbook` 或 `place_prediction`。
+- 使用 Polymarket Gamma API（无需 API 密钥）。
+
+## get_prediction_orderbook
+
+获取特定结果 `token_id` 的 Polymarket CLOB 订单簿（无需密钥读取）。
+
+### 参数
+
+<TypeTable
+  type={{
+    token_id: {
+      type: "string",
+      description:
+        "Polymarket 结果代币 ID（CLOB token_id）。接受十进制或 0x 前缀十六进制。",
+      required: true,
+    },
+    chain: {
+      type: "string",
+      description: "polygon（或 polygon-amoy 用于测试）。",
+      default: "'polygon'",
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "协议。",
+      default: "'polymarket'",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "token_id": "1234567890",
+  "bids": [
+    { "price": 0.54, "size": 1000.0 },
+    { "price": 0.53, "size": 2500.0 }
+  ],
+  "asks": [
+    { "price": 0.56, "size": 800.0 },
+    { "price": 0.57, "size": 1500.0 }
+  ],
+  "mid_price": 0.55
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{
+  "token_id": "1234567890"
+}
+```
+
+### 注意事项
+
+- 先使用 `search_prediction_markets` 找到要查看的结果对应的 `token_id`。
+
+## get_prediction_positions
+
+只读 Polymarket 仓位。使用 Polymarket Data API（无需密钥读取）。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "若省略，使用活跃钱包。",
+    },
+    account_index: {
+      type: "integer",
+      description: "若省略，使用活跃账户索引。",
+    },
+    chain: {
+      type: "string",
+      description: "EVM 链名称（例如 polygon）。",
+      default: "'polygon'",
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "协议。",
+      default: "'polymarket'",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "positions": [
+    {
+      "market": "Will BTC exceed $100k by March 2025?",
+      "outcome": "Yes",
+      "shares": "50.0",
+      "avg_price": 0.65,
+      "current_price": 0.72,
+      "pnl_usd": 3.5
+    }
+  ]
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{
+  "chain": "polygon"
+}
+```
+
+### 注意事项
+
+- 仓位从 Polymarket Data API 获取，无需 API 密钥。
+- Polymarket 仓位仅支持 Polygon。
+
+## place_prediction
+
+在 Polymarket CLOB 下单。订单在本地构建并签名；通过 Polymarket CLOB API 执行。需要[策略审批](/zh/docs/reference/tools-policy)。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "若省略，使用活跃钱包。",
+    },
+    account_index: {
+      type: "integer",
+      description: "若省略，使用活跃账户索引。",
+    },
+    chain: {
+      type: "string",
+      description: "polygon（或 polygon-amoy 用于测试）。",
+      required: true,
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "协议。",
+      default: "'polymarket'",
+    },
+    token_id: {
+      type: "string",
+      description:
+        "Polymarket 结果代币 ID（CLOB token_id）。接受十进制或 0x 前缀十六进制。",
+      required: true,
+    },
+    side: {
+      type: '"buy" | "sell"',
+      description: "订单方向。",
+      required: true,
+    },
+    order_kind: {
+      type: '"limit" | "market"',
+      description:
+        "订单类型。限价单需要 price+size；市价单需要 amount_usdc。",
+      default: '"limit"',
+    },
+    price: {
+      type: "string",
+      description:
+        "每份额限价（美元，最小刻度通常为 0.01）。order_kind='limit' 时必填。",
+    },
+    size: {
+      type: "string",
+      description: "限价单份额数量。order_kind='limit' 时必填。",
+    },
+    amount_usdc: {
+      type: "string",
+      description:
+        "市价单名义 USDC 金额。order_kind='market' 时必填。",
+    },
+    time_in_force: {
+      type: '"gtc" | "gtd" | "fok" | "fak"',
+      description:
+        "GTC=有效直至取消，GTD=有效直至某日期，FOK=全部成交否则取消，FAK=成交后取消剩余。",
+      default: '"gtc"',
+    },
+    post_only: {
+      type: "boolean",
+      description:
+        "若为 true，订单仅挂单（不会吃对手盘）。",
+      default: "false",
+    },
+    usd_value: {
+      type: "number",
+      description:
+        "策略审批的可选覆盖值（市价单默认取 amount_usdc）。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "若为 true，跳过价格发现，直接使用 usd_value。",
+      default: "false",
+    },
+  }}
+/>
+
+### 示例
+
+<Tabs items={["限价单", "市价单"]}>
+  <Tab value="限价单">
+    ```json
+    {
+      "chain": "polygon",
+      "token_id": "1234567890",
+      "side": "buy",
+      "order_kind": "limit",
+      "price": "0.55",
+      "size": "100",
+      "time_in_force": "gtc"
+    }
+    ```
+
+    以每份额 $0.55 的价格挂出 100 份额的限价买单，有效直至取消。
+
+  </Tab>
+  <Tab value="市价单">
+    ```json
+    {
+      "chain": "polygon",
+      "token_id": "1234567890",
+      "side": "buy",
+      "order_kind": "market",
+      "amount_usdc": "50"
+    }
+    ```
+
+    以当前市价下市价买单，买入价值 $50 USDC 的份额。
+
+  </Tab>
+</Tabs>
+
+### 响应
+
+```json
+{
+  "order_id": "0xabcdef...",
+  "status": "placed",
+  "filled_size": "0",
+  "avg_fill_price": null
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 注意事项
+
+- 使用 Polymarket CLOB API（需要 HTTPS 或 localhost）。
+- 支持 polygon-amoy 用于测试。
+- 限价单需要同时提供 `price` 和 `size`；市价单需要 `amount_usdc`。
+- 另见：[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## close_prediction
+
+通过 order_id 取消现有 Polymarket CLOB 订单。需要[策略审批](/zh/docs/reference/tools-policy)。
+
+### 参数
+
+<TypeTable
+  type={{
+    wallet: {
+      type: "string",
+      description: "若省略，使用活跃钱包。",
+    },
+    account_index: {
+      type: "integer",
+      description: "若省略，使用活跃账户索引。",
+    },
+    chain: {
+      type: "string",
+      description: "polygon（或 polygon-amoy 用于测试）。",
+      required: true,
+    },
+    protocol: {
+      type: "'polymarket'",
+      description: "协议。",
+      default: "'polymarket'",
+    },
+    order_id: {
+      type: "string",
+      description: "要取消的 Polymarket CLOB 订单 ID。",
+      required: true,
+    },
+    usd_value: {
+      type: "number",
+      description: "策略审批的可选覆盖值。",
+    },
+    usd_value_known: {
+      type: "boolean",
+      description: "若为 true，跳过价格发现，直接使用 usd_value。",
+      default: "false",
+    },
+  }}
+/>
+
+### 响应
+
+```json
+{
+  "order_id": "0xabcdef...",
+  "status": "canceled"
+}
+```
+
+响应结构仅供参考，实际字段可能有所不同。
+
+### 示例
+
+```json
+{
+  "chain": "polygon",
+  "order_id": "0xabcdef123456"
+}
+```
+
+### 注意事项
+
+- order_id 在 `place_prediction` 下单时返回。
+- 另见：[策略与审批](/zh/docs/guides/policy-and-approvals)。

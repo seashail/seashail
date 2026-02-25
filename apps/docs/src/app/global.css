@@ -10,3 +10,25 @@
 .dark {
   color-scheme: dark;
 }
+
+/* ─── CJK Typography — applied when html[lang="zh"] ─── */
+
+:root:lang(zh) {
+  line-height: 1.85; /* ~10% increase over 1.7 English baseline for CJK readability */
+  word-break: normal;
+  line-break: strict;
+  overflow-wrap: anywhere;
+}
+
+:root:lang(zh) body {
+  font-family:
+    "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+/* Keep code blocks and technical terms in English rendering */
+:root:lang(zh) code,
+:root:lang(zh) kbd,
+:root:lang(zh) pre {
+  word-break: break-all;
+  line-break: auto;
+}

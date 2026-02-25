@@ -1,0 +1,85 @@
+---
+title: 发送代币
+description: 在 Solana 和 EVM 链上转账原生代币和同质化代币。
+---
+
+## 发送的工作原理
+
+`send_transaction` 转账原生代币（SOL、ETH 等）或同质化代币（SPL、ERC-20）：
+
+- Seashail 处理链特定的机制：在 Solana 上创建 ATA，在 EVM 上进行 ERC-20 授权
+- 所有发送操作均经过策略评估——受分级审批、白名单和每日限额约束
+- 签名前进行地址验证
+
+有关策略控制的工作方式，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
+
+## 各链行为
+
+### Solana
+
+- 支持原生 SOL 和 SPL 代币
+- 如果收款方的关联代币账户（ATA）不存在，Seashail 会自动创建
+- 代币标识符：SPL mint 公钥或 `"native"`
+
+### EVM 链
+
+- 支持原生 ETH/MATIC/BNB/AVAX 等以及 ERC-20 代币
+- 代币标识符：ERC-20 合约地址或 `"native"`
+- 配置后诈骗地址黑名单可能会拦截收款方
+
+有关链标识符，请参阅[链与资金](/zh/docs/guides/chains-and-funding)。
+
+## 地址验证
+
+Seashail 在签名前验证地址格式：
+
+- **Solana：** base58 编码的公钥（32 字节）
+- **EVM：** `0x` 前缀的十六进制地址（20 字节）
+- 诈骗地址黑名单（如果已配置）会拒绝 EVM 链上已知的诈骗地址
+
+## 数量格式
+
+数量格式与兑换相同：
+
+- `amount` 是一个十进制字符串（例如，`"0.5"`、`"100"`）
+- `amount_units` 默认为 `"ui"`（人类可读的代币单位）
+- 对于代币发送，`"ui"` 使用代币的原生小数精度（例如，USDC 为 6 位小数）
+- `"base"` 使用原始单位（SOL 的 lamports，ETH 的 wei）
+
+## 典型工作流程
+
+1. 查看余额：`get_balance` 或 `get_portfolio`
+2. 发送：`send_transaction`，使用 `chain`、`to`、`token`、`amount`
+3. 如果提示则确认策略审批（通过 MCP 交互确认）
+4. 验证：`get_balance` 或 `get_transaction_history`
+
+发送示例（Solana，原生 SOL）：
+
+```json
+{
+  "chain": "solana",
+  "to": "RecipientPublicKey...",
+  "token": "native",
+  "amount": "0.5",
+  "amount_units": "ui"
+}
+```
+
+## 何时选择发送、兑换或跨链桥
+
+- **发送**：将你已持有的代币转账至同一链上的另一个地址
+- **兑换**：在同一链上将一种代币换成另一种代币
+- **跨链桥**：将代币转移到不同的链
+
+可以组合使用：跨链桥 → 兑换 → 发送。
+
+## 注意事项
+
+- 如果策略中启用了 `deny_unknown_usd_value`，发送美元价值未知的代币可能会被拦截
+- 完整参数详情：[send_transaction 参考](/zh/docs/reference/tools-write#send_transaction)
+- 相关内容：[钱包指南](/zh/docs/guides/wallets)，了解钱包地址管理
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)，了解余额不足、策略拒绝和地址验证错误的解决方案
+- [术语表](/zh/docs/glossary)，了解写操作、内部转账和 ATA 的定义

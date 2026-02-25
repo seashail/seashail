@@ -1,0 +1,112 @@
+---
+title: 配置
+description: 路径、config.toml、环境变量覆盖和网络模式。
+---
+
+## 路径
+
+打印解析后的路径：
+
+```bash
+seashail paths
+```
+
+环境变量覆盖（适用于测试/CI）：
+
+- `SEASHAIL_CONFIG_DIR`
+- `SEASHAIL_DATA_DIR`
+
+所有 CLI 命令和标志，参见 [CLI 参考](../reference/cli)。
+
+## 配置文件
+
+`config.toml` 位于 `config_dir` 下。有关策略特定配置（消费限额、白名单、审批阈值），使用 MCP 工具而非直接编辑 TOML。参见[策略工具参考](../reference/tools-policy)。
+
+示例 `config.toml`：
+
+```toml
+network_mode = "mainnet" # or "testnet"
+
+[rpc]
+solana_rpc_url = "https://api.mainnet-beta.solana.com"
+
+[http]
+binance_base_url = "https://api.binance.com"
+jupiter_base_url = "https://api.jup.ag/swap/v1"
+# 1inch requires an API key. If unset, swaps use the Uniswap provider on EVM.
+# oneinch_api_key = "..."
+
+# Hyperliquid (perps)
+hyperliquid_base_url_mainnet = "https://api.hyperliquid.xyz"
+hyperliquid_base_url_testnet = "https://api.hyperliquid-testnet.xyz"
+
+# Scam address blocklist (optional, security-relevant)
+# For threat analysis of scam address blocking, see the security model guide.
+# scam_blocklist_url = "https://example.com/seashail/scam-blocklist.json"
+# scam_blocklist_pubkey_b64 = "..." # 32-byte Ed25519 verifying key (base64)
+# scam_blocklist_refresh_seconds = 21600
+
+# NFT marketplace adapter endpoints (optional)
+# These are *tx-envelope construction* endpoints. Seashail will fetch an envelope and still
+# enforce policy + allowlists, force confirmation, and simulate before broadcast.
+# blur_adapter_base_url = "https://example.com/adapters/blur"
+# magic_eden_adapter_base_url = "https://example.com/adapters/magic-eden"
+# opensea_adapter_base_url = "https://example.com/adapters/opensea"
+# opensea_api_key = "..." # required for OpenSea adapters in most setups
+# tensor_adapter_base_url = "https://example.com/adapters/tensor"
+```
+
+## 网络模式（主网/测试网）
+
+默认为主网。
+
+网络模式是一个便捷设置，影响工具省略 `chain`/`chains` 时的默认链选择。它不会硬性阻止主网/测试网的使用：如果工具明确指定了链（例如 `chain="ethereum"`），Seashail 会使用该链，无论当前模式如何。
+
+更深入的说明（包括 Solana RPC 默认值、空投和水龙头），参见：
+
+- `/docs/guides/network-mode`
+
+### 首次运行默认值（零配置）
+
+如果你想要测试网的零配置默认值，在首次运行前（在创建 `config.toml` 之前）设置以下环境变量：
+
+```bash
+export SEASHAIL_NETWORK_MODE=testnet
+```
+
+别名：
+
+```bash
+export SEASHAIL_NETWORK=testnet
+```
+
+旧版兼容（不推荐）：
+
+```bash
+export SEASHAIL_TESTNET_MODE=1
+```
+
+### 按客户端覆盖（非持久化）
+
+按客户端覆盖（不修改 `config.toml`）：
+
+```bash
+seashail mcp --network testnet
+```
+
+### 持久化配置
+
+你也可以在 `config.toml` 中设置模式：
+
+```toml
+network_mode = "testnet"
+```
+
+Agent 可以通过 MCP 使用 `set_network_mode` 持久化模式设置。
+
+## 相关文档
+
+- [安全模型](../guides/security-model) — 安全相关配置的威胁分析（诈骗地址黑名单、适配器端点）
+- [策略工具参考](../reference/tools-policy) — 配置消费限额、白名单和审批阈值
+- [架构概述](../reference/architecture) — 守护进程如何跨多个 MCP 客户端管理配置
+- [故障排除](../troubleshooting) — 解决配置相关错误

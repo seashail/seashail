@@ -1,0 +1,34 @@
+---
+title: 验证
+description: 使用 Sigstore Cosign 验证发布资产和 SBOM。
+---
+
+本仓库使用：
+
+- GitHub Releases 进行分发（`cargo-dist`）
+- 使用 Sigstore Cosign 进行无密钥签名
+- SBOM 生成（SPDX-JSON）
+
+## 验证发布资产签名
+
+下载发布资产及其 `.sig` 和 `.crt` 文件，然后执行：
+
+```bash
+cosign verify-blob \
+  --certificate <asset>.crt \
+  --signature <asset>.sig \
+  <asset>
+```
+
+## 验证 SBOM
+
+```bash
+cosign verify-blob \
+  --certificate sbom.spdx.json.crt \
+  --signature sbom.spdx.json.sig \
+  sbom.spdx.json
+```
+
+## 注意事项
+
+Cosign 无密钥验证会检查证书中的签名身份。确保其与本仓库及预期的工作流上下文一致。

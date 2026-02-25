@@ -1,0 +1,110 @@
+---
+title: 跨链桥接代币
+description: 使用 Wormhole 和 LayerZero 在 Solana 与 EVM 链之间转移代币。
+---
+
+`bridge_tokens` 在链之间转移代币：Solana ↔ EVM，或 EVM ↔ EVM。支持两种跨链桥提供商：Wormhole 和 LayerZero。跨链桥接是异步的——交易在源链上发起，代币在确认后到达目标链。
+
+策略评估适用：跨链桥接是一种写操作，与发送操作具有相同的分级审批。
+
+另见：[策略与审批](/zh/docs/guides/policy-and-approvals)
+
+## 跨链桥接的工作原理
+
+1. 调用 `bridge_tokens`，指定源链（`chain`）、目标链（`to_chain`）、代币和数量
+2. Seashail 在源链上执行跨链桥交易
+3. 跨链桥提供商将交易中继到目标链
+4. 如果 `redeem: true`（默认），Seashail 尝试在目标链上自动兑换（需要目标链 Gas）
+5. 你在目标链上收到代币
+
+跨链桥接不是即时的。确认时间因链而异（几分钟到几小时）。
+
+## 支持的路由
+
+- **Solana → EVM：** Wormhole 或 LayerZero
+- **EVM → Solana：** Wormhole 或 LayerZero
+- **EVM → EVM：** Wormhole 或 LayerZero（例如，Ethereum → Arbitrum）
+
+并非所有代币/链组合都有路由——使用 `get_capabilities` 查看可用路由。
+
+## 跨链桥提供商
+
+### Wormhole（默认）
+
+广泛的代币支持，基于守护者的安全机制。使用 `bridge_provider: "wormhole"` 或让其自动选择。
+
+### LayerZero
+
+超轻节点，在支持的路由上快速最终确认。明确使用 `bridge_provider: "layerzero"`。
+
+如果未指定提供商，Seashail 默认使用 Wormhole。
+
+## 查看跨链桥状态
+
+跨链桥接不是即时的——确认时间因链而异。
+
+使用 `get_bridge_status` 追踪你的跨链桥转账。提供交易签名作为 `bridge_id`，以及 `bridge_provider`。
+
+### 状态流程
+
+1. **已发起：** 交易已在源链提交
+2. **源链已确认：** 已达到源链最终确认
+3. **已中继：** 跨链桥提供商已中继到目标链
+4. **已完成：** 代币已到达目标链
+
+详情请参阅[只读工具参考](/zh/docs/reference/tools-read#get_bridge_status)。
+
+## 典型工作流程
+
+1. 查看源链余额：`get_balance`
+2. 跨链桥接：`bridge_tokens`，使用 `chain`、`to_chain`、`token`、`amount`
+3. 记录响应中的跨链桥交易 ID
+4. 查看状态：`get_bridge_status`，使用交易 ID
+5. 完成后，验证目标链余额：`get_balance`
+
+### 示例
+
+```json
+{
+  "chain": "solana",
+  "to_chain": "ethereum",
+  "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "amount": "100",
+  "amount_units": "ui",
+  "bridge_provider": "wormhole",
+  "redeem": true
+}
+```
+
+这通过启用自动兑换的 Wormhole 将 100 USDC 从 Solana 跨链到 Ethereum。
+
+## 时间与成本
+
+跨链桥时间取决于源链最终确认时间加跨链桥提供商中继速度：
+
+- **Solana → EVM：** 通常 5-20 分钟（Wormhole 守护者共识）
+- **EVM → Solana：** 因 EVM 链最终确认时间而异（Ethereum 约 15 分钟，L2 更快）
+
+跨链桥手续费通常较小，但会增加源链和目标链的 Gas 成本。Seashail 处理源链的 Gas；目标链 Gas 由跨链桥中继者处理（如果 `redeem: true` 则由 Seashail 处理）。
+
+## 何时选择跨链桥而非兑换
+
+- **跨链桥**：将同一代币（或其封装版本）转移到不同的链
+- **兑换**：在同一链上换成不同的代币
+
+可以组合使用：将 USDC 从 Solana 跨链到 Ethereum，然后将 USDC 兑换为 ETH。
+
+另见：[兑换指南](/zh/docs/guides/swapping)，了解同链代币兑换。
+
+## 注意事项
+
+- 完整参数详情：[bridge_tokens 参考](/zh/docs/reference/tools-write#bridge_tokens)
+- 跨链桥提供商特定参数（Wormhole 收款地址、LayerZero 配置）在参考文档中有说明
+- `redeem: true`（默认）需要目标钱包有足够的 Gas 用于兑换交易
+- Wormhole 原生路径不支持 `amount=max`
+- 策略：必须在策略配置中启用跨链桥接（`enable_bridge` 字段）
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)，了解 RPC 错误和跨链桥确认问题的解决方案
+- [术语表](/zh/docs/glossary)，了解远程交易和跨链桥提供商术语的定义

@@ -1,0 +1,140 @@
+---
+title: 链与充值
+description: 支持的链标识符、各链上可用的工具，以及安全充值钱包的方法。
+---
+
+Seashail 支持 **Solana** 以及一组可配置的 **EVM 链**。大多数工具接受 `chain`（或 `chains`）参数，该参数必须与 Seashail 配置的链标识符匹配。
+
+## 支持的链（默认配置）
+
+Solana：
+
+- `solana`
+
+EVM 主网：
+
+- `ethereum`
+- `base`
+- `arbitrum`
+- `optimism`
+- `polygon`
+- `bnb`
+- `avalanche`
+- `monad`
+
+EVM 测试网：
+
+- `sepolia`
+- `base-sepolia`
+- `arbitrum-sepolia`
+- `optimism-sepolia`
+- `polygon-amoy`
+- `bnb-testnet`
+- `avalanche-fuji`
+- `monad-testnet`
+
+注意事项：
+
+- EVM 链的实际集合取决于 `config.toml` 中 `[rpc.evm_rpc_urls]` 和 `[rpc.evm_chain_ids]` 下的内容。
+- `configure_rpc` 可以为已配置的链修改 RPC URL。添加全新的 EVM 链需要编辑 `config.toml`（需同时提供 RPC URL 和链 ID）。
+
+## 各链上可用的工具
+
+要确认当前机器上可用的内容，最可靠的方式是调用：
+
+- `get_capabilities`
+
+它返回一个基于配置的矩阵，显示各链和支持的功能（现货发送/兑换、NFT 转账、可选 1inch 支持等）。
+
+### 快速支持概览（当前已实现）
+
+只读工具（所有已配置的链）：
+
+- `get_balance`、`get_portfolio`、`get_transaction_history`
+- `get_token_price`、`inspect_token`、`estimate_gas`
+
+现货写操作：
+
+- Solana（`chain="solana"`）：`send_transaction`、`swap_tokens`（Jupiter）、`request_airdrop`（仅 devnet/testnet/本地验证者）
+- EVM 链（例如 `chain="base"`）：`send_transaction`、`swap_tokens`（Uniswap；配置后可选 1inch）
+
+NFT：
+
+- Solana：`get_nft_inventory`、`transfer_nft`，以及交易市场工具封装（`buy_nft`、`sell_nft`、`bid_nft`）
+- EVM：`transfer_nft`，以及交易市场工具封装（`buy_nft`、`sell_nft`、`bid_nft`）
+
+永续合约：
+
+- `hyperliquid`：使用钱包的 EVM 地址
+- `jupiter_perps`：使用钱包的 Solana 地址，需要 Solana 主网
+
+## 充值钱包（存入）
+
+使用：
+
+- `get_deposit_info`
+
+返回：
+
+- 所选 `wallet` 和 `account_index` 在指定 `chain` 上的存款 `address`
+- `chain_kind` 以及传入 `token` 时的最佳代币提示（例如 `token="usdc"`）
+- 安全 `warnings`
+
+示例（Solana 地址）：
+
+```json
+{
+  "chain": "solana",
+  "token": "usdc"
+}
+```
+
+示例（EVM 地址）：
+
+```json
+{
+  "chain": "base",
+  "token": "native"
+}
+```
+
+示例（Bitcoin 地址）：
+
+```json
+{
+  "chain": "bitcoin",
+  "token": "native"
+}
+```
+
+安全注意事项：
+
+- 只在**同一条链**上发送资产，使用你请求的存款地址对应的链。
+- 对于 EVM L2，确保发送方的钱包/网络设置与相同的 L2（例如 Base 与 Arbitrum）。
+
+## 测试网：水龙头与空投
+
+水龙头链接：
+
+- `get_testnet_faucet_links`（仅供参考，仅提供官方 URL）
+
+示例：
+
+```json
+{ "chain": "sepolia", "address": "0x..." }
+```
+
+Solana 空投：
+
+- `request_airdrop`（仅限 Solana devnet/testnet/本地验证者；在 mainnet-beta 上会被阻止）
+
+示例：
+
+```json
+{ "amount": "1.5", "amount_units": "ui" }
+```
+
+## 另见
+
+- [架构](/zh/docs/reference/architecture)了解链层设计
+- [术语表](/zh/docs/glossary)了解 ATA、ERC-20、SPL 和链标识符的定义

@@ -1,0 +1,84 @@
+---
+title: VS Code / GitHub Copilot
+description: 通过 MCP 配置将 Seashail 连接到 VS Code 和 GitHub Copilot。
+---
+
+VS Code 从工作区中的 `.vscode/mcp.json` 读取 MCP 服务器配置。
+
+> Seashail 是**仅 stdio** 模式。配置 VS Code 运行本地命令（`seashail mcp`），而非"服务器 URL"。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- VS Code 并安装 GitHub Copilot 扩展
+
+## 设置（推荐）
+
+使用一键安装器：
+
+```bash
+seashail agent install vscode
+```
+
+这会在你当前工作区创建 `.vscode/mcp.json`。
+
+## 手动设置
+
+在你的项目根目录创建 `.vscode/mcp.json`：
+
+```json
+{
+  "servers": {
+    "seashail": {
+      "type": "stdio",
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+> 注意：VS Code 使用带 `"type"` 字段的 `"servers"`，不同于 Cursor 和 Claude Desktop 使用的 `"mcpServers"`。
+
+## "免安装"选项 (npx)
+
+如果你不想将 `seashail` 安装到 `PATH` 中，可以通过 `npx` 运行：
+
+```json
+{
+  "servers": {
+    "seashail": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@seashail/mcp", "--"]
+    }
+  }
+}
+```
+
+## 测试网模式
+
+```bash
+seashail agent install vscode --network testnet
+```
+
+或手动将 args 设置为 `["mcp", "--network", "testnet"]`。
+
+## 验证
+
+设置完成后，在 VS Code 中打开 GitHub Copilot Chat 并询问：
+
+```
+What's my SOL balance?
+```
+
+Copilot 应该通过 MCP 发现并调用 Seashail 工具。
+
+## 故障排除
+
+**未检测到 MCP 服务器**
+确保 `.vscode/mcp.json` 文件位于 VS Code 打开的工作区根目录中。添加配置后重新加载窗口。
+
+**Copilot 不使用 MCP 工具**
+GitHub Copilot 的 MCP 工具支持需要兼容的扩展版本。确保你的 Copilot 扩展是最新的。

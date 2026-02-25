@@ -1,0 +1,68 @@
+---
+title: 诈骗地址黑名单
+description: 可选的已签名诈骗地址黑名单。
+---
+
+Seashail 可以选择性地获取**已签名的诈骗地址黑名单**，并阻止向列表中的接收方/合约发起写操作。
+
+此功能旨在捕捉明显的错误（以及已知的危险目的地），而不是单独让交易变得"安全"。
+
+Seashail **不**附带默认黑名单。此功能**需要手动启用**：你必须在 `config.toml` 中配置 URL（最好同时固定预期的签名密钥）。
+
+## 可用性模型
+
+黑名单是一个纵深防御过滤器，不是共识规则。
+
+- 如果黑名单获取/验证失败且没有可用的有效缓存，Seashail 将在没有黑名单保护的情况下继续（失败开放）。
+- 一旦存在有效缓存，Seashail 将使用它直到可以成功刷新。
+
+## 被阻止的内容
+
+启用后，Seashail 将拒绝对接收方（在某些情况下是相关合约）在列表中的交易进行签名/广播：
+
+- `send_transaction`：阻止向列表中的接收方发送
+- `transfer_nft`：阻止向列表中的接收方转账（也阻止列表中的 NFT 合约/铸造地址）
+- `buy_nft` / `sell_nft` / `bid_nft`：如果交易接收方/合约在列表中则阻止
+
+## 配置
+
+在 `config.toml` 中：
+
+```toml
+[http]
+# 必须是 https://（本地测试可用 http://localhost）
+scam_blocklist_url = "https://example.com/seashail/scam-blocklist.json"
+
+# 推荐：固定预期的 Ed25519 验证密钥（base64，32 字节）。
+# 省略时，Seashail 将使用获取的信封中嵌入的公钥。
+scam_blocklist_pubkey_b64 = "..."
+
+# 刷新黑名单的频率。
+scam_blocklist_refresh_seconds = 21600
+```
+
+## 已签名信封格式
+
+获取的 JSON 必须是一个信封：
+
+- `version`：当前为 `1`
+- `payload_b64`：base64 编码的 JSON payload 字节
+- `signature_b64`：base64 Ed25519 对 payload 字节的签名
+- `pubkey_b64`：base64 Ed25519 验证密钥（32 字节）
+
+解码后的 payload JSON 包含：
+
+- `evm`：以 0x 为前缀的地址列表
+- `solana`：base58 公钥列表
+
+## 操作指南
+
+- 优先固定 `scam_blocklist_pubkey_b64`，使信任锚点存储在本地配置中。
+- 将信封托管在稳定且可缓存的地方。
+- 将黑名单作为纵深防御层。策略上限、白名单、模拟交易和确认机制依然重要。
+
+## 另见
+
+- [故障排除](/zh/docs/troubleshooting)了解诈骗拦截错误的解决方案
+- [安全模型](/zh/docs/guides/security-model)了解钓鱼威胁分析
+- [术语表](/zh/docs/glossary)了解 OFAC SDN 和黑名单术语的定义

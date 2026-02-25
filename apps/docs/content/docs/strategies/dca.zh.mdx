@@ -1,0 +1,141 @@
+---
+title: "实操指南：定投（DCA）"
+description: 使用固定美元金额执行周期性定投买入
+---
+
+## 概述
+
+通过将固定美元金额的稳定币定期兑换为目标资产，执行定投策略。本实操指南展示单次定投执行；定期计划可以手动操作或通过外部工具自动化。
+
+**使用的工具：** `get_balance`、`swap_tokens`、`get_token_price`
+**支持的链：** Solana（示例使用 USDC → SOL）
+**完成时间：** 每次执行 2-5 分钟
+
+## 前提条件
+
+- 有稳定币余额（USDC、USDT 等）的活跃钱包
+- 已定义目标资产（例如 SOL、BTC、ETH）
+- 每次定投买入的固定美元金额（例如 $100）
+
+<Steps>
+
+### 第一步：检查稳定币余额
+
+验证定投买入的资金是否充足。
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"]
+  }
+}
+```
+
+**预期结果：** 显示 USDC 余额。确保余额超过定投金额加上燃料费。
+
+### 第二步：（可选）查看当前代币价格
+
+可以选择在买入前查看当前价格。
+
+```json
+{
+  "name": "get_token_price",
+  "arguments": {
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+**预期结果：** 当前 SOL 的美元价格。这只是参考信息；定投不择时入市。
+
+### 第三步：执行定投兑换
+
+将固定美元金额的 USDC 兑换为 SOL。
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "token_out": "native",
+    "amount_in": "100",
+    "amount_units": "usd",
+    "slippage_bps": 100,
+    "provider": "jupiter"
+  }
+}
+```
+
+**预期结果：** 兑换成功执行并返回交易签名。你现在持有更多 SOL。
+
+### 第四步：验证新余额
+
+确认 SOL 余额按预期增加。
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": ["native"]
+  }
+}
+```
+
+**预期结果：** SOL 余额反映了本次定投购买。
+
+</Steps>
+
+## 变体
+
+### 多代币定投
+
+将定投预算分配到多个资产（例如 50% SOL、50% ETH）。
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "solana",
+    "token_in": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "token_out": "native",
+    "amount_in": "50",
+    "amount_units": "usd"
+  }
+}
+```
+
+然后跨链桥接到另一条链并对 ETH 进行定投，或者在 Solana 上将 USDC 兑换为桥接 ETH 代币。
+
+### 价格条件定投
+
+仅在价格低于某个阈值时执行定投买入。
+
+```json
+{
+  "name": "get_token_price",
+  "arguments": {
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+如果价格 < $150，执行 `swap_tokens`。否则，跳过本次定投。
+
+## 注意事项
+
+- **定期计划：** 本实操指南展示单次定投执行。对于周期性买入，使用 cron 任务、GitHub Actions 或智能体工作流按计划（每日、每周、每月）调用本方案。
+- **波动市场中的滑点：** 高波动期间的定投可能导致执行效果较差。考虑将 `slippage_bps` 降至 50 以获得更保守的成交。
+- **税务影响：** 在许多司法管辖区，每次定投买入都是应税事件。追踪每次购买的成本基础。
+- **EVM 上的燃料优化：** 如果在 Ethereum 主网上进行定投，批量多次定投买入或使用 Layer 2（Base、Arbitrum）以降低燃料成本。
+
+## 另见
+
+- [代币兑换指南](/zh/docs/guides/swapping)
+- [写入工具参考](/zh/docs/reference/tools-write)
+- [策略配置](/zh/docs/reference/tools-policy)

@@ -1,0 +1,95 @@
+---
+title: 快速开始
+description: 安装 Seashail，连接你的 agent，创建你的第一个钱包。
+---
+
+## 1. 安装 Seashail
+
+macOS / Linux（安装程序，源码构建）：
+
+```bash
+curl -fsSL https://seashail.com/install | sh
+```
+
+Windows (PowerShell)：
+
+```powershell
+irm https://seashail.com/install.ps1 | iex
+```
+
+## 2. 设置你的 Agent
+
+你的 agent 会自动启动 Seashail — 你只需要告诉它如何启动。选择你的 agent：
+
+**OpenClaw** ([文档](https://docs.openclaw.ai/tools/plugin))：
+
+```bash
+seashail openclaw install
+```
+
+**Claude Code** ([文档](https://code.claude.com/docs/en/mcp))：
+
+```bash
+claude mcp add seashail -- seashail mcp
+```
+
+**Claude Desktop** ([文档](https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop))：
+
+```bash
+seashail agent install claude-desktop
+```
+
+**Codex** ([文档](https://developers.openai.com/codex/mcp))：
+
+添加到 `~/.codex/config.toml`：
+
+```toml
+[mcp_servers.seashail]
+command = "seashail"
+args = ["mcp"]
+```
+
+**Cursor** ([文档](https://docs.cursor.com/context/model-context-protocol))：
+
+```bash
+seashail agent install cursor
+```
+
+**VS Code / GitHub Copilot** ([文档](https://code.visualstudio.com/docs/copilot/customization/mcp-servers))：
+
+```bash
+seashail agent install vscode
+```
+
+**Windsurf** ([文档](https://docs.windsurf.com/windsurf/cascade/mcp))：
+
+```bash
+seashail agent install windsurf
+```
+
+其他所有 agent（Cline、Continue、JetBrains 以及任何 MCP 客户端），参见[连接你的 Agent](../guides/agents)。
+
+> **测试网模式：** 在上述任何命令中添加 `--network testnet`。例如：`seashail agent install cursor --network testnet` 或 `claude mcp add seashail-testnet -- seashail mcp --network testnet`。
+
+## 3. 首次运行
+
+首次连接时，Seashail 会自动创建一个默认钱包，以便你的 agent 可以立即查询地址和余额 — 无需任何提示。此钱包使用机器本地密钥加密，这意味着它与创建它的设备绑定。
+
+要创建一个具有更强恢复选项的额外钱包，让你的 agent 调用 `create_wallet` 工具。此操作使用 MCP 交互确认来：
+
+- 设置密码短语（至少 8 个字符，不存储在任何地方）
+- 显示并确认离线备份密钥分片（沙米尔秘密分享 2-of-3）
+- 接受免责声明
+
+密钥材料永远不会离开 Seashail 进程。Agent 只接收工具输出（余额、报价、交易哈希等）。有关安全详情，参见[安全模型](../guides/security-model)。
+
+**关键术语：**
+
+- **交互确认：** MCP 协议中用于用户提示（密码短语、确认操作）的机制，数据不会发送给 agent。参见[术语表](../glossary)。
+- **密码短语会话：** 设置密码短语后的限时解锁状态（默认 1 小时）。到期后需重新验证。
+
+## 下一步
+
+- [配置](./configuration) — 自定义网络模式、RPC 端点和策略默认值
+- [网络模式指南](../guides/network-mode) — 测试网默认配置和水龙头链接
+- [策略与审批指南](../guides/policy-and-approvals) — 配置消费限额和审批阈值

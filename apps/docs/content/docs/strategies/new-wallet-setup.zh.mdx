@@ -1,0 +1,154 @@
+---
+title: "实操指南：新建钱包设置"
+description: 创建、保护新钱包并配置策略控制
+---
+
+## 概述
+
+从零开始设置新的 Seashail 钱包：使用沙米尔密钥分片进行安全备份创建钱包、配置策略限额，并为首次使用充值。
+
+**使用的工具：** `create_wallet`、`export_shares`、`update_policy`、`set_active_wallet`、`get_deposit_info`、`get_balance`
+**支持的链：** 所有支持的链
+**完成时间：** 5-10 分钟
+
+## 前提条件
+
+- Seashail 已安装且守护进程正在运行
+- 用于备份分片的安全存储（密码管理器、纸质备份、硬件设备）
+
+<Steps>
+
+### 第一步：创建钱包
+
+使用沙米尔 2-of-3 秘密分享创建新生成的钱包。
+
+```json
+{
+  "name": "create_wallet",
+  "arguments": {
+    "name": "trading-main"
+  }
+}
+```
+
+**预期结果：** 钱包已创建，share1 由 Seashail 保留，share2 和 share3 已准备好导出。钱包现在处于活跃状态。
+
+### 第二步：导出备份分片
+
+导出 share2 和 share3 用于离线存储。将这些分片存储在不同的安全位置。
+
+```json
+{
+  "name": "export_shares",
+  "arguments": {
+    "wallet": "trading-main"
+  }
+}
+```
+
+**预期结果：** JSON 响应包含以 base64 编码字符串表示的 `share2` 和 `share3`。立即将这些内容复制到安全存储中。
+
+### 第三步：配置消费策略
+
+为自动化交易设置保守的限额。
+
+```json
+{
+  "name": "update_policy",
+  "arguments": {
+    "wallet": "trading-main",
+    "policy": {
+      "max_usd_per_swap": 500,
+      "max_usd_per_send": 200,
+      "max_usd_per_bridge": 1000,
+      "require_confirmation_above_usd": 2000,
+      "allowed_chains": ["solana", "base", "arbitrum"],
+      "blocked_tokens": []
+    }
+  }
+}
+```
+
+**预期结果：** 策略已更新。此钱包的所有交易将受到这些限额的约束。
+
+### 第四步：获取充值地址
+
+获取 Solana 充值地址以进行充值。
+
+```json
+{
+  "name": "get_deposit_info",
+  "arguments": {
+    "wallet": "trading-main",
+    "chain": "solana",
+    "token": "native"
+  }
+}
+```
+
+**预期结果：** 显示 Solana 地址。从交易所或其他钱包向此地址发送 SOL。
+
+### 第五步：验证充值
+
+充值后检查钱包余额。
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "wallet": "trading-main",
+    "chain": "solana"
+  }
+}
+```
+
+**预期结果：** 余额显示已充值的 SOL。钱包现已充值完毕，可以进行交易。
+
+</Steps>
+
+## 变体
+
+### 导入现有钱包
+
+如果你有现有的私钥或助记词，使用 `import_wallet` 代替 `create_wallet`。
+
+```json
+{
+  "name": "import_wallet",
+  "arguments": {
+    "name": "imported-wallet",
+    "kind": "mnemonic"
+  }
+}
+```
+
+Seashail 将通过交互表单提示输入助记词（切勿在工具参数中传递秘密信息）。
+
+### 多账户设置
+
+在一个根钱包下创建一批消费账户。
+
+```json
+{
+  "name": "create_wallet_pool",
+  "arguments": {
+    "wallet": "trading-main",
+    "count": 5
+  }
+}
+```
+
+这将创建 5 个新的账户索引，用于隔离消费预算。
+
+## 注意事项
+
+- **安全存储分片：** 丢失两个备份分片意味着 share1 丢失时无法恢复钱包。
+- **先用小额测试：** 先用少量资金充值，验证地址是否正确。
+- **先用测试网：** 考虑先创建测试网钱包（将 `set_network_mode` 设置为 "testnet"）练习工作流程。
+- **策略继承：** 钱包特定策略会覆盖全局默认策略。不带参数使用 `get_policy` 可查看全局默认值。
+
+## 另见
+
+- [钱包与账户工具](/zh/docs/reference/tools-wallet)
+- [策略配置](/zh/docs/reference/tools-policy)
+- [快速入门指南](/zh/docs/getting-started/quickstart)

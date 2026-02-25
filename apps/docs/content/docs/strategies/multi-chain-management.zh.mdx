@@ -1,0 +1,159 @@
+---
+title: "实操指南：多链管理"
+description: 在链之间转移资金，在目标链上兑换，并分配到子账户
+---
+
+## 概述
+
+跨多条链管理资金：查看各链余额，在链间桥接代币，在目标链上兑换为目标资产，并可选地分配到子账户以实现隔离预算。
+
+**使用的工具：** `get_balance`、`bridge_tokens`、`get_bridge_status`、`swap_tokens`、`transfer_between_wallets`
+**支持的链：** Solana、Base、Arbitrum、Polygon（示例：Solana → Base）
+**完成时间：** 15-30 分钟（包含跨链桥等待时间）
+
+## 前提条件
+
+- 在多条链上有余额的活跃钱包
+- 目标链有足够的燃料费（Base 上的 ETH，Solana 上的 SOL）
+
+<Steps>
+
+### 第一步：查看各链余额
+
+检查所有活跃链上的余额，以了解资金分配情况。
+
+```json
+{
+  "name": "get_balance",
+  "arguments": {
+    "chain": "solana",
+    "tokens": ["native", "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"]
+  }
+}
+```
+
+对 Base、Arbitrum、Polygon 重复此操作。**预期结果：** 各链余额。示例：Solana 上 1000 USDC，Base 上 200 USDC。
+
+### 第二步：确定需要转移的资金
+
+决定要桥接哪些代币以及目标链。**示例：** 将 500 USDC 从 Solana 转移到 Base 进行 DeFi 部署。
+
+### 第三步：桥接代币
+
+使用 Wormhole（原生路径）执行跨链桥接交易。
+
+```json
+{
+  "name": "bridge_tokens",
+  "arguments": {
+    "chain": "solana",
+    "to_chain": "base",
+    "token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "amount": "500",
+    "amount_units": "ui",
+    "bridge_provider": "wormhole",
+    "redeem": true
+  }
+}
+```
+
+**预期结果：** Solana 跨链桥发起的交易签名。VAA 可用时，Seashail 将在 Base 上自动兑换。
+
+### 第四步：监控跨链桥状态
+
+轮询跨链桥状态直至完成。Wormhole 通常在 5-15 分钟内完成。
+
+```json
+{
+  "name": "get_bridge_status",
+  "arguments": {
+    "bridge_id": "5x9z...abc",
+    "bridge_provider": "wormhole"
+  }
+}
+```
+
+**预期结果：** 代币到达 Base 时状态显示"已完成"。使用 `get_balance` 检查目标余额以确认。
+
+### 第五步：在目标链上兑换为目标代币
+
+如果需要不同的代币，在目标链上进行兑换。
+
+```json
+{
+  "name": "swap_tokens",
+  "arguments": {
+    "chain": "base",
+    "token_in": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "token_out": "0x4200000000000000000000000000000000000006",
+    "amount_in": "250",
+    "amount_units": "ui",
+    "slippage_bps": 100
+  }
+}
+```
+
+**预期结果：** 在 Base 上将 250 USDC 兑换为 WETH。
+
+### 第六步：（可选）分配到子账户
+
+将资金分配到多个托管账户以实现隔离预算。
+
+```json
+{
+  "name": "transfer_between_wallets",
+  "arguments": {
+    "chain": "base",
+    "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amount": "100",
+    "amount_units": "ui",
+    "from_wallet": "trading-main",
+    "from_account_index": 0,
+    "to_wallet": "trading-main",
+    "to_account_index": 1
+  }
+}
+```
+
+**预期结果：** 100 USDC 转入账户索引 1，用于隔离消费。
+
+</Steps>
+
+## 变体
+
+### EVM 间跨链桥接
+
+EVM 链之间的桥接（例如 Arbitrum → Base）比跨 VM 桥接更简单、更快速。
+
+```json
+{
+  "name": "bridge_tokens",
+  "arguments": {
+    "chain": "arbitrum",
+    "to_chain": "base",
+    "token": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    "amount": "1000",
+    "amount_units": "ui",
+    "bridge_provider": "wormhole"
+  }
+}
+```
+
+桥接时间通常为 5-10 分钟。
+
+### 资金整合（反向操作）
+
+将资金从多条链整合回一条链。反转步骤：从 Base/Arbitrum 桥接到 Solana。
+
+## 注意事项
+
+- **跨链桥时间不同：** 跨 VM 桥接（Solana ↔ EVM）需要 10-20 分钟。EVM 间桥接更快（5-10 分钟）。
+- **确保目标链有燃料费：** 桥接前，验证目标链有足够的原生代币用于燃料费。使用 `get_balance` 并设置 `chain: "base"` 和 `tokens: ["native"]`。
+- **跨链桥提供商支持：** 并非所有路线都支持所有提供商。Wormhole 覆盖最广；LayerZero 专注于 EVM。
+- **包装代币：** 桥接的代币以包装版本到达（例如 wUSDC）。在目标链上仔细检查代币地址。
+
+## 另见
+
+- [跨链桥接指南](/zh/docs/guides/bridging)
+- [跨链桥工具参考](/zh/docs/reference/tools-bridge)
+- [多钱包管理指南](/zh/docs/guides/wallets)

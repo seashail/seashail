@@ -1,0 +1,96 @@
+---
+title: Claude Desktop
+description: 通过 MCP 配置将 Seashail 连接到 Claude Desktop。
+---
+
+Claude Desktop 从 JSON 配置文件中读取 MCP 服务器配置。
+
+> Seashail 是**仅 stdio** 模式。Claude Desktop 应配置为启动 `seashail mcp` 作为本地命令。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- Claude Desktop 已安装
+
+## 设置（推荐）
+
+使用一键安装器：
+
+```bash
+seashail agent install claude-desktop
+```
+
+这会将配置写入你操作系统的正确位置。
+
+## 手动设置
+
+配置文件位置取决于你的操作系统：
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+将以下内容添加到文件中（如果不存在则创建）：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## "免安装"选项 (npx)
+
+如果你不想将 `seashail` 安装到 `PATH` 中，可以配置 Claude Desktop 通过 `npx` 运行：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "npx",
+      "args": ["-y", "@seashail/mcp", "--"]
+    }
+  }
+}
+```
+
+## 测试网模式
+
+```bash
+seashail agent install claude-desktop --network testnet
+```
+
+或手动将 args 改为 `["mcp", "--network", "testnet"]`。
+
+## 验证
+
+修改配置后重启 Claude Desktop。开始一个对话并询问：
+
+```
+What's my SOL balance?
+```
+
+你应该能在可用工具面板中看到 Seashail 工具。
+
+## 故障排除
+
+**工具未显示**
+编辑配置文件后完全重启 Claude Desktop。
+
+**"seashail: command not found"**
+在配置中使用二进制文件的绝对路径：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "/usr/local/bin/seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```

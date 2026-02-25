@@ -1,0 +1,41 @@
+---
+title: 能力
+description: 查看当前机器上可用的链和集成服务。
+---
+
+由于 Seashail 是自托管且可配置的，不同机器上的链和集成可能有所不同。使用：
+
+- `get_capabilities`
+
+获取一个 JSON 对象，描述以下信息：
+
+- 当前有效的网络模式
+- 已配置的链和 RPC 端点
+- 需要 API 密钥的可选集成（例如 1inch）
+- 支持的"功能面"（spot、perps、NFT）
+
+## 使用示例
+
+以无参数方式调用该工具：
+
+```json
+{}
+```
+
+响应中需要关注的关键字段：
+
+- `network_mode.effective`：`mainnet` 或 `testnet`
+- `chains.solana.supports`：已启用的 Solana 特定操作
+- `chains.evm[]`：每条 EVM 链的支持标志，包括 1inch 是否可用
+- `services.jupiter.api_key_configured`：是否配置了可选的 Jupiter API 密钥
+- `services.oneinch.configured`：是否启用了 1inch 兑换（需要 API 密钥）
+
+## 与工具的关系
+
+`get_capabilities` 是以下内容的权威来源：
+
+- 哪些 `chain` 字符串已配置
+- 特定链上可用的兑换提供商（Uniswap vs 1inch）
+- EVM 和 Solana 上已启用的 NFT 功能面
+
+如果某个工具返回 `unsupported_chain` 或 `provider_unavailable`，请先检查 `get_capabilities`。

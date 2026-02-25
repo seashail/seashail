@@ -1,0 +1,91 @@
+---
+title: Windsurf
+description: 通过 MCP 配置将 Seashail 连接到 Windsurf。
+---
+
+Windsurf 从 `~/.codeium/windsurf/mcp_config.json`（全局）读取 MCP 服务器配置。
+
+> Seashail 是**仅 stdio** 模式。配置 Windsurf 运行本地命令（`seashail mcp`），而非"服务器 URL"。
+
+## 前置条件
+
+- [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
+- 已创建钱包（`seashail wallet create`）
+- Windsurf 已安装
+
+## 设置（推荐）
+
+使用一键安装器：
+
+```bash
+seashail agent install windsurf
+```
+
+这会将配置写入 `~/.codeium/windsurf/mcp_config.json`。
+
+## 手动设置
+
+创建或编辑 `~/.codeium/windsurf/mcp_config.json`：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+## "免安装"选项 (npx)
+
+如果你不想将 `seashail` 安装到 `PATH` 中，可以通过 `npx` 运行：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "npx",
+      "args": ["-y", "@seashail/mcp", "--"]
+    }
+  }
+}
+```
+
+## 测试网模式
+
+```bash
+seashail agent install windsurf --network testnet
+```
+
+或手动将 args 设置为 `["mcp", "--network", "testnet"]`。
+
+## 验证
+
+设置完成后，打开 Windsurf 聊天并询问：
+
+```
+What's my SOL balance?
+```
+
+Windsurf 应该调用 Seashail 的 MCP 工具来检查你的余额。
+
+## 故障排除
+
+**配置文件位置**
+Windsurf 仅使用全局配置。确保路径是 `~/.codeium/windsurf/mcp_config.json`（不是项目本地文件）。
+
+**"seashail: command not found"**
+在配置中使用绝对路径：
+
+```json
+{
+  "mcpServers": {
+    "seashail": {
+      "command": "/usr/local/bin/seashail",
+      "args": ["mcp"]
+    }
+  }
+}
+```

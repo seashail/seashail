@@ -1,0 +1,74 @@
+---
+title: 链
+description: 链标识符、网络模式默认值和 RPC 配置。
+---
+
+大多数 Seashail 工具接受 `chain` 参数。`chain` 的值必须与 Seashail 的已配置标识符一致。
+
+## 默认链标识符
+
+Solana：
+
+- `solana`
+
+EVM 主网：
+
+- `ethereum`（链 ID 1）
+- `base`（8453）
+- `arbitrum`（42161）
+- `optimism`（10）
+- `polygon`（137）
+- `bnb`（56）
+- `avalanche`（43114）
+- `monad`（143）
+
+EVM 测试网：
+
+- `sepolia`（11155111）
+- `base-sepolia`（84532）
+- `arbitrum-sepolia`（421614）
+- `optimism-sepolia`（11155420）
+- `polygon-amoy`（80002）
+- `bnb-testnet`（97）
+- `avalanche-fuji`（43113）
+- `monad-testnet`（10143）
+
+如果不确定本地 Seashail 实例的配置，调用：
+
+- `get_capabilities`
+
+## 网络模式默认值
+
+网络模式是一个便捷设置，影响工具未指定 `chain`/`chains` 时 Seashail 使用的链。
+
+- `mainnet` 默认使用：`solana` 加上所有已配置的 EVM **主网**
+- `testnet` 默认使用：`solana` 加上所有已配置的 EVM **测试网**
+
+网络模式不阻止显式选择。如果工具传递 `chain="ethereum"`，Seashail 将使用 Ethereum，无论模式如何。
+
+## RPC 配置
+
+可以使用以下工具覆盖 RPC 端点：
+
+- `configure_rpc`
+
+注意事项：
+
+- `configure_rpc` 支持 `chain="solana"` 以及 `config.toml` 中已存在的任何 EVM 链。
+- `configure_rpc` 不会添加新的 EVM 链。要添加新的 EVM 链，必须编辑 `config.toml`，同时包含：
+  - `[rpc.evm_rpc_urls]`
+  - `[rpc.evm_chain_ids]`
+
+## 添加新的 EVM 链（配置文件）
+
+在 `config.toml` 中，添加如下条目：
+
+```toml
+[rpc.evm_rpc_urls]
+mychain = "https://..."
+
+[rpc.evm_chain_ids]
+mychain = 12345
+```
+
+更新配置后，Seashail 会将 `chain="mychain"` 视为支持 EVM 工具的 EVM 链。
