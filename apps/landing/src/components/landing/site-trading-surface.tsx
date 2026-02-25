@@ -1,15 +1,26 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
-import { tradingSurface } from "@/content/copy";
-import { DOCS_URL } from "@/lib/constants";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
+import { getDocsUrl } from "@/lib/constants";
 
 /**
  * Trading surface section.
  *
- * @returns {JSX.Element} Trading surface section.
+ * @param props - Component props.
+ * @param props.copy - Trading surface section copy from the locale dictionary.
+ * @param props.locale - Current locale for locale-aware docs links.
+ * @returns Trading surface section.
  */
-export function SiteTradingSurface(): JSX.Element {
+export function SiteTradingSurface({
+  copy,
+  locale,
+}: {
+  copy: Dictionary["tradingSurface"];
+  locale: Locale;
+}): JSX.Element {
   return (
     <section
       style={{
@@ -30,7 +41,7 @@ export function SiteTradingSurface(): JSX.Element {
           marginBottom: "16px",
         }}
       >
-        <Balancer>{tradingSurface.heading}</Balancer>
+        <Balancer>{copy.heading}</Balancer>
       </h2>
 
       <p
@@ -42,14 +53,14 @@ export function SiteTradingSurface(): JSX.Element {
           marginBottom: "48px",
         }}
       >
-        <Balancer>{tradingSurface.subheading}</Balancer>
+        <Balancer>{copy.subheading}</Balancer>
       </p>
 
       <div className="site-grid-3">
-        {tradingSurface.categories.map((category, index) => (
+        {copy.categories.map((category, index) => (
           <a
             key={category.name}
-            href={`${DOCS_URL}${category.docPath}`}
+            href={getDocsUrl(locale, category.docPath)}
             className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
             style={{
               borderTop: "4px solid var(--brand-text, #000000)",

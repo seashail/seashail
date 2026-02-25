@@ -1,16 +1,30 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
 import { InstallCommand } from "@/components/shared/install-command";
-import { cta } from "@/content/copy";
-import { DOCS_URL, GITHUB_URL } from "@/lib/constants";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
+import { GITHUB_URL, getDocsUrl } from "@/lib/constants";
 
 /**
  * Call-to-action section.
  *
- * @returns {JSX.Element} CTA section.
+ * @param props - Component props.
+ * @param props.copy - CTA section copy from the locale dictionary.
+ * @param props.ui - Shared UI strings from the locale dictionary.
+ * @param props.locale - Current locale for locale-aware docs links.
+ * @returns CTA section.
  */
-export function SiteCta(): JSX.Element {
+export function SiteCta({
+  copy,
+  ui,
+  locale,
+}: {
+  copy: Dictionary["cta"];
+  ui: Dictionary["ui"];
+  locale: Locale;
+}): JSX.Element {
   return (
     <section
       style={{
@@ -31,7 +45,7 @@ export function SiteCta(): JSX.Element {
           marginBottom: "16px",
         }}
       >
-        <Balancer>{cta.heading}</Balancer>
+        <Balancer>{copy.heading}</Balancer>
       </h2>
 
       <p
@@ -43,7 +57,7 @@ export function SiteCta(): JSX.Element {
           marginBottom: "40px",
         }}
       >
-        <Balancer>{cta.subheading}</Balancer>
+        <Balancer>{copy.subheading}</Balancer>
       </p>
 
       <div style={{ marginBottom: "32px" }}>
@@ -52,7 +66,7 @@ export function SiteCta(): JSX.Element {
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
         <a
-          href={DOCS_URL}
+          href={getDocsUrl(locale)}
           className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
           style={{
             display: "inline-flex",
@@ -69,7 +83,7 @@ export function SiteCta(): JSX.Element {
             letterSpacing: "0.06em",
           }}
         >
-          Go To Docs
+          {ui.goToDocs}
         </a>
 
         <a
@@ -92,7 +106,7 @@ export function SiteCta(): JSX.Element {
             letterSpacing: "0.06em",
           }}
         >
-          GitHub
+          {ui.github}
         </a>
       </div>
     </section>

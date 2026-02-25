@@ -9,11 +9,7 @@ import { useCallback, useState, type JSX } from "react";
  * @param {string} props.command - The command text to display and copy.
  * @returns {JSX.Element} Inline code with copy button.
  */
-export function CopyInline({
-  command,
-}: {
-  command: string;
-}): JSX.Element {
+export function CopyInline({ command }: { command: string }): JSX.Element {
   const [copied, setCopied] = useState(false);
 
   /**
@@ -31,9 +27,7 @@ export function CopyInline({
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <code className="break-words [overflow-wrap:anywhere]">
-        {command}
-      </code>
+      <code className="break-words [overflow-wrap:anywhere]">{command}</code>
       <button
         onClick={handleCopy}
         type="button"

@@ -1,15 +1,26 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
-import { security } from "@/content/copy";
-import { DOCS_URL } from "@/lib/constants";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
+import { getDocsUrl } from "@/lib/constants";
 
 /**
  * Security model section.
  *
- * @returns {JSX.Element} Security section.
+ * @param props - Component props.
+ * @param props.copy - Security section copy from the locale dictionary.
+ * @param props.locale - Current locale for locale-aware docs links.
+ * @returns Security section.
  */
-export function SiteSecurity(): JSX.Element {
+export function SiteSecurity({
+  copy,
+  locale,
+}: {
+  copy: Dictionary["security"];
+  locale: Locale;
+}): JSX.Element {
   return (
     <section
       style={{
@@ -30,7 +41,7 @@ export function SiteSecurity(): JSX.Element {
           marginBottom: "16px",
         }}
       >
-        <Balancer>{security.heading}</Balancer>
+        <Balancer>{copy.heading}</Balancer>
       </h2>
 
       <p
@@ -42,14 +53,14 @@ export function SiteSecurity(): JSX.Element {
           marginBottom: "48px",
         }}
       >
-        <Balancer>{security.subheading}</Balancer>
+        <Balancer>{copy.subheading}</Balancer>
       </p>
 
       <div className="site-grid-2">
-        {security.features.map((feature, index) => (
+        {copy.features.map((feature, index) => (
           <a
             key={feature.title}
-            href={`${DOCS_URL}${feature.docPath}`}
+            href={getDocsUrl(locale, feature.docPath)}
             className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
             style={{
               padding: "28px 24px",

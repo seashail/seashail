@@ -1,15 +1,26 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
-import { agentCompat } from "@/content/copy";
-import { DOCS_URL } from "@/lib/constants";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
+import { getDocsUrl } from "@/lib/constants";
 
 /**
  * Agent compatibility section.
  *
- * @returns {JSX.Element} Agent compatibility section.
+ * @param props - Component props.
+ * @param props.copy - Agent compatibility section copy from the locale dictionary.
+ * @param props.locale - Current locale for locale-aware docs links.
+ * @returns Agent compatibility section.
  */
-export function SiteAgentCompat(): JSX.Element {
+export function SiteAgentCompat({
+  copy,
+  locale,
+}: {
+  copy: Dictionary["agentCompat"];
+  locale: Locale;
+}): JSX.Element {
   return (
     <section
       style={{
@@ -30,7 +41,7 @@ export function SiteAgentCompat(): JSX.Element {
           marginBottom: "16px",
         }}
       >
-        <Balancer>{agentCompat.heading}</Balancer>
+        <Balancer>{copy.heading}</Balancer>
       </h2>
 
       <p
@@ -42,7 +53,7 @@ export function SiteAgentCompat(): JSX.Element {
           marginBottom: "48px",
         }}
       >
-        <Balancer>{agentCompat.subheading}</Balancer>
+        <Balancer>{copy.subheading}</Balancer>
       </p>
 
       <div
@@ -52,10 +63,10 @@ export function SiteAgentCompat(): JSX.Element {
           gap: "16px",
         }}
       >
-        {agentCompat.agents.map((agent) => (
+        {copy.agents.map((agent) => (
           <a
             key={agent.name}
-            href={`${DOCS_URL}${agent.docPath}`}
+            href={getDocsUrl(locale, agent.docPath)}
             className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
             style={{
               border: "4px solid var(--brand-text, #000000)",

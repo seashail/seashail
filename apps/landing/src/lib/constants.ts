@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+
 /** Canonical site URL used for SEO metadata and sitemaps. */
 export const SITE_URL = "https://seashail.com";
 
@@ -10,7 +12,8 @@ export const DOCS_URL =
   "https://seashail-docs.vercel.app/docs";
 
 /** One-line install commands (kept in sync with docs). */
-export const INSTALL_COMMAND_UNIX = "curl -fsSL https://seashail.com/install | sh";
+export const INSTALL_COMMAND_UNIX =
+  "curl -fsSL https://seashail.com/install | sh";
 export const INSTALL_COMMAND_WINDOWS_POWERSHELL =
   "irm https://seashail.com/install.ps1 | iex";
 
@@ -30,3 +33,21 @@ export const SITE_TITLE = "Seashail";
 /** Site-wide meta description. */
 export const SITE_DESCRIPTION =
   "Agent-native trading infrastructure for crypto. Works with OpenClaw, Claude Code, and other agents. Let AI agents trade across DeFi without ever seeing your private keys.";
+
+/**
+ * Build a locale-aware docs URL.
+ *
+ * English returns the base DOCS_URL unchanged. Non-default locales prepend
+ * the locale segment before `/docs` (e.g. `/zh/docs`).
+ *
+ * @param locale - The current locale.
+ * @param path - Optional sub-path within docs (e.g. "/guides/security-model").
+ * @returns Full absolute docs URL for the given locale and path.
+ */
+export function getDocsUrl(locale: Locale, path = ""): string {
+  if (locale === "en") {
+    return `${DOCS_URL}${path}`;
+  }
+  const base = DOCS_URL.replace(/\/docs$/, "");
+  return `${base}/${locale}/docs${path}`;
+}

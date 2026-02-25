@@ -1,14 +1,21 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
-import { architecture } from "@/content/copy";
+import type { Dictionary } from "@/i18n/get-dictionary";
 
 /**
  * Architecture section.
  *
- * @returns {JSX.Element} Architecture section.
+ * @param props - Component props.
+ * @param props.copy - Architecture section copy from the locale dictionary.
+ * @returns Architecture section.
  */
-export function SiteArchitecture(): JSX.Element {
+export function SiteArchitecture({
+  copy,
+}: {
+  copy: Dictionary["architecture"];
+}): JSX.Element {
   return (
     <section
       style={{
@@ -29,7 +36,7 @@ export function SiteArchitecture(): JSX.Element {
           marginBottom: "16px",
         }}
       >
-        <Balancer>{architecture.heading}</Balancer>
+        <Balancer>{copy.heading}</Balancer>
       </h2>
 
       <p
@@ -41,7 +48,7 @@ export function SiteArchitecture(): JSX.Element {
           marginBottom: "48px",
         }}
       >
-        <Balancer>{architecture.description}</Balancer>
+        <Balancer>{copy.description}</Balancer>
       </p>
 
       <div
@@ -53,7 +60,7 @@ export function SiteArchitecture(): JSX.Element {
           margin: "0 auto",
         }}
       >
-        {architecture.layers.map((layer, index) => (
+        {copy.layers.map((layer, index) => (
           <div
             key={layer.label}
             style={{
@@ -94,7 +101,7 @@ export function SiteArchitecture(): JSX.Element {
               </div>
             </div>
 
-            {index < architecture.layers.length - 1 && (
+            {index < copy.layers.length - 1 && (
               <div
                 style={{
                   width: "4px",

@@ -129,15 +129,43 @@ export const agentCompat = {
   subheading:
     "Seashail exposes an MCP server over stdio. Any agent that speaks MCP can trade.",
   agents: [
-    { name: "OpenClaw", status: "Full support", docPath: "/guides/agents/openclaw" },
-    { name: "Claude Code", status: "Full support", docPath: "/guides/agents/claude-code" },
-    { name: "Claude Desktop", status: "Full support", docPath: "/guides/agents/claude-desktop" },
+    {
+      name: "OpenClaw",
+      status: "Full support",
+      docPath: "/guides/agents/openclaw",
+    },
+    {
+      name: "Claude Code",
+      status: "Full support",
+      docPath: "/guides/agents/claude-code",
+    },
+    {
+      name: "Claude Desktop",
+      status: "Full support",
+      docPath: "/guides/agents/claude-desktop",
+    },
     { name: "Codex", status: "Full support", docPath: "/guides/agents/codex" },
-    { name: "Cursor", status: "Full support", docPath: "/guides/agents/cursor" },
-    { name: "GitHub Copilot", status: "Full support", docPath: "/guides/agents/github-copilot" },
-    { name: "Windsurf", status: "Full support", docPath: "/guides/agents/windsurf" },
+    {
+      name: "Cursor",
+      status: "Full support",
+      docPath: "/guides/agents/cursor",
+    },
+    {
+      name: "GitHub Copilot",
+      status: "Full support",
+      docPath: "/guides/agents/github-copilot",
+    },
+    {
+      name: "Windsurf",
+      status: "Full support",
+      docPath: "/guides/agents/windsurf",
+    },
     { name: "Cline", status: "Full support", docPath: "/guides/agents/cline" },
-    { name: "Any MCP Client", status: "Full support", docPath: "/guides/agents/any-mcp-client" },
+    {
+      name: "Any MCP Client",
+      status: "Full support",
+      docPath: "/guides/agents/any-mcp-client",
+    },
   ],
 } as const;
 
@@ -217,4 +245,12 @@ export const cta = {
   heading: "Start trading in 5 minutes",
   subheading:
     "Install the binary, fund a wallet, connect your agent. That is all it takes.",
+} as const;
+
+/** Shared UI strings used across multiple components. */
+export const ui = {
+  goToDocs: "Go To Docs",
+  github: "GitHub",
+  languageSwitcherLabel: "Language",
+  theProblemHeading: "The Key Problem",
 } as const;

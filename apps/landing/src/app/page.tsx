@@ -1,41 +1,34 @@
-import { SiteAgentCompat } from "@/components/landing/site-agent-compat";
-import { SiteArchitecture } from "@/components/landing/site-architecture";
-import { SiteCta } from "@/components/landing/site-cta";
-import { SiteHero } from "@/components/landing/site-hero";
-import { SiteOpenSource } from "@/components/landing/site-open-source";
-import { SiteProblem } from "@/components/landing/site-problem";
-import { SiteSecurity } from "@/components/landing/site-security";
-import { SiteSolution } from "@/components/landing/site-solution";
-import { SiteTradingSurface } from "@/components/landing/site-trading-surface";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
-
 /**
- * Landing page.
+ * Root redirect page that detects the user's preferred locale.
  *
- * @returns {React.JSX.Element} Landing page content.
+ * @remarks
+ * Since the landing page uses `output: "export"` (static), middleware is
+ * unavailable. This page renders a minimal HTML document with a client-side
+ * script that:
+ * 1. Checks for a stored locale preference cookie
+ * 2. Falls back to `navigator.language` detection
+ * 3. Redirects to `/en/` or `/zh/` accordingly
+ *
+ * A `<meta http-equiv="refresh">` provides a no-JavaScript fallback to `/en/`.
+ *
+ * @returns Redirect page with locale detection script.
  */
-export default function Page() {
+export default function RootRedirectPage() {
+  const redirectScript = `(function(){try{var c=document.cookie.match(/(?:^|;)\\s*locale=([^;]+)/);var s=c&&c[1];var n=navigator.language||navigator.userLanguage||"en";var l=s||(n.startsWith("zh")?"zh":"en");if(l!=="en"&&l!=="zh")l="en";window.location.replace("/"+l+"/")}catch(e){window.location.replace("/en/")}})()`;
+
   return (
-    <main>
-      <div
-        style={{
-          position: "fixed",
-          top: "16px",
-          right: "16px",
-          zIndex: 50,
-        }}
-      >
-        <ThemeToggle />
-      </div>
-      <SiteHero />
-      <SiteProblem />
-      <SiteSolution />
-      <SiteArchitecture />
-      <SiteTradingSurface />
-      <SiteAgentCompat />
-      <SiteSecurity />
-      <SiteOpenSource />
-      <SiteCta />
-    </main>
+    <html lang="en">
+      <head>
+        <meta httpEquiv="refresh" content="0;url=/en/" />
+      </head>
+      <body>
+        <script dangerouslySetInnerHTML={{ __html: redirectScript }} />
+        <noscript>
+          <p>
+            <a href="/en/">English</a> | <a href="/zh/">中文</a>
+          </p>
+        </noscript>
+      </body>
+    </html>
   );
 }

@@ -1,14 +1,21 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
-import { openSource } from "@/content/copy";
+import type { Dictionary } from "@/i18n/get-dictionary";
 
 /**
  * Open source section.
  *
- * @returns {JSX.Element} Open source section.
+ * @param props - Component props.
+ * @param props.copy - Open source section copy from the locale dictionary.
+ * @returns Open source section.
  */
-export function SiteOpenSource(): JSX.Element {
+export function SiteOpenSource({
+  copy,
+}: {
+  copy: Dictionary["openSource"];
+}): JSX.Element {
   return (
     <section
       style={{
@@ -29,7 +36,7 @@ export function SiteOpenSource(): JSX.Element {
           marginBottom: "24px",
         }}
       >
-        <Balancer>{openSource.heading}</Balancer>
+        <Balancer>{copy.heading}</Balancer>
       </h2>
 
       <div
@@ -43,7 +50,7 @@ export function SiteOpenSource(): JSX.Element {
           marginBottom: "48px",
         }}
       >
-        {openSource.license}
+        {copy.license}
       </div>
 
       <ul
@@ -54,7 +61,7 @@ export function SiteOpenSource(): JSX.Element {
           maxWidth: "780px",
         }}
       >
-        {openSource.points.map((point) => (
+        {copy.points.map((point) => (
           <li
             key={point}
             style={{
@@ -78,7 +85,9 @@ export function SiteOpenSource(): JSX.Element {
             >
               &#47;&#47;
             </span>
-            <span><Balancer>{point}</Balancer></span>
+            <span>
+              <Balancer>{point}</Balancer>
+            </span>
           </li>
         ))}
       </ul>

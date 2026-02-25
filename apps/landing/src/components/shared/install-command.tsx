@@ -123,7 +123,9 @@ export function InstallCommand({
   }, [command]);
 
   return (
-    <div style={{ display: "inline-flex", flexDirection: "column", gap: "10px" }}>
+    <div
+      style={{ display: "inline-flex", flexDirection: "column", gap: "10px" }}
+    >
       <div
         style={{
           display: "flex",
@@ -177,7 +179,8 @@ export function InstallCommand({
               padding: "8px 10px",
               border: "none",
               borderRight: `2px solid ${borderColor}`,
-              background: mode === "npx" ? buttonColor : "var(--brand-bg, #ffffff)",
+              background:
+                mode === "npx" ? buttonColor : "var(--brand-bg, #ffffff)",
               color:
                 mode === "npx"
                   ? "var(--brand-bg, #ffffff)"
@@ -196,7 +199,8 @@ export function InstallCommand({
               appearance: "none",
               padding: "8px 10px",
               border: "none",
-              background: mode === "uvx" ? buttonColor : "var(--brand-bg, #ffffff)",
+              background:
+                mode === "uvx" ? buttonColor : "var(--brand-bg, #ffffff)",
               color:
                 mode === "uvx"
                   ? "var(--brand-bg, #ffffff)"
@@ -232,13 +236,13 @@ export function InstallCommand({
                 appearance: "none",
                 padding: "8px 10px",
                 border: "none",
-	              borderRight: `2px solid ${borderColor}`,
-	              background:
-	                os === "unix" ? buttonColor : "var(--brand-bg, #ffffff)",
-	              color:
-	                os === "unix"
-	                  ? "var(--brand-bg, #ffffff)"
-	                  : "var(--brand-text, #000000)",
+                borderRight: `2px solid ${borderColor}`,
+                background:
+                  os === "unix" ? buttonColor : "var(--brand-bg, #ffffff)",
+                color:
+                  os === "unix"
+                    ? "var(--brand-bg, #ffffff)"
+                    : "var(--brand-text, #000000)",
                 fontSize: "12px",
                 cursor: "pointer",
               }}
@@ -252,13 +256,13 @@ export function InstallCommand({
               style={{
                 appearance: "none",
                 padding: "8px 10px",
-	              border: "none",
-	              background:
-	                os === "windows" ? buttonColor : "var(--brand-bg, #ffffff)",
-	              color:
-	                os === "windows"
-	                  ? "var(--brand-bg, #ffffff)"
-	                  : "var(--brand-text, #000000)",
+                border: "none",
+                background:
+                  os === "windows" ? buttonColor : "var(--brand-bg, #ffffff)",
+                color:
+                  os === "windows"
+                    ? "var(--brand-bg, #ffffff)"
+                    : "var(--brand-text, #000000)",
                 fontSize: "12px",
                 cursor: "pointer",
               }}

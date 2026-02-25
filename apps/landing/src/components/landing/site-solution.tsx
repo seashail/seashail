@@ -1,15 +1,26 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
-import { solution } from "@/content/copy";
-import { DOCS_URL } from "@/lib/constants";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
+import { getDocsUrl } from "@/lib/constants";
 
 /**
  * Solution section.
  *
- * @returns {JSX.Element} Solution section.
+ * @param props - Component props.
+ * @param props.copy - Solution section copy from the locale dictionary.
+ * @param props.locale - Current locale for locale-aware docs links.
+ * @returns Solution section.
  */
-export function SiteSolution(): JSX.Element {
+export function SiteSolution({
+  copy,
+  locale,
+}: {
+  copy: Dictionary["solution"];
+  locale: Locale;
+}): JSX.Element {
   return (
     <section
       style={{
@@ -30,7 +41,7 @@ export function SiteSolution(): JSX.Element {
           marginBottom: "16px",
         }}
       >
-        <Balancer>{solution.heading}</Balancer>
+        <Balancer>{copy.heading}</Balancer>
       </h2>
 
       <p
@@ -42,7 +53,7 @@ export function SiteSolution(): JSX.Element {
           marginBottom: "48px",
         }}
       >
-        <Balancer>{solution.subheading}</Balancer>
+        <Balancer>{copy.subheading}</Balancer>
       </p>
 
       <div
@@ -53,10 +64,10 @@ export function SiteSolution(): JSX.Element {
           maxWidth: "780px",
         }}
       >
-        {solution.features.map((feature, index) => (
+        {copy.features.map((feature, index) => (
           <a
             key={feature.title}
-            href={`${DOCS_URL}${feature.docPath}`}
+            href={getDocsUrl(locale, feature.docPath)}
             className="transition-all duration-200 hover:translate-x-1"
             style={{
               borderLeft: "4px solid var(--brand-accent, #ff0000)",

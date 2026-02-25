@@ -1,36 +1,24 @@
-import type { JSX, ReactNode } from "react";
+import type { JSX } from "react";
 
 import { Balancer } from "react-wrap-balancer";
 
-/**
- * Inline highlight badge with red background and white text.
- *
- * @param {object} props - Component props.
- * @param {ReactNode} props.children - Text content to highlight.
- * @returns {JSX.Element} Highlighted span.
- */
-function RedBadge({ children }: { children: ReactNode }): JSX.Element {
-  return (
-    <span
-      style={{
-        background: "var(--brand-accent, #e00)",
-        color: "var(--brand-bg, #fff)",
-        padding: "2px 6px",
-        fontWeight: 600,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
+import type { Dictionary } from "@/i18n/get-dictionary";
 
 /**
  * Problem section highlighting the key security risk of giving agents private keys.
  *
- * @returns {JSX.Element} Problem section.
+ * @param props - Component props.
+ * @param props.copy - Problem section copy from the locale dictionary.
+ * @param props.ui - Shared UI strings from the locale dictionary.
+ * @returns Problem section.
  */
-export function SiteProblem(): JSX.Element {
+export function SiteProblem({
+  copy,
+  ui,
+}: {
+  copy: Dictionary["problem"];
+  ui: Dictionary["ui"];
+}): JSX.Element {
   return (
     <section
       style={{
@@ -83,11 +71,11 @@ export function SiteProblem(): JSX.Element {
               margin: 0,
             }}
           >
-            <Balancer>The Key Problem</Balancer>
+            <Balancer>{ui.theProblemHeading}</Balancer>
           </h2>
         </div>
 
-        {/* Body paragraph with highlighted danger phrases */}
+        {/* Body paragraph */}
         <p
           style={{
             fontFamily: "var(--font-sans), 'Instrument Sans', sans-serif",
@@ -97,16 +85,10 @@ export function SiteProblem(): JSX.Element {
             maxWidth: "680px",
           }}
         >
-          <Balancer>
-            When you give an AI agent your private key, you give it{" "}
-            <RedBadge>unlimited access</RedBadge> to every asset in your wallet.
-            One <RedBadge>prompt injection</RedBadge>, one{" "}
-            <RedBadge>compromised plugin</RedBadge>, one hallucination — and{" "}
-            <RedBadge>your funds are gone</RedBadge>.
-          </Balancer>
+          <Balancer>{copy.body}</Balancer>
         </p>
 
-        {/* OpenClaw incident paragraph */}
+        {/* Incident paragraph */}
         <p
           style={{
             fontFamily: "var(--font-sans), 'Instrument Sans', sans-serif",
@@ -117,14 +99,7 @@ export function SiteProblem(): JSX.Element {
             opacity: 0.7,
           }}
         >
-          <Balancer>
-            The OpenClaw incident proved it:{" "}
-            <RedBadge>countless malicious skills</RedBadge> discovered{" "}
-            <RedBadge>stealing private keys</RedBadge>, prompt injection attacks{" "}
-            <RedBadge>draining wallets</RedBadge>, and a single CVE enabling{" "}
-            <RedBadge>remote code execution</RedBadge> with operator-level
-            access.
-          </Balancer>
+          <Balancer>{copy.incident}</Balancer>
         </p>
 
         {/* Closing tagline with red left border */}
@@ -146,7 +121,7 @@ export function SiteProblem(): JSX.Element {
               letterSpacing: "-0.01em",
             }}
           >
-            <Balancer>Your agent should never see your private key.</Balancer>
+            <Balancer>{copy.highlight}</Balancer>
           </p>
         </div>
       </div>

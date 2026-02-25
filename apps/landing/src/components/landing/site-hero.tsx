@@ -1,16 +1,30 @@
 import type { JSX } from "react";
+
 import { Balancer } from "react-wrap-balancer";
 
 import { InstallCommand } from "@/components/shared/install-command";
-import { hero } from "@/content/copy";
-import { DOCS_URL, GITHUB_URL } from "@/lib/constants";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
+import { GITHUB_URL, getDocsUrl } from "@/lib/constants";
 
 /**
  * Hero section for the landing page.
  *
- * @returns {JSX.Element} Hero section.
+ * @param props - Component props.
+ * @param props.copy - Hero section copy from the locale dictionary.
+ * @param props.ui - Shared UI strings from the locale dictionary.
+ * @param props.locale - Current locale for locale-aware docs links.
+ * @returns Hero section.
  */
-export function SiteHero(): JSX.Element {
+export function SiteHero({
+  copy,
+  ui,
+  locale,
+}: {
+  copy: Dictionary["hero"];
+  ui: Dictionary["ui"];
+  locale: Locale;
+}): JSX.Element {
   return (
     <section
       style={{
@@ -51,7 +65,7 @@ export function SiteHero(): JSX.Element {
           marginTop: "24px",
         }}
       >
-        <Balancer>{hero.headline}</Balancer>
+        <Balancer>{copy.headline}</Balancer>
       </h2>
 
       <h2
@@ -66,7 +80,7 @@ export function SiteHero(): JSX.Element {
           marginTop: "16px",
         }}
       >
-        <Balancer>{hero.headlineAccent}</Balancer>
+        <Balancer>{copy.headlineAccent}</Balancer>
       </h2>
 
       <p
@@ -80,7 +94,7 @@ export function SiteHero(): JSX.Element {
           color: "var(--brand-text, #000000)",
         }}
       >
-        <Balancer>{hero.subheadline}</Balancer>
+        <Balancer>{copy.subheadline}</Balancer>
       </p>
 
       <div
@@ -100,7 +114,7 @@ export function SiteHero(): JSX.Element {
         }}
       >
         <a
-          href={DOCS_URL}
+          href={getDocsUrl(locale)}
           className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--brand-text,#000000)]"
           style={{
             display: "inline-flex",
@@ -117,7 +131,7 @@ export function SiteHero(): JSX.Element {
             letterSpacing: "0.06em",
           }}
         >
-          Go To Docs
+          {ui.goToDocs}
         </a>
 
         <a
@@ -140,7 +154,7 @@ export function SiteHero(): JSX.Element {
             letterSpacing: "0.06em",
           }}
         >
-          GitHub
+          {ui.github}
         </a>
       </div>
     </section>
