@@ -99,4 +99,4 @@ workspace = true
 [dev-dependencies]
 assert_cmd = "2.0.16"
 predicates = "3.1.4"
-tempfile = "3.17.1"
+tempfile = "3.26.0"
