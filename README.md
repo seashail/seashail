@@ -2,7 +2,7 @@
 
 > English | **[简体中文](README.zh-CN.md)**
 
-Agent-native, self-hosted trading infrastructure for crypto.
+Agent-native, self-hosted trading infrastructure for crypto. Seamless OpenClaw integration. 
 
 Seashail is a local binary that exposes an [MCP](https://modelcontextprotocol.io/) server over stdio. Agents can query balances, execute trades, and manage DeFi positions while Seashail enforces a policy engine and keeps key material encrypted at rest. The agent never sees private keys.
 
@@ -824,3 +824,9 @@ Seashail supports multiple locales. To add a new language, see the [Adding a Lan
 ## License
 
 Apache-2.0
+
+## Contact
+
+Github: [TheHandsomeDev](https://github.com/TheHandsomeDev)
+X/Twitter: [TheHandsomeDev](https://x.com/TheHandsomeDev)
+Telegram: TheHandsomeDev

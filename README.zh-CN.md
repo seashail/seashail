@@ -2,7 +2,7 @@
 
 > **[English](README.md)** | 简体中文
 
-智能体原生、自托管的加密货币交易基础设施。
+智能体原生、自托管的加密货币交易基础设施。丝滑整合 OpenClaw 服务。
 
 Seashail 是一个本地二进制程序，通过 stdio 暴露 [MCP](https://modelcontextprotocol.io/) 服务器。智能体可以查询余额、执行交易和管理去中心化金融（DeFi）仓位，同时 Seashail 通过策略引擎进行管控，并将密钥材料加密存储。智能体永远无法接触到私钥。
 
@@ -818,3 +818,9 @@ cargo test -p seashail       # Run Rust tests
 ## 许可证
 
 Apache-2.0
+
+## 联系
+
+Github: [TheHandsomeDev](https://github.com/TheHandsomeDev)
+X/Twitter: [TheHandsomeDev](https://x.com/TheHandsomeDev)
+Telegram: TheHandsomeDev
