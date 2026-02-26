@@ -1,12 +1,12 @@
 ---
 title: "工具：NFT"
-description: 库存查询、转账和通过交易封装进行交易市场买卖/出价。
+description: 库存查询、转账和通过交易载荷进行交易市场买卖/出价。
 ---
 
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { TypeTable } from "fumadocs-ui/components/type-table";
 
-NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能体提供的交易封装进行交易市场交易。写入工具需要[策略审批](/zh/docs/reference/tools-policy)。支持的交易市场：Blur、Magic Eden、OpenSea、Tensor。
+NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能体提供的交易载荷进行交易市场交易。写入工具需要[策略审批](/zh/docs/reference/tools-policy)。支持的交易市场：Blur、Magic Eden、OpenSea、Tensor。
 
 ## get_nft_inventory
 
@@ -190,7 +190,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
 
 ## buy_nft
 
-通过交易市场买入 NFT，执行交易封装（智能体提供或从已配置的交易市场适配器获取）。需要策略审批。
+通过交易市场买入 NFT，执行交易载荷（智能体提供或从已配置的交易市场适配器获取）。需要策略审批。
 
 ### 参数
 
@@ -218,7 +218,7 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     },
     usd_value: {
       type: "number",
-      description: "用于策略执行的尽力美元价值。若省略，视为未知。",
+      description: "策略评估用的估算美元价值。若省略，视为未知。",
     },
     usd_value_known: {
       type: "boolean",
@@ -250,27 +250,27 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
     asset: {
       type: "object",
       description:
-        "交易市场特定资产标识符，传递给交易市场适配器以获取交易封装。",
+        "交易市场特定资产标识符，传递给交易市场适配器以获取交易载荷。",
     },
   }}
 />
 
-### 各链封装
+### 各链载荷
 
 <Tabs items={["Solana", "EVM"]}>
   <Tab value="Solana">
     - 提供 `tx_b64`：base64 编码的 `VersionedTransaction` 字节（未签名；Seashail
-    将签名）- 提供 `allowed_program_ids`：程序 ID
-    白名单（每条指令必须在此集合中）- 或者，提供 `asset`
-    对象让交易市场适配器获取封装 - Solana
-    交易市场封装**始终强制确认**（无论策略如何都需要用户确认）-
-    策略审批后，交易被签名并广播到 Solana
+    将签名）。 - 提供 `allowed_program_ids`：程序 ID
+    白名单（每条指令必须在此集合中）。 - 也可提供 `asset`
+    对象，由交易市场适配器获取交易载荷。 - Solana
+    交易市场交易载荷**始终强制确认**（无论策略如何都需要用户确认）。 -
+    通过策略审批后，交易会被签名并广播到 Solana。
   </Tab>
   <Tab value="EVM">
-    - 提供 `to`：合约/接收方地址 - 提供 `data`：0x 前缀调用数据（空时使用
-    `0x`）- 提供 `value_wei`：可选 ETH 价值，十进制字符串（默认："0"）-
-    或者，提供 `asset` 对象让交易市场适配器获取封装 - 广播前模拟交易 -
-    诈骗黑名单适用于 `to` 地址
+    - 提供 `to`：合约/接收方地址。 - 提供 `data`：0x 前缀调用数据（空时使用
+    `0x`）。 - 提供 `value_wei`：可选 ETH 价值，十进制字符串（默认 `"0"`）。 -
+    也可提供 `asset` 对象，由交易市场适配器获取交易载荷。 - 广播前会进行模拟。 -
+    诈骗地址黑名单适用于 `to` 地址。
   </Tab>
 </Tabs>
 
@@ -333,24 +333,24 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
 ### 注意事项
 
 - 需要[策略审批](/zh/docs/reference/tools-policy)。交易可能被自动批准、需要确认或被阻止，取决于策略配置和美元价值。
-- 智能体或已配置的适配器必须构建交易封装。Seashail 本身不构建交易市场交易封装。
-- Solana 交易市场封装**始终强制确认**（无论策略如何都需要用户确认）。
-- 若既未提供封装字段（`tx_b64`/`to`/`data`）也未提供 `asset`，Seashail 返回错误。
+- 智能体或已配置的适配器必须构建交易载荷。Seashail 本身不构建交易市场交易载荷。
+- Solana 交易市场交易载荷**始终强制确认**（无论策略如何都需要用户确认）。
+- 若既未提供载荷字段（`tx_b64`/`to`/`data`）也未提供 `asset`，Seashail 返回错误。
 - 另见：[NFT 指南](/zh/docs/guides/nfts)
 
 ---
 
 ## sell_nft
 
-通过交易市场卖出 NFT，执行交易封装（智能体提供或从已配置的交易市场适配器获取）。需要策略审批。
+通过交易市场卖出 NFT，执行交易载荷（智能体提供或从已配置的交易市场适配器获取）。需要策略审批。
 
 ### 参数
 
 与上方的 [`buy_nft`](#buy_nft) 相同。三个交易市场工具（`buy_nft`、`sell_nft`、`bid_nft`）共享相同的参数集。
 
-### 各链封装
+### 各链载荷
 
-与上方的 [`buy_nft`](#buy_nft) 相同。Solana 和 EVM 封装格式详情参见各链封装部分。
+与上方的 [`buy_nft`](#buy_nft) 相同。Solana 和 EVM 载荷格式详情参见“各链载荷”部分。
 
 ### 响应
 
@@ -410,22 +410,22 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
 ### 注意事项
 
 - 卖出前使用 [`get_nft_inventory`](#get_nft_inventory) 查看持有的 NFT。
-- 封装构建、策略审批和强制确认行为参见 [`buy_nft`](#buy_nft) 注意事项。
+- 载荷构建、策略审批和强制确认行为参见 [`buy_nft`](#buy_nft) 注意事项。
 - 另见：[NFT 指南](/zh/docs/guides/nfts)
 
 ---
 
 ## bid_nft
 
-通过交易市场对 NFT 出价，执行交易封装（智能体提供或从已配置的交易市场适配器获取）。需要策略审批。
+通过交易市场对 NFT 出价，执行交易载荷（智能体提供或从已配置的交易市场适配器获取）。需要策略审批。
 
 ### 参数
 
 与上方的 [`buy_nft`](#buy_nft) 相同。三个交易市场工具（`buy_nft`、`sell_nft`、`bid_nft`）共享相同的参数集。
 
-### 各链封装
+### 各链载荷
 
-与上方的 [`buy_nft`](#buy_nft) 相同。Solana 和 EVM 封装格式详情参见各链封装部分。
+与上方的 [`buy_nft`](#buy_nft) 相同。Solana 和 EVM 载荷格式详情参见“各链载荷”部分。
 
 ### 响应
 
@@ -484,6 +484,6 @@ NFT 工具涵盖库存读取（仅 Solana）、直接转账，以及通过智能
 
 ### 注意事项
 
-- 封装构建、策略审批和强制确认行为参见 [`buy_nft`](#buy_nft) 注意事项。
+- 载荷构建、策略审批和强制确认行为参见 [`buy_nft`](#buy_nft) 注意事项。
 - 另见：[NFT 指南](/zh/docs/guides/nfts)
 - 另见：[策略与审批](/zh/docs/guides/policy-and-approvals)

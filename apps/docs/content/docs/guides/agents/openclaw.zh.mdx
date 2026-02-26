@@ -5,12 +5,12 @@ description: 通过 MCP stdio 将 Seashail 连接到 OpenClaw。
 
 OpenClaw 可以通过 MCP stdio 连接到 Seashail（如果你的构建版本支持）。
 
-> 推荐：安装 **Seashail OpenClaw 插件**以获得一流的原生工具。
+> 推荐：安装 **Seashail OpenClaw 插件**以获得更完善的原生工具支持。
 
 ## 前置条件
 
 - [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
-- 已创建钱包（`seashail wallet create`）
+- 已创建钱包（首次连接会自动创建默认钱包，也可手动调用 `create_wallet`）
 - 支持 MCP 的 OpenClaw 构建版本
 
 ## 设置（推荐：OpenClaw 插件）
@@ -37,8 +37,8 @@ openclaw gateway restart
 
 如果你的 OpenClaw 构建版本直接支持 MCP stdio 服务器，你也可以配置一个名为 `seashail` 的 MCP 服务器：
 
-- **Command:** `seashail`
-- **Args:** `mcp`
+- **命令：** `seashail`
+- **参数：** `mcp`
 
 ## 设置（桥接/代理）
 
@@ -48,12 +48,12 @@ openclaw gateway restart
 seashail mcp
 ```
 
-如果你的桥接工具读取 `mcpServers` JSON 文件（通常命名为 `.mcp.json`），可以使用[任意 MCP 客户端 (Stdio)](/zh/docs/guides/agents/any-mcp-client) 中的配置格式。
+如果你的桥接工具读取 `mcpServers` JSON 文件（通常命名为 `.mcp.json`），可以使用[任意 MCP 客户端（stdio）](/zh/docs/guides/agents/any-mcp-client) 中的配置格式。
 
 ## 测试网模式
 
-- **Command:** `seashail`
-- **Args:** `mcp --network testnet`
+- **命令：** `seashail`
+- **参数：** `mcp --network testnet`
 
 ## 验证
 

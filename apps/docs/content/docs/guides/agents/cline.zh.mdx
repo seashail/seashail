@@ -5,12 +5,12 @@ description: 通过 MCP 将 Seashail 连接到 Cline（VS Code 扩展）。
 
 Cline 通过其内置界面支持 stdio 模式的 MCP 服务器。参见 [Cline MCP 文档](https://docs.cline.bot/mcp/configuring-mcp-servers)了解完整详情。
 
-> Seashail 是**仅 stdio** 模式。配置 Cline 运行本地命令（`seashail mcp`），而非"服务器 URL"。
+> Seashail 是**仅 stdio** 模式。配置 Cline 运行本地命令（`seashail mcp`），而非服务器 URL（SSE/HTTP）。
 
 ## 前置条件
 
 - [Seashail 已安装](/zh/docs/getting-started/install)并在你的 `PATH` 中
-- 已创建钱包（`seashail wallet create`）
+- 已创建钱包（首次连接会自动创建默认钱包，也可手动调用 `create_wallet`）
 - Cline VS Code 扩展已安装
 
 ## 设置
@@ -19,15 +19,15 @@ Cline 通过其内置界面支持 stdio 模式的 MCP 服务器。参见 [Cline 
 2. 导航到 **MCP Servers** 设置
 3. 添加一个名为 `seashail` 的新服务器
 4. 设置：
-   - **Command:** `seashail`
-   - **Args:** `mcp`
+   - **命令：** `seashail`
+   - **参数：** `mcp`
 
 ## 测试网模式
 
 连接到测试网，将 args 设置为 `mcp --network testnet`：
 
-- **Command:** `seashail`
-- **Args:** `mcp --network testnet`
+- **命令：** `seashail`
+- **参数：** `mcp --network testnet`
 
 ## 替代方式：直接编辑配置文件
 

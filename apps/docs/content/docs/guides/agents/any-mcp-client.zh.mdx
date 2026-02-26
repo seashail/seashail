@@ -1,24 +1,24 @@
 ---
-title: 任意 MCP 客户端 (Stdio)
+title: 任意 MCP 客户端（stdio）
 description: 使用 stdio 命令将 Seashail 连接到任意 MCP 客户端（无 SSE，无 URL）。
 ---
 
 Seashail 是**自托管**且**仅 stdio** 模式。
 
-如果你的客户端界面要求提供"服务器 URL"（SSE/HTTP），Seashail 不支持该模式。你必须将其配置为客户端启动的**本地命令**。
+如果你的客户端界面要求提供服务器 URL（SSE/HTTP），Seashail 不支持该模式。你必须将其配置为客户端启动的**本地命令**。
 
 ## 你只需要两个字段
 
 大多数 MCP 客户端最终需要：
 
-- **Command:** `seashail`
-- **Args:** `mcp`
+- **命令：** `seashail`
+- **参数：** `mcp`
 
 测试网（可选）：
 
-- **Args:** `mcp --network testnet`
+- **参数：** `mcp --network testnet`
 
-如果 `seashail` 不在你的 `PATH` 中，请为 **Command** 使用绝对路径（例如 `/usr/local/bin/seashail`）。
+如果 `seashail` 不在你的 `PATH` 中，请为 **命令** 使用绝对路径（例如 `/usr/local/bin/seashail`）。
 
 ## 常见配置文件格式
 
@@ -49,27 +49,27 @@ Seashail 是**自托管**且**仅 stdio** 模式。
 }
 ```
 
-## "免安装"选项（仍然是 Stdio）
+## 免安装选项（仍为 stdio）
 
 如果你想要一行命令运行 Seashail 而不将 `seashail` 放在 `PATH` 中，配置你的 MCP 客户端通过 `npx` 运行：
 
-- **Command:** `npx`
-- **Args:** `-y @seashail/mcp --`
+- **命令：** `npx`
+- **参数：** `-y @seashail/mcp --`
 
 测试网（可选）：
 
-- **Args:** `-y @seashail/mcp -- --network testnet`
+- **参数：** `-y @seashail/mcp -- --network testnet`
 
-这仍然是通过 stdio 在本地运行 Seashail。（首次运行时可能会下载包装器包。）
+这仍然是通过 stdio 在本地运行 Seashail。（首次运行时可能会下载启动器包。）
 
 如果你更喜欢 Python 工具，也可以通过 `uvx` 运行：
 
-- **Command:** `uvx`
-- **Args:** `seashail-mcp --`
+- **命令：** `uvx`
+- **参数：** `seashail-mcp --`
 
 测试网（可选）：
 
-- **Args:** `seashail-mcp -- --network testnet`
+- **参数：** `seashail-mcp -- --network testnet`
 
 ## 验证
 

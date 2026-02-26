@@ -712,9 +712,9 @@
     },
     {
       "term": "proxy",
-      "zh": "代理",
+      "zh": "代理进程",
       "category": "product",
-      "rationale": "Standard Chinese networking/systems term. 代理 = proxy/agent."
+      "rationale": "在 Seashail 文档中特指 `seashail mcp` 进程，使用“代理进程”可与 AI 智能体（agent）区分。"
     },
     {
       "term": "public key",
@@ -928,9 +928,9 @@
     },
     {
       "term": "tool envelope",
-      "zh": "工具封装",
+      "zh": "工具调用载荷",
       "category": "product",
-      "rationale": "Seashail/MCP-specific. 工具 = tool, 封装 = envelope/wrapper. Standard Chinese software term."
+      "rationale": "Seashail/MCP 语境下，envelope 指携带调用参数的载荷对象；“工具调用载荷”表意更明确。"
     },
     {
       "term": "transaction",
@@ -1006,9 +1006,9 @@
     },
     {
       "term": "withdraw",
-      "zh": "提款",
+      "zh": "提取",
       "category": "defi",
-      "rationale": "Standard Chinese financial term. 提 = withdraw, 款 = funds."
+      "rationale": "在链上/协议语境中统一使用“提取”，与“充值/存入”形成稳定对照。"
     },
     {
       "term": "Wormhole",

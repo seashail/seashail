@@ -369,7 +369,7 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
 
 ## bridge_tokens
 
-跨链桥接代币。当提供 `to_chain`、`token` 和 `amount` 时，Seashail 在 EVM 和 Solana 上执行原生 Wormhole 代币桥（或在 EVM 上执行 LayerZero OFT v1）。否则，回退到执行提供的交易封装。需要[策略审批](/zh/docs/guides/policy-and-approvals)。
+跨链桥接代币。当提供 `to_chain`、`token` 和 `amount` 时，Seashail 在 EVM 和 Solana 上执行原生 Wormhole 代币桥（或在 EVM 上执行 LayerZero OFT v1）。否则，回退到执行提供的交易载荷。需要[策略审批](/zh/docs/guides/policy-and-approvals)。
 
 ### 参数
 
@@ -405,12 +405,12 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
     token: {
       type: "string",
       description:
-        "要桥接的代币。EVM：ERC-20 合约地址。Solana：SPL mint 公钥。原生路径必填。",
+        "要桥接的代币。EVM：ERC-20 合约地址。Solana：SPL mint 公钥。原生执行路径必填。",
     },
     amount: {
       type: "string",
       description:
-        "以十进制字符串表示的桥接金额。注意：Wormhole 原生路径不支持 amount=max。原生路径必填。",
+        "以十进制字符串表示的桥接金额。注意：Wormhole 原生执行路径不支持 amount=max。原生执行路径必填。",
     },
     amount_units: {
       type: '"ui" | "base"',
@@ -420,7 +420,7 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
     recipient: {
       type: "string",
       description:
-        "目标链上的接收方。EVM→EVM 或 Solana→EVM：EVM 地址。EVM→Solana：Solana 所有者公钥（Seashail 会为封装 mint 派生 ATA）。默认为目标链上的同一 Seashail 钱包。",
+        "目标链上的接收方。EVM→EVM 或 Solana→EVM：EVM 地址。EVM→Solana：Solana 所有者公钥（Seashail 会为桥接代币 mint 派生 ATA）。默认为目标链上的同一 Seashail 钱包。",
     },
   }}
 />
@@ -469,7 +469,7 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
   type={{
     usd_value: {
       type: "number",
-      description: "用于策略执行的尽力美元价值。若省略，视为未知。",
+      description: "策略评估用的估算美元价值。若省略，视为未知。",
     },
     usd_value_known: {
       type: "boolean",
@@ -479,13 +479,13 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
   }}
 />
 
-**交易封装回退（EVM）：**
+**交易载荷回退（EVM）：**
 
 <TypeTable
   type={{
     to: {
       type: "string",
-      description: "EVM：交易接收方/合约地址。用于交易封装回退模式。",
+      description: "EVM：交易接收方/合约地址。用于交易载荷回退模式。",
     },
     data: {
       type: "string",
@@ -499,7 +499,7 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
   }}
 />
 
-**交易封装回退（Solana）：**
+**交易载荷回退（Solana）：**
 
 <TypeTable
   type={{
@@ -521,7 +521,7 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
   type={{
     asset: {
       type: "object",
-      description: "协议特定请求对象，供可选适配器用于构建交易封装。",
+      description: "协议特定请求对象，供可选适配器用于构建交易载荷。",
     },
   }}
 />
@@ -539,7 +539,7 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
   <Tab value="EVM → Solana">
     - `chain`：EVM 链名称（例如 `"base"`），`to_chain`：`"solana"` -
     `token`：要桥接的代币的 ERC-20 合约地址 - `recipient`：Solana
-    所有者公钥——Seashail 自动派生封装 mint 的 ATA - 可选
+    所有者公钥——Seashail 自动派生桥接代币 mint 的 ATA - 可选
     `recipient_token_account` 覆盖确切目标 SPL 代币账户 - 可能需要先进行 ERC-20
     授权交易——Seashail 会自动处理
   </Tab>
@@ -612,8 +612,8 @@ description: 空投、转账、兑换和跨链桥接（策略门控签名）。
 
 ### 注意事项
 
-- **原生路径需要三个参数全部提供：** `to_chain`、`token` 和 `amount` 必须全部提供，Seashail 才能执行原生 Wormhole/LayerZero 桥接。如果缺少任一参数，Seashail 将回退到交易封装模式。
-- **不支持 `amount=max`**（Wormhole 原生路径）。
+- **原生执行路径需要三个参数全部提供：** `to_chain`、`token` 和 `amount` 必须全部提供，Seashail 才能执行原生 Wormhole/LayerZero 桥接。如果缺少任一参数，Seashail 将回退到交易载荷模式。
+- **不支持 `amount=max`**（Wormhole 原生执行路径）。
 - **`redeem=true`（默认）**会尝试在目标链上自动赎回。这要求目标钱包有燃料（EVM 目标需要 ETH，Solana 目标需要 SOL）。
 - **`bridge_provider`** 默认为 `"wormhole"`。EVM 链上的 OFT v1 代币也支持 LayerZero（`"layerzero"`）。
 - **策略：** 跨链桥接必须在[策略配置](/zh/docs/guides/policy-and-approvals)中启用（`enable_bridge` 字段）。

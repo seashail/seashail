@@ -9,9 +9,9 @@ Seashail 的 NFT 工具涵盖三个类别：
 
 - **库存查看：** 查看你拥有的 NFT
 - **直接转移：** 将 NFT 发送到另一个地址
-- **交易市场交易：** 通过交易封装在 NFT 市场上买入、卖出或出价
+- **交易市场交易：** 通过交易载荷在 NFT 市场上买入、卖出或出价
 
-交易市场交易使用**交易封装**——代理（或已配置的适配器）构建特定交易市场的交易，Seashail 在策略评估后签名。
+交易市场交易使用**交易载荷**：智能体（或已配置的适配器）构建特定交易市场的交易，Seashail 在策略评估后签名。
 
 支持的交易市场：**Blur**（Ethereum）、**Magic Eden**（Solana + 跨链）、**OpenSea**（Ethereum）、**Tensor**（Solana）。
 
@@ -81,10 +81,10 @@ Seashail 的 NFT 工具涵盖三个类别：
 
 ### 工作原理
 
-交易市场操作（`buy_nft`、`sell_nft`、`bid_nft`）需要**交易封装**：
+交易市场操作（`buy_nft`、`sell_nft`、`bid_nft`）需要**交易载荷**：
 
-1. 代理（或适配器）获取交易市场的挂单/报价数据
-2. 代理构建交易（或提供 `asset` 对象供已配置的适配器获取）
+1. 智能体（或适配器）获取交易市场的挂单/报价数据
+2. 智能体构建交易（或提供 `asset` 对象供已配置的适配器获取）
 3. Seashail 对照策略验证、签名并广播
 
 这种设计将交易市场特定的逻辑保持在 Seashail 安全边界之外，同时仍强制执行策略控制。
@@ -95,9 +95,9 @@ Seashail 的 NFT 工具涵盖三个类别：
 
 - **Solana：** 提供 `tx_b64`（base64 编码的未签名 VersionedTransaction）和 `allowed_program_ids`（程序 ID 白名单）
 - **EVM：** 提供 `to`（合约地址）、`data`（calldata）以及可选的 `value_wei`（ETH 价值）
-- 或者提供 `asset` 对象让交易市场适配器获取封装
+- 或者提供 `asset` 对象让交易市场适配器获取交易载荷
 - 策略评估适用（`enable_nft`、`max_usd_per_nft_tx`）
-- Solana 交易市场封装**始终强制确认**（无论策略层级如何都需要用户确认）
+- Solana 交易市场交易载荷**始终强制确认**（无论策略层级如何都需要用户确认）
 
 示例（Solana，Magic Eden）：
 
@@ -131,8 +131,8 @@ Seashail 的 NFT 工具涵盖三个类别：
 
 使用 `sell_nft` 挂单出售 NFT 或接受报价：
 
-- 与 `buy_nft` 相同的封装格式（见上文）
-- 代理为所选交易市场构建出售/挂单交易
+- 与 `buy_nft` 相同的载荷格式（见上文）
+- 智能体为所选交易市场构建出售/挂单交易
 - 出售前使用 `get_nft_inventory` 发现你拥有哪些 NFT
 
 示例（Solana，Tensor）：
@@ -151,8 +151,8 @@ Seashail 的 NFT 工具涵盖三个类别：
 
 使用 `bid_nft` 出价或提出报价：
 
-- 与 `buy_nft` 相同的封装格式（见上文）
-- 代理为所选交易市场构建出价/报价交易
+- 与 `buy_nft` 相同的载荷格式（见上文）
+- 智能体为所选交易市场构建出价/报价交易
 - 策略评估适用（与买入/卖出相同）
 
 示例（EVM，Blur）：
@@ -173,38 +173,38 @@ Seashail 的 NFT 工具涵盖三个类别：
 ### Blur（Ethereum）
 
 - 高交易量的 Ethereum 交易市场
-- 封装：带有 `to`、`data`、`value_wei` 的 EVM 交易
+- 交易载荷：带有 `to`、`data`、`value_wei` 的 EVM 交易
 - 交易在广播前进行模拟
 - 诈骗地址黑名单适用于合约地址
 
 ### Magic Eden（Solana + EVM）
 
 - 跨链交易市场（Solana、Ethereum、Polygon 等）
-- Solana 封装：带 `allowed_program_ids` 的 `tx_b64`
-- EVM 封装：`to`、`data`、`value_wei`
-- Solana 封装强制确认（需要用户确认）
+- Solana 交易载荷：带 `allowed_program_ids` 的 `tx_b64`
+- EVM 交易载荷：`to`、`data`、`value_wei`
+- Solana 交易载荷强制确认（需要用户确认）
 
 ### OpenSea（Ethereum）
 
 - 广泛使用的 Ethereum 交易市场
-- 封装：带有 `to`、`data`、`value_wei` 的 EVM 交易
+- 交易载荷：带有 `to`、`data`、`value_wei` 的 EVM 交易
 - 支持 Seaport 协议
 - 交易在广播前进行模拟
 
 ### Tensor（Solana）
 
 - 专注于 Solana 的 NFT 交易市场
-- 封装：带 `allowed_program_ids` 的 `tx_b64`
-- Solana 封装强制确认（需要用户确认）
+- 交易载荷：带 `allowed_program_ids` 的 `tx_b64`
+- Solana 交易载荷强制确认（需要用户确认）
 - 以支持压缩 NFT 著称
 
 ## 典型工作流程
 
 ### 浏览并购买：
 
-1. 代理在交易市场上发现挂单（链外）
-2. 代理构建封装或提供 `asset` 对象
-3. `buy_nft`，使用交易市场封装
+1. 智能体在交易市场上发现挂单（链外）
+2. 智能体构建交易载荷或提供 `asset` 对象
+3. `buy_nft`，使用交易市场交易载荷
 4. 通过 MCP 交互确认
 5. `get_nft_inventory` 验证购买
 
@@ -217,8 +217,8 @@ Seashail 的 NFT 工具涵盖三个类别：
 ### 挂单出售：
 
 1. `get_nft_inventory` 查看你拥有什么
-2. 代理构建出售/挂单封装
-3. `sell_nft`，使用交易市场封装
+2. 智能体构建出售/挂单交易载荷
+3. `sell_nft`，使用交易市场交易载荷
 4. 通过 MCP 交互确认
 
 ## 策略控制
@@ -228,18 +228,18 @@ NFT 交易受策略控制：
 - `enable_nft`：主开关（默认：`true`）
 - `max_usd_per_nft_tx`：限制每笔交易的美元价值上限（默认：`1000`）
 - 超过上限的交易会被拦截
-- 低于上限的交易可能自动审批或需要确认，具体取决于分级审批设置
+- 低于上限的交易可能自动批准或需要确认，具体取决于分级审批设置
 
 有关策略配置，请参阅[策略与审批](/zh/docs/guides/policy-and-approvals)。
 
 ## 注意事项
 
 - 完整参数详情：[NFT 工具参考](/zh/docs/reference/tools-nfts)
-- **封装二元性：** 代理可以直接提供封装，或已配置的适配器通过 `asset` 字段获取
-- **Solana 交易市场封装始终强制确认**——无论策略层级如何都需要用户确认
+- **载荷双路径：** 智能体可以直接提供交易载荷，或由已配置适配器通过 `asset` 字段获取。
+- **Solana 交易市场交易载荷始终强制确认**——无论策略层级如何都需要用户确认。
 - 相关内容：[钱包指南](/zh/docs/guides/wallets)，了解钱包地址管理
 
 ## 另见
 
-- [故障排除](/zh/docs/troubleshooting)，了解策略错误和交易市场封装问题的解决方案
+- [故障排除](/zh/docs/troubleshooting)，了解策略错误和交易市场交易载荷问题的解决方案
 - [术语表](/zh/docs/glossary)，了解交互确认、强制确认和交易市场术语的定义

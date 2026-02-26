@@ -95,9 +95,9 @@ Anthropic 开发的用于智能体与工具通过 stdio 通信的协议。Seasha
 
 **使用于：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
 
-### proxy（代理）
+### proxy（代理进程）
 
-轻量级 stdio 进程（`seashail mcp`），将 MCP 消息转发给守护进程。多个代理可以同时运行，它们通过 Unix 套接字、命名管道或 TCP 回环与同一个守护进程通信。
+轻量级 stdio 进程（`seashail mcp`），将 MCP 消息转发给守护进程。多个代理进程可以同时运行，它们通过 Unix 套接字、命名管道或 TCP 回环与同一个守护进程通信。
 
 **使用于：** [架构参考](/zh/docs/reference/architecture)、[快速入门指南](/zh/docs/getting-started/quickstart)
 
@@ -143,15 +143,15 @@ Solana 的同质化代币标准。SPL 代币需要关联代币账户（ATA）来
 
 - **自动批准**：交易无需确认即可进行（在低风险限额内）
 - **确认**：用户必须在签名前通过交互确认批准
-- **硬性拦截**：交易被拒绝，无法继续
+- **硬性阻止**：交易被拒绝，无法继续
 
 策略引擎根据配置的阈值评估每笔交易，以确定适用哪个级别。
 
 **使用于：** [策略与审批指南](/zh/docs/guides/policy-and-approvals)
 
-### tool envelope（工具封装）
+### tool envelope（工具调用载荷）
 
-包含工具名称及其参数的 MCP 工具调用封装。Seashail 的 MCP 服务器接收工具封装，验证参数，评估策略，并返回结果或错误。
+包含工具名称及其参数的 MCP 工具调用载荷。Seashail 的 MCP 服务器接收该载荷，验证参数，评估策略，并返回结果或错误。
 
 **使用于：** [架构参考](/zh/docs/reference/architecture)
 

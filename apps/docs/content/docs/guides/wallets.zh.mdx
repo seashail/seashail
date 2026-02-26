@@ -3,7 +3,7 @@ title: 钱包与密钥存储
 description: 创建/导入钱包、管理账户，以及安全充值地址。
 ---
 
-Seashail 的设计确保 agent 进程永远不会收到密钥材料。
+Seashail 的设计确保智能体进程永远不会收到密钥材料。
 
 ## 钱包类型
 
@@ -12,20 +12,20 @@ Seashail 的设计确保 agent 进程永远不会收到密钥材料。
 生成钱包在 Seashail 内部创建，使用沙米尔秘密分享（2-of-3）进行保护：
 
 - 密钥分片 1：使用存储在 `config_dir` 中的机器密钥加密
-- 密钥分片 2：默认使用机器密钥加密（方便上手），或在 passphrase 下重新加密以实现可移植性（可选启用）
+- 密钥分片 2：默认使用机器密钥加密（方便上手），或在密码短语下重新加密以实现可移植性（可选启用）
 - 密钥分片 3：在明确的恢复/导出操作期间一次性显示作为离线备份，Seashail 不存储
 
 正常操作从密钥分片 1 + 2 重建，完成签名后立即从内存中清零密钥材料。
 
 ### 导入钱包
 
-导入的私钥/助记词使用 AES-256-GCM 静态加密，加密密钥由你的 passphrase 派生（Argon2id + HKDF 子密钥）。
+导入的私钥/助记词使用 AES-256-GCM 静态加密，加密密钥由你的密码短语派生（Argon2id + HKDF 子密钥）。
 
 ## 密码短语会话
 
-为了使自动化可行，Seashail 将 passphrase 派生的密钥缓存在内存中，持续时间可配置（`passphrase_session_seconds`）。
+为了使自动化可行，Seashail 将密码短语派生的密钥缓存在内存中，持续时间可配置（`passphrase_session_seconds`）。
 
-无人值守环境可以选择通过环境变量提供 passphrase：
+无人值守环境可以选择通过环境变量提供密码短语：
 
 - `SEASHAIL_PASSPHRASE`
 
@@ -35,7 +35,7 @@ Seashail 的设计确保 agent 进程永远不会收到密钥材料。
 
 创建生成钱包（沙米尔秘密分享 2-of-3）：
 
-- `create_wallet`（通过 MCP 交互确认提示输入 passphrase）
+- `create_wallet`（通过 MCP 交互确认提示输入密码短语）
 
 导入现有钱包：
 
@@ -43,7 +43,7 @@ Seashail 的设计确保 agent 进程永远不会收到密钥材料。
 
 注意事项：
 
-- 不要将 `secret` 作为工具参数传递。Seashail 在设计上会拒绝它，因为工具参数经常出现在 agent 日志中。
+- 不要将 `secret` 作为工具参数传递。Seashail 在设计上会拒绝它，因为工具参数经常出现在智能体日志中。
 - 导入的私钥需要 `private_key_chain`（`evm` 或 `solana`）。
 
 ## 管理钱包与账户

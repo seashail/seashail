@@ -1,11 +1,11 @@
 ---
 title: 安装
-description: 安装 Seashail 并配置你的 agent 使用它作为 MCP 服务器。
+description: 安装 Seashail 并配置你的智能体使用它作为 MCP 服务器。
 ---
 
 ## 推荐方式：安装 `seashail` 二进制文件
 
-Seashail 是一个本地二进制文件。你的 agent 通过 MCP stdio 服务器运行它（通过 `seashail mcp`）。
+Seashail 是一个本地二进制文件。你的智能体通过 MCP stdio 服务器运行它（通过 `seashail mcp`）。
 
 你需要：
 
@@ -42,31 +42,31 @@ $env:Path = "$HOME\.local\bin;$env:Path"
 
 ## 免安装选项
 
-如果你不想安装 `seashail` 二进制文件，可以在 agent 的 MCP 配置中引用以下包装器。它们会自动安装并运行 Seashail。
+如果你不想安装 `seashail` 二进制文件，可以在智能体的 MCP 配置中引用以下启动器。它们会自动安装并运行 Seashail。
 
 ### npx (Node.js)
 
 使用以下作为 MCP 服务器命令：
 
-- **Command:** `npx`
-- **Args:** `-y @seashail/mcp --`
+- **命令：** `npx`
+- **参数：** `-y @seashail/mcp --`
 
 测试网：
 
-- **Args:** `-y @seashail/mcp -- --network testnet`
+- **参数：** `-y @seashail/mcp -- --network testnet`
 
 ### uvx (Python)
 
 使用以下作为 MCP 服务器命令：
 
-- **Command:** `uvx`
-- **Args:** `seashail-mcp`
+- **命令：** `uvx`
+- **参数：** `seashail-mcp`
 
 测试网：
 
-- **Args:** `seashail-mcp -- --network testnet`
+- **参数：** `seashail-mcp -- --network testnet`
 
-> 这些包装器在底层调用 `seashail mcp`。如果 `seashail` 已安装，它们会直接使用；否则会运行托管安装程序（源码构建）。
+> 这些启动器在底层调用 `seashail mcp`。如果 `seashail` 已安装，它们会直接使用；否则会运行托管安装程序（源码构建）。
 
 ## OpenClaw 用户
 
@@ -113,10 +113,10 @@ cargo build -p seashail
 ./target/debug/seashail
 ```
 
-要在 agent 中使用开发版二进制文件，将 agent 配置指向：
+要在智能体中使用开发版二进制文件，将智能体配置指向：
 
-- **Command:** `./target/debug/seashail`
-- **Args:** `mcp`
+- **命令：** `./target/debug/seashail`
+- **参数：** `mcp`
 
 你还可以打印解析后的配置和数据路径：
 
@@ -126,7 +126,7 @@ cargo build -p seashail
 
 ## 下一步
 
-- [连接你的 Agent](../guides/agents) — 设置 Claude Desktop、Cursor、VS Code、OpenClaw 等
+- [连接你的智能体](../guides/agents) — 设置 Claude Desktop、Cursor、VS Code、OpenClaw 等
 - [快速开始](./quickstart) — 创建你的第一个钱包并开始交易
 - [配置](./configuration) — 自定义路径、网络模式和 RPC 端点
 

@@ -5,7 +5,7 @@ description: Seashail 所有命令和子命令的命令行界面参考。
 
 Seashail 提供命令行界面，用于运行 MCP 服务器、管理智能体配置、诊断和升级。本页记录所有可用命令及其标志和使用示例。
 
-> 没有 `seashail wallet` 命令。钱包操作仅通过 MCP 工具进行。通过 MCP 智能体使用 `create_wallet`、`import_wallet` 和其他钱包工具。
+> 没有 `seashail wallet` 命令。钱包操作仅通过 MCP 工具进行。请通过 MCP 客户端调用 `create_wallet`、`import_wallet` 和其他钱包工具。
 
 ## seashail mcp
 
@@ -54,7 +54,7 @@ seashail mcp --standalone
 - 代理模式（默认）允许多个智能体进程共享一个守护进程状态（密钥存储、密码短语会话、策略）。
 - 代理在守护进程未运行时会自动启动它。
 - 使用 `--standalone` 进行隔离测试或单智能体场景。
-- 有关代理/守护进程关系的详细信息，请参阅[架构](/zh/docs/reference/architecture)。
+- 有关代理进程/守护进程关系的详细信息，请参阅[架构](/zh/docs/reference/architecture)。
 
 ---
 
@@ -91,7 +91,7 @@ seashail daemon --idle-exit-seconds 300
 ### 注意事项
 
 - 通常不需要手动运行——代理模式下的 `seashail mcp` 会自动启动守护进程。
-- 守护进程在 `$DATA_DIR/seashail-daemon.lock` 处持有独占文件系统锁，以防止脑裂状态。
+- 守护进程在 `$DATA_DIR/seashail-daemon.lock` 处持有独占文件系统锁，以防止状态分裂。
 - 当所有 MCP 客户端断开连接时，空闲计时器开始计时。如果设置了 `--idle-exit-seconds`，守护进程在该时长后退出。
 
 ---
@@ -295,7 +295,7 @@ seashail agent install cursor --path ~/my-config.json
 
 ## seashail openclaw install
 
-安装或管理 OpenClaw 插件集成。这为 OpenClaw 提供一流的 Seashail 工具支持。
+安装或管理 OpenClaw 插件集成。这为 OpenClaw 提供更完善的 Seashail 工具支持。
 
 ### 标志
 

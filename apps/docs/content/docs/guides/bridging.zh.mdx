@@ -14,7 +14,7 @@ description: 使用 Wormhole 和 LayerZero 在 Solana 与 EVM 链之间转移代
 1. 调用 `bridge_tokens`，指定源链（`chain`）、目标链（`to_chain`）、代币和数量
 2. Seashail 在源链上执行跨链桥交易
 3. 跨链桥提供商将交易中继到目标链
-4. 如果 `redeem: true`（默认），Seashail 尝试在目标链上自动兑换（需要目标链 Gas）
+4. 如果 `redeem: true`（默认），Seashail 尝试在目标链上自动兑换（需要目标链燃料费）
 5. 你在目标链上收到代币
 
 跨链桥接不是即时的。确认时间因链而异（几分钟到几小时）。
@@ -85,7 +85,7 @@ description: 使用 Wormhole 和 LayerZero 在 Solana 与 EVM 链之间转移代
 - **Solana → EVM：** 通常 5-20 分钟（Wormhole 守护者共识）
 - **EVM → Solana：** 因 EVM 链最终确认时间而异（Ethereum 约 15 分钟，L2 更快）
 
-跨链桥手续费通常较小，但会增加源链和目标链的 Gas 成本。Seashail 处理源链的 Gas；目标链 Gas 由跨链桥中继者处理（如果 `redeem: true` 则由 Seashail 处理）。
+跨链桥手续费通常较小，但会增加源链和目标链的燃料费成本。Seashail 处理源链燃料费；目标链燃料费由跨链桥中继者处理（如果 `redeem: true` 则由 Seashail 处理）。
 
 ## 何时选择跨链桥而非兑换
 
@@ -100,8 +100,8 @@ description: 使用 Wormhole 和 LayerZero 在 Solana 与 EVM 链之间转移代
 
 - 完整参数详情：[bridge_tokens 参考](/zh/docs/reference/tools-write#bridge_tokens)
 - 跨链桥提供商特定参数（Wormhole 收款地址、LayerZero 配置）在参考文档中有说明
-- `redeem: true`（默认）需要目标钱包有足够的 Gas 用于兑换交易
-- Wormhole 原生路径不支持 `amount=max`
+- `redeem: true`（默认）需要目标钱包有足够的燃料费余额用于兑换交易
+- Wormhole 原生执行路径不支持 `amount=max`
 - 策略：必须在策略配置中启用跨链桥接（`enable_bridge` 字段）
 
 ## 另见
