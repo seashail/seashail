@@ -1,6 +1,6 @@
 {
   "name": "seashail",
-  "author": "TheHandsomeDev",
+  "private": true,
   "workspaces": [
     "apps/*",
     "crates/*",
@@ -11,7 +11,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "turbo test",
-    "check": "turbo lint && turbo format:check && turbo check-types",
+    "check": "turbo lint && turbo format:check && turbo check-types && bun run check:zh-copy",
+    "check:zh-copy": "node scripts/check-zh-copy.mjs",
     "lint": "turbo lint",
     "lint:oxlint": "oxlint",
     "check-types": "turbo check-types",
