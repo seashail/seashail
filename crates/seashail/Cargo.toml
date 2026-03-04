@@ -87,7 +87,7 @@ turso = "0.4.4"
 bitcoin = { version = "0.32.7", default-features = false, features = ["std"] }
 rust_decimal = "1.36.0"
 k256 = { version = "0.13.4", default-features = false, features = ["ecdsa"] }
-polymarket-client-sdk = { version = "0.4.1", default-features = false, features = [
+polymarket-client-sdk = { version = "0.4.3", default-features = false, features = [
   "clob",
 ] }
 carbon-marginfi-v2-decoder = "0.12.0"
