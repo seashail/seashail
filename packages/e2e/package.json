@@ -22,6 +22,6 @@
     "oxfmt": "latest",
     "oxlint": "latest",
     "shamir-secret-sharing": "0.0.4",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   }
 }
